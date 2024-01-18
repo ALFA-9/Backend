@@ -1,0 +1,293 @@
+openapi: 3.0.3
+info:
+  title: Альфа
+  description: >-
+    Описание интеграций для взаимодействия с Трекером ИПР
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://localhost:8080/api
+tags:
+  - name: Интеграция с Трекером ИПР
+    
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+ /idp/{idp_id}:
+    get:
+      tags:
+        - ИПР
+      summary: Получаем данные ИПР сотрудника
+      description: позволяет найти данные ИПР (название сроки) по id ИПР
+      parameters:
+        - name: idp_id 
+          in: path
+          required: true
+          description: id ИПР
+          example: 900099
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешная операция
+        
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPDbyEmployee'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'           
+ /idp:
+    get:
+      tags:
+        - ИПР
+      summary: запрос ИПР сотрудника
+      description: позволяет найти ИПР по id сотрудника
+      parameters:
+        - name: employee_id
+          in: query
+          required: true
+          description: id сотрудника
+          example: 900009
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешная операция
+        
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getIprIDbyEmployeeId'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error' 
+                
+                
+    post:
+      tags:
+        - ИПР
+      summary: сохраняем ИПР
+      description: сохраняем данные нового ИПР сотрудника созданного руководителем
+    
+      requestBody:
+        description: отправление названия нового ИПР
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setIdp'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/getIprIDbyEmployeeId'
+        'default':
+          description: Произошла ошибка
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/error'
+     
+
+  
+    put:  
+      tags:
+        - ИПР
+      summary: изменяем статус ИПР
+      description:  изменение руководителем статуса ИПР 
+      requestBody:
+        description: Изменение статуса ИПР
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/statusByIdp'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+          
+        'default':
+          description: Произошла ошибка
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/error'
+ /request:                  
+    put:  
+      tags:
+        - ИПР
+      summary: сохраняем заявку
+      description: сохраняем заявку на новый ИПР сотрудника
+      requestBody:
+        description: Сохранение заявки
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestByIdp'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/requestIDP'
+        'default':
+          description: Произошла ошибка
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/error'
+     
+
+ /task:
+    post:
+      tags:
+        - Задача
+      summary: сохраняем задачу
+      description: сохраняем задачу в создаваемом ИПР
+    
+      requestBody:
+        description: отправление заполненных полей по задаче
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setTask'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/getIprIdbyTask'
+        '404':
+          description: Произошла ошибка
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/error'
+
+  
+components: 
+  schemas:
+    
+    statusByIdp:
+      type: object
+      properties:
+        title:
+          type: string
+          example: выполнен
+    
+    requestByIdp:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Системный анализ
+        letter: 
+          type: string
+          example: Необходимо изучить навыки необходимые для перехода на должность системного аналитика
+          
+    
+    setIdp:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Изучить работу со Swagger Editor
+        date_start:
+          type: string
+          example: 05.02.2024
+        date_end:
+          type: string
+          example: 05.08.2024
+        
+    setTask:
+      type: object
+      properties:
+        name_task:
+          type: string
+          example: Изучить видео курс по обучению работы со Swagger Editor
+        date_start:
+          type: string
+          example: 05.02.2024
+        date_end:
+          type: string
+          example: 05.08.2024
+        name_task_type:
+          type: string
+          example: тестирвание
+        title:
+          type: string
+          example: Практическая задача
+        description: 
+          type: string
+          example: Задача для прокачивания скила работы с АPI
+  
+    getIprIDbyEmployeeId:
+      type: object
+      properties:
+        idp_id:
+          type: integer
+          example: 100078
+               
+    error:
+     type: object
+     properties:
+        errorcode:
+          type: integer
+          example: 404
+        description: 
+          type: string
+          example: Not Found
+          
+    getIprIdbyTask:
+      type: object
+      properties:
+        task_id:
+          type: integer
+          example: 100078
+          
+    requestIDP:
+      type: object
+      properties:
+        request_id:
+          type: integer
+          example: 100078
+          
+    IPDbyEmployee:
+      type: object
+      properties:
+        title:
+          type: string
+          example: ИПР сотрудника Федоровой для освоения недостающих скилов до специализации “Системный аналитик
+        date_start: 
+          type: string
+          example: 05.02.2024
+        date_end:  
+          type: string
+          example: 05.08.2024
+         
+           
+      
+
+
+  
+    

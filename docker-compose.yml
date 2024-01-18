@@ -1,0 +1,31 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  backend:
+    restart: always
+    build: ./backend/
+    env_file: .env
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+      - ./backend/:/app/
+    depends_on:
+      - db
+  nginx:
+    build: ./nginx/
+    env_file: .env
+    ports:
+      - "8000:80"
+    volumes:
+      - static:/static/
+      - media:/media/
+
+volumes:
+  postgres_data:
+  static:
+  media:
