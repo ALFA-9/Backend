@@ -24,8 +24,6 @@ services:
     volumes:
       - static:/static/
       - media:/media/
-    volumes_from:
-      - backend
 
 volumes:
   postgres_data:

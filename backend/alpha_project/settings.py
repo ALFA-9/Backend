@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     "djoser",
     "django_filters",
     "colorfield",
-	"drf_spectacular",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -52,7 +52,6 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '0.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
 }
-
 
 ROOT_URLCONF = "alpha_project.urls"
 
