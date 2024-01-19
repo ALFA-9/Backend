@@ -14,15 +14,19 @@ class Employee(Base):
     post_id = Column(Integer, ForeignKey('post.id'))
     department_id = Column(Integer, ForeignKey('department.id'))
     director_id = Column(Integer, ForeignKey('director.id'))
-    person_id = Column(Integer, ForeignKey('person.id'))
+    first_name = Column(String(80))
+    last_name = Column(String(80))
+    patronymic = Column(String(80))
+    email = Column(String(100))
+    phone = Column(String(20))
+    dir_employee = Column(Integer, ForeignKey('employee.id'))
 
     grade = relationship("Grade", back_populates="employee", lazy="joined")
     post = relationship("Post", back_populates="employee", lazy="joined")
     department = relationship("Department", back_populates="employee",
                               lazy="joined")
-    director = relationship("Director", back_populates="employee",
-                            lazy="joined")
-    person = relationship("Person", back_populates="employee", lazy="joined")
+    employees = relationship("Employee", remote_side=[id], lazy="joined",
+                             backref='dir_employees')
     request = relationship("Request", back_populates="employee", lazy="joined")
     comment = relationship("Comment", back_populates="employee", lazy="joined")
     idp = relationship("Idp", back_populates="employee", lazy="joined")
@@ -53,42 +57,17 @@ class Department(Base):
                             lazy="joined")
 
 
-class Director(Base):
-    __tablename__ = 'director'
-    id = Column(Integer, primary_key=True)
-    person_id = Column(Integer, ForeignKey('person.id'))
-
-    employee = relationship("Employee", back_populates="director",
-                            lazy="joined")
-    person = relationship("Person", back_populates="director", lazy="joined")
-    request = relationship("Request", back_populates="director", lazy="joined")
-    idp = relationship("Idp", back_populates="director", lazy="joined")
-
-
-class Person(Base):
-    __tablename__ = 'person'
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String(80))
-    last_name = Column(String(80))
-    patronymic = Column(String(80))
-    email = Column(String(100))
-    phone = Column(String(20))
-
-    employee = relationship("Employee", back_populates="person", lazy="joined")
-    director = relationship("Director", back_populates="person", lazy="joined")
-
-
 class Request(Base):
     __tablename__ = 'request'
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
     letter = Column(String(1000))
-    director_id = Column(Integer, ForeignKey('director.id'))
+    director_id = Column(Integer, ForeignKey('employee.id'))
     employee_id = Column(Integer, ForeignKey('employee.id'))
 
-    employee = relationship("Employee", back_populates="request",
+    employee = relationship("Employee", back_populates="request_emp",
                             lazy="joined")
-    director = relationship("Director", back_populates="request",
+    director = relationship("Employee", back_populates="request_dir",
                             lazy="joined")
 
 
@@ -135,8 +114,10 @@ class Idp(Base):
     date_start = Column(DateTime, default=func.now(), nullable=False)
     date_end = Column(DateTime)
 
-    employee = relationship("Employee", back_populates="idp", lazy="joined")
-    director = relationship("Director", back_populates="idp", lazy="joined")
+    employee = relationship("Employee", back_populates="idp_emp",
+                            lazy="joined")
+    director = relationship("Employee", back_populates="idp_dir",
+                            lazy="joined")
     status_idp = relationship("StatusIdp", back_populates="idp", lazy="joined")
     task = relationship("Task", back_populates="idp", lazy="joined")
 
