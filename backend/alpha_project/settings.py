@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "djoser",
     "django_filters",
     "colorfield",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -38,6 +39,19 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK = {
+	'DEFAULT_PERMISSION_CLASSES': [
+		'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+	],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Alfa People',
+    'VERSION': '0.0.1',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 ROOT_URLCONF = "alpha_project.urls"
 
