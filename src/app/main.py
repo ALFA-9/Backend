@@ -1,7 +1,9 @@
-from app.api import employees, grades
+from app.api import grades
 from app.db import database, engine, metadata
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from app.api.employees import employees
 
 metadata.create_all(engine)
 app = FastAPI()

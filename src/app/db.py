@@ -3,142 +3,166 @@ import os
 from sqlalchemy import (Column, DateTime, Integer, MetaData, String, Table,
                         create_engine, ForeignKey)
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 from databases import Database
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # SQLAlchemy
 engine = create_engine(DATABASE_URL)
-metadata = MetaData()
+
+Base = declarative_base()
+
 
 # Создаем таблицы(что-то вроде моделей в Django)
-employees = Table(
-    'employee',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('grade_id', Integer, ForeignKey('grade.id')),
-    Column('post_id', Integer, ForeignKey('post.id')),
-    Column('departament_id', Integer, ForeignKey('departament.id')),
-    Column('director_id', Integer, ForeignKey('director.id')),
-    Column('person_id', Integer, ForeignKey('person.id')),
-)
+class Employee(Base):
+    __tablename__ = 'employee'
+    id = Column(Integer, primary_key=True),
+    grade_id = Column(Integer, ForeignKey('grade.id'))
+    post_id = Column(Integer, ForeignKey('post.id'))
+    department_id = Column(Integer, ForeignKey('department.id'))
+    director_id = Column(Integer, ForeignKey('director.id'))
+    person_id = Column(Integer, ForeignKey('person.id'))
 
-grades = Table(
-    'grade',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(200)),
-)
+    grade = relationship("Grade", back_populates="employee")
+    post = relationship("Post", back_populates="employee")
+    department = relationship("Department", back_populates="employee")
+    director = relationship("Director", back_populates="employee")
+    person = relationship("Person", back_populates="employee")
+    request = relationship("Request", back_populates="employee")
 
-posts = Table(
-    'post',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(200)),
-)
 
-departaments = Table(
-    'departament',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(200)),
-)
+class Grade(Base):
+    __tablename__ = 'grade'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(200))
 
-directors = Table(
-    'director',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('person_id', Integer, ForeignKey('person.id')),
-)
+    employee = relationship("Employee", back_populates="grade")
 
-persons = Table(
-    'person',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('first_name', String(80)),
-    Column('last_name', String(80)),
-    Column('patronymic', String(80)),
-    Column('email', String(100)),
-    Column('phone', String(20)),
-)
 
-requests = Table(
-    'request',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(100)),
-    Column('letter', String(1000)),
-    Column('director_id', Integer, ForeignKey('director.id')),
-    Column('employee_id', Integer, ForeignKey('employee.id')),
-)
+class Post(Base):
+    __tablename__ = 'post'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(200))
 
-comments = Table(
-    'comment',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('bodyComment', String(200)),
-    Column('task_id', Integer, ForeignKey('task.id')),
-    Column('employee_id', Integer, ForeignKey('employee.id')),
-)
+    employee = relationship("Employee", back_populates="post")
 
-tasks = Table(
-    'task',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('name', String(100)),
-    Column('idp_id', Integer, ForeignKey('idp.id')),
-    Column('taskType_id', Integer, ForeignKey('taskType.id')),
-    Column('statusProgress_id', Integer, ForeignKey('taskStatusProgress.id')),
-    Column('statusAccept_id', Integer, ForeignKey('taskStatusAccept.id')),
-    Column('control_id', Integer, ForeignKey('taskControl.id')),
-)
 
-idps = Table(
-    'idp',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(100)),
-    Column('employee_id', Integer, ForeignKey('employee.id')),
-    Column('director_id', Integer, ForeignKey('director.id')),
-    Column('statusIdp_id', Integer, ForeignKey('statusIdp.id')),
-    Column('date_start', DateTime, default=func.now(), nullable=False),
-    Column('date_end', DateTime)
-)
+class Department(Base):
+    __tablename__ = 'departament'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(200))
 
-statuses_idp = Table(
-    'statusIdp',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(50)),
-)
+    employee = relationship("Employee", back_populates="department")
 
-task_types = Table(
-    'taskType',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('name', String(50)),
-)
 
-task_statuses_progress = Table(
-    'taskStatusProgress',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('status', String(50)),
-)
+class Director(Base):
+    __tablename__ = 'director'
+    id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey('person.id'))
 
-task_statuses_accept = Table(
-    'taskStatusAccept',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('status', String(50)),
-)
+    employee = relationship("Employee", back_populates="director")
+    person = relationship("Person", back_populates="director")
+    request = relationship("Request", back_populates="director")
 
-task_controls = Table(
-    'taskControl',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('title', String(100)),
-)
+
+class Person(Base):
+    __tablename__ = 'person'
+    id = Column(Integer, primary_key=True)
+    first_name = Column(String(80))
+    last_name = Column(String(80))
+    patronymic = Column(String(80))
+    email = Column(String(100))
+    phone = Column(String(20))
+
+    employee = relationship("Employee", back_populates="person")
+    employee = relationship("Director", back_populates="person")
+
+
+class Request(Base):
+    __tablename__ = 'request'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100))
+    letter = Column(String(1000))
+    director_id = Column(Integer, ForeignKey('director.id'))
+    employee_id = Column(Integer, ForeignKey('employee.id'))
+
+    employee = relationship("Employee", back_populates="request")
+    director = relationship("Director", back_populates="request")
+
+
+class Comment(Base):
+    __tablename__ = 'comment'
+    id = Column(Integer, primary_key=True)
+    body_comment = Column(String(200))
+    task_id = Column(Integer, ForeignKey('task.id'))
+    employee_id = Column(Integer, ForeignKey('employee.id'))
+
+    employee = relationship("Employee", back_populates="comment")
+    employee = relationship("Task", back_populates="comment")
+
+
+class Task(Base):
+    __tablename__ = 'task'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100))
+    idp_id = Column(Integer, ForeignKey('idp.id'))
+    task_type_id = Column(Integer, ForeignKey('taskType.id'))
+    status_progress_id = Column(Integer, ForeignKey('taskStatusProgress.id'))
+    status_accept_id = Column(Integer, ForeignKey('taskStatusAccept.id'))
+    control_id = Column(Integer, ForeignKey('taskControl.id'))
+
+    idp = relationship("Idp", back_populates="task")
+    task_type = relationship("TaskType", back_populates="task")
+    status_progress = relationship("StatusProgress", back_populates="task")
+    status_accept = relationship("StatusAccept", back_populates="task")
+    control = relationship("Control", back_populates="task")
+
+
+class Idp(Base):
+    __tablename__ = 'idp'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100))
+    employee_id = Column(Integer, ForeignKey('employee.id'))
+    director_id = Column(Integer, ForeignKey('director.id'))
+    status_idp_id = Column(Integer, ForeignKey('statusIdp.id'))
+    date_start = Column(DateTime, default=func.now(), nullable=False)
+    date_end = Column(DateTime)
+
+    employee = relationship("Employee", back_populates="idp")
+    director = relationship("Director", back_populates="idp")
+    status_idp = relationship("StatusIdp", back_populates="idp")
+
+
+class StatusIdp(Base):
+    __tablename__ = 'statusIdp'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(50))
+
+
+class TaskType(Base):
+    __tablename__ = 'taskType',
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+
+
+class TaskStatusProgress(Base):
+    __tablename__ = 'taskStatusProgress'
+    id = Column(Integer, primary_key=True)
+    status = Column(String(50))
+
+
+class TaskStatusAccept(Base):
+    __tablename__ = 'taskStatusAccept'
+    id = Column(Integer, primary_key=True)
+    status = Column(String(50))
+
+
+class TaskControl(Base):
+    __tablename__ = 'taskControl'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100))
 
 
 # databases query builder
