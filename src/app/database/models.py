@@ -1,17 +1,8 @@
-import os
-
-from sqlalchemy import (Column, DateTime, Integer, String,
-                        create_engine, ForeignKey)
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from databases import Database
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-# SQLAlchemy
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
@@ -25,14 +16,16 @@ class Employee(Base):
     director_id = Column(Integer, ForeignKey('director.id'))
     person_id = Column(Integer, ForeignKey('person.id'))
 
-    grade = relationship("Grade", back_populates="employee")
-    post = relationship("Post", back_populates="employee")
-    department = relationship("Department", back_populates="employee")
-    director = relationship("Director", back_populates="employee")
-    person = relationship("Person", back_populates="employee")
-    request = relationship("Request", back_populates="employee")
-    comment = relationship("Comment", back_populates="employee")
-    idp = relationship("Idp", back_populates="employee")
+    grade = relationship("Grade", back_populates="employee", lazy="joined")
+    post = relationship("Post", back_populates="employee", lazy="joined")
+    department = relationship("Department", back_populates="employee",
+                              lazy="joined")
+    director = relationship("Director", back_populates="employee",
+                            lazy="joined")
+    person = relationship("Person", back_populates="employee", lazy="joined")
+    request = relationship("Request", back_populates="employee", lazy="joined")
+    comment = relationship("Comment", back_populates="employee", lazy="joined")
+    idp = relationship("Idp", back_populates="employee", lazy="joined")
 
 
 class Grade(Base):
@@ -40,7 +33,7 @@ class Grade(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(200))
 
-    employee = relationship("Employee", back_populates="grade")
+    employee = relationship("Employee", back_populates="grade", lazy="joined")
 
 
 class Post(Base):
@@ -48,7 +41,7 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(200))
 
-    employee = relationship("Employee", back_populates="post")
+    employee = relationship("Employee", back_populates="post", lazy="joined")
 
 
 class Department(Base):
@@ -56,7 +49,8 @@ class Department(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(200))
 
-    employee = relationship("Employee", back_populates="department")
+    employee = relationship("Employee", back_populates="department",
+                            lazy="joined")
 
 
 class Director(Base):
@@ -64,10 +58,11 @@ class Director(Base):
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey('person.id'))
 
-    employee = relationship("Employee", back_populates="director")
-    person = relationship("Person", back_populates="director")
-    request = relationship("Request", back_populates="director")
-    idp = relationship("Idp", back_populates="director")
+    employee = relationship("Employee", back_populates="director",
+                            lazy="joined")
+    person = relationship("Person", back_populates="director", lazy="joined")
+    request = relationship("Request", back_populates="director", lazy="joined")
+    idp = relationship("Idp", back_populates="director", lazy="joined")
 
 
 class Person(Base):
@@ -79,8 +74,8 @@ class Person(Base):
     email = Column(String(100))
     phone = Column(String(20))
 
-    employee = relationship("Employee", back_populates="person")
-    director = relationship("Director", back_populates="person")
+    employee = relationship("Employee", back_populates="person", lazy="joined")
+    director = relationship("Director", back_populates="person", lazy="joined")
 
 
 class Request(Base):
@@ -91,8 +86,10 @@ class Request(Base):
     director_id = Column(Integer, ForeignKey('director.id'))
     employee_id = Column(Integer, ForeignKey('employee.id'))
 
-    employee = relationship("Employee", back_populates="request")
-    director = relationship("Director", back_populates="request")
+    employee = relationship("Employee", back_populates="request",
+                            lazy="joined")
+    director = relationship("Director", back_populates="request",
+                            lazy="joined")
 
 
 class Comment(Base):
@@ -102,8 +99,9 @@ class Comment(Base):
     task_id = Column(Integer, ForeignKey('task.id'))
     employee_id = Column(Integer, ForeignKey('employee.id'))
 
-    employee = relationship("Employee", back_populates="comment")
-    task = relationship("Task", back_populates="comment")
+    employee = relationship("Employee", back_populates="comment",
+                            lazy="joined")
+    task = relationship("Task", back_populates="comment", lazy="joined")
 
 
 class Task(Base):
@@ -116,14 +114,15 @@ class Task(Base):
     status_accept_id = Column(Integer, ForeignKey('taskStatusAccept.id'))
     control_id = Column(Integer, ForeignKey('taskControl.id'))
 
-    idp = relationship("Idp", back_populates="task")
-    task_type = relationship("TaskType", back_populates="task")
+    idp = relationship("Idp", back_populates="task", lazy="joined")
+    task_type = relationship("TaskType", back_populates="task", lazy="joined")
     task_status_progress = relationship("TaskStatusProgress",
-                                        back_populates="task")
+                                        back_populates="task", lazy="joined")
     task_status_accept = relationship("TaskStatusAccept",
-                                      back_populates="task")
-    task_control = relationship("TaskControl", back_populates="task")
-    comment = relationship("Comment", back_populates="task")
+                                      back_populates="task", lazy="joined")
+    task_control = relationship("TaskControl", back_populates="task",
+                                lazy="joined")
+    comment = relationship("Comment", back_populates="task", lazy="joined")
 
 
 class Idp(Base):
@@ -136,10 +135,10 @@ class Idp(Base):
     date_start = Column(DateTime, default=func.now(), nullable=False)
     date_end = Column(DateTime)
 
-    employee = relationship("Employee", back_populates="idp")
-    director = relationship("Director", back_populates="idp")
-    status_idp = relationship("StatusIdp", back_populates="idp")
-    task = relationship("Task", back_populates="idp")
+    employee = relationship("Employee", back_populates="idp", lazy="joined")
+    director = relationship("Director", back_populates="idp", lazy="joined")
+    status_idp = relationship("StatusIdp", back_populates="idp", lazy="joined")
+    task = relationship("Task", back_populates="idp", lazy="joined")
 
 
 class StatusIdp(Base):
@@ -147,7 +146,7 @@ class StatusIdp(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(50))
 
-    idp = relationship("Idp", back_populates="status_idp")
+    idp = relationship("Idp", back_populates="status_idp", lazy="joined")
 
 
 class TaskType(Base):
@@ -155,7 +154,7 @@ class TaskType(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
 
-    task = relationship("Task", back_populates="task_type")
+    task = relationship("Task", back_populates="task_type", lazy="joined")
 
 
 class TaskStatusProgress(Base):
@@ -163,7 +162,8 @@ class TaskStatusProgress(Base):
     id = Column(Integer, primary_key=True)
     status = Column(String(50))
 
-    task = relationship("Task", back_populates="task_status_progress")
+    task = relationship("Task", back_populates="task_status_progress",
+                        lazy="joined")
 
 
 class TaskStatusAccept(Base):
@@ -171,7 +171,8 @@ class TaskStatusAccept(Base):
     id = Column(Integer, primary_key=True)
     status = Column(String(50))
 
-    task = relationship("Task", back_populates="task_status_accept")
+    task = relationship("Task", back_populates="task_status_accept",
+                        lazy="joined")
 
 
 class TaskControl(Base):
@@ -179,8 +180,4 @@ class TaskControl(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
 
-    task = relationship("Task", back_populates="task_control")
-
-
-# databases query builder
-database = Database(DATABASE_URL)
+    task = relationship("Task", back_populates="task_control", lazy="joined")

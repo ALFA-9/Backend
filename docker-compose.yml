@@ -9,7 +9,7 @@ services:
     ports:
       - 8002:8000
     environment:
-      - DATABASE_URL=postgresql://fastapi_user:fastapi_pass@db/fastapi_dev
+      - DATABASE_URL=postgresql+asyncpg://fastapi_user:fastapi_pass@db/fastapi_dev
   db:
     image: postgres:12.1-alpine
     volumes:

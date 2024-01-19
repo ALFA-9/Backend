@@ -7,7 +7,7 @@ python import_data.py [-h] [-f FILE] [-t TABLE]
 
 import argparse
 import pandas as pd
-from app.db import engine
+from fastapi_test.src.app.database.db import engine
 
 
 def import_data(file_name, table_name):

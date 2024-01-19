@@ -1,30 +1,20 @@
-from typing import List
-
-from app.db import SessionLocal
+from app.database.db import get_db
 from app.api.employees import crud
 from app.api.employees.models import EmployeeDB
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@router.get('/', response_model=List[EmployeeDB])
-def get_all_grades(db: Session = Depends(get_db)):
-    return crud.get_all_employees(db)
+@router.get('/', response_model=list[EmployeeDB])
+async def get_all_grades(db: AsyncSession = Depends(get_db)):
+    return await crud.get_all(db)
 
 
 @router.get("/{id}/", response_model=EmployeeDB)
-async def get_employee(id: int):
-    employee = await crud.get_employee(id)
+async def get_employee(id: int, db: AsyncSession = Depends(get_db)):
+    employee = await crud.get_by_id(db, id)
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
     return employee
