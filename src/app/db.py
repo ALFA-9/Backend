@@ -1,9 +1,9 @@
 import os
 
-from sqlalchemy import (Column, DateTime, Integer, MetaData, String, Table,
+from sqlalchemy import (Column, DateTime, Integer, String,
                         create_engine, ForeignKey)
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from databases import Database
 
@@ -11,14 +11,14 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 # SQLAlchemy
 engine = create_engine(DATABASE_URL)
-
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
 # Создаем таблицы(что-то вроде моделей в Django)
 class Employee(Base):
     __tablename__ = 'employee'
-    id = Column(Integer, primary_key=True),
+    id = Column(Integer, primary_key=True)
     grade_id = Column(Integer, ForeignKey('grade.id'))
     post_id = Column(Integer, ForeignKey('post.id'))
     department_id = Column(Integer, ForeignKey('department.id'))
@@ -31,6 +31,8 @@ class Employee(Base):
     director = relationship("Director", back_populates="employee")
     person = relationship("Person", back_populates="employee")
     request = relationship("Request", back_populates="employee")
+    comment = relationship("Comment", back_populates="employee")
+    idp = relationship("Idp", back_populates="employee")
 
 
 class Grade(Base):
@@ -50,7 +52,7 @@ class Post(Base):
 
 
 class Department(Base):
-    __tablename__ = 'departament'
+    __tablename__ = 'department'
     id = Column(Integer, primary_key=True)
     title = Column(String(200))
 
@@ -65,6 +67,7 @@ class Director(Base):
     employee = relationship("Employee", back_populates="director")
     person = relationship("Person", back_populates="director")
     request = relationship("Request", back_populates="director")
+    idp = relationship("Idp", back_populates="director")
 
 
 class Person(Base):
@@ -77,7 +80,7 @@ class Person(Base):
     phone = Column(String(20))
 
     employee = relationship("Employee", back_populates="person")
-    employee = relationship("Director", back_populates="person")
+    director = relationship("Director", back_populates="person")
 
 
 class Request(Base):
@@ -100,7 +103,7 @@ class Comment(Base):
     employee_id = Column(Integer, ForeignKey('employee.id'))
 
     employee = relationship("Employee", back_populates="comment")
-    employee = relationship("Task", back_populates="comment")
+    task = relationship("Task", back_populates="comment")
 
 
 class Task(Base):
@@ -115,9 +118,12 @@ class Task(Base):
 
     idp = relationship("Idp", back_populates="task")
     task_type = relationship("TaskType", back_populates="task")
-    status_progress = relationship("StatusProgress", back_populates="task")
-    status_accept = relationship("StatusAccept", back_populates="task")
-    control = relationship("Control", back_populates="task")
+    task_status_progress = relationship("TaskStatusProgress",
+                                        back_populates="task")
+    task_status_accept = relationship("TaskStatusAccept",
+                                      back_populates="task")
+    task_control = relationship("TaskControl", back_populates="task")
+    comment = relationship("Comment", back_populates="task")
 
 
 class Idp(Base):
@@ -133,6 +139,7 @@ class Idp(Base):
     employee = relationship("Employee", back_populates="idp")
     director = relationship("Director", back_populates="idp")
     status_idp = relationship("StatusIdp", back_populates="idp")
+    task = relationship("Task", back_populates="idp")
 
 
 class StatusIdp(Base):
@@ -140,11 +147,15 @@ class StatusIdp(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(50))
 
+    idp = relationship("Idp", back_populates="status_idp")
+
 
 class TaskType(Base):
-    __tablename__ = 'taskType',
+    __tablename__ = 'taskType'
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
+
+    task = relationship("Task", back_populates="task_type")
 
 
 class TaskStatusProgress(Base):
@@ -152,17 +163,23 @@ class TaskStatusProgress(Base):
     id = Column(Integer, primary_key=True)
     status = Column(String(50))
 
+    task = relationship("Task", back_populates="task_status_progress")
+
 
 class TaskStatusAccept(Base):
     __tablename__ = 'taskStatusAccept'
     id = Column(Integer, primary_key=True)
     status = Column(String(50))
 
+    task = relationship("Task", back_populates="task_status_accept")
+
 
 class TaskControl(Base):
     __tablename__ = 'taskControl'
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
+
+    task = relationship("Task", back_populates="task_control")
 
 
 # databases query builder

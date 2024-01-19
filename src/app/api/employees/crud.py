@@ -1,12 +1,12 @@
-from app.db import database, employees
+from app.db import database, Employee
+from sqlalchemy.orm import Session
 
 
 # Получаем ответ от дб
-async def get_all_employees():
-    query = employees.select()
-    return await database.fetch_all(query=query)
+def get_all_employees(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Employee).offset(skip).limit(limit).all()
 
 
 async def get_employee(id: int):
-    query = employees.select().where(id == employees.c.id)
+    query = Employee.select().where(id == Employee.id)
     return await database.fetch_one(query=query)

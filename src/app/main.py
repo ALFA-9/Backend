@@ -1,24 +1,20 @@
 from app.api import grades
-from app.db import database, engine, metadata
+from app.db import engine, Base, SessionLocal
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 
 from app.api.employees import employees
 
-metadata.create_all(engine)
+Base.metadata.create_all(engine)
 app = FastAPI()
 
 
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    # Before start
-    await database.connect()
-    yield
-    # Before finish
-    await database.disconnect()
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-
-app = FastAPI(lifespan=lifespan)
 
 # Добавляем маршруты как в Django
 app.include_router(employees.router, prefix="/employees", tags=["employees"])

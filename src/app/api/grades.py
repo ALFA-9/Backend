@@ -1,17 +1,27 @@
 from typing import List
 
 from app.api import crud
+from app.db import SessionLocal
 from app.api.models import GradeDB, GradeSchema
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Depends
 from typing_extensions import Annotated
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 # Как вьюшки или функции в Django
 @router.get('/', response_model=List[GradeDB])
-async def get_all_grades():
-    return await crud.get_all_grades()
+def get_all_grades(db: Session = Depends(get_db)):
+    return crud.get_all_grades(db)
 
 
 @router.post("/", response_model=GradeDB, status_code=201)
