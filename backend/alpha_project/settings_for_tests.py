@@ -4,7 +4,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^")  # default key is just for django test
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
+)  # default key is just for django test
 
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
@@ -56,12 +58,8 @@ WSGI_APPLICATION = "alpha_project.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "django_dev"),
-        "USER": os.getenv("POSTGRES_USER", "django_user"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django_pass"),
-        "HOST": os.getenv("DB_HOST", ""),
-        "PORT": os.getenv("DB_PORT", 5432),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 

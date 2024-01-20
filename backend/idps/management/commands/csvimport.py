@@ -1,3 +1,4 @@
+# flake8: noqa
 """
 Реализация management-комманды импорта из csv в БД.
 
@@ -20,7 +21,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 
-PLURAL_REGEXP = '({model}?)(es|s)$'
+PLURAL_REGEXP = "({model}?)(es|s)$"
 
 
 class Command(BaseCommand):
@@ -28,44 +29,44 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         """Регистрируем ключи запуска."""
-        parser.add_argument('-f', '--file', type=str, help='Файл для импорта')
+        parser.add_argument("-f", "--file", type=str, help="Файл для импорта")
         parser.add_argument(
-            '-m',
-            '--model',
+            "-m",
+            "--model",
             type=str,
-            help='Модель для импорта',
+            help="Модель для импорта",
         )
-        parser.add_argument('-d', '--dir', help='Директория для импорта')
+        parser.add_argument("-d", "--dir", help="Директория для импорта")
         parser.add_argument(
-            '-is',
-            '--ignore_s',
-            action='store_true',
+            "-is",
+            "--ignore_s",
+            action="store_true",
             help=(
-                'Игнорирование множественного ',
-                'числа в английском названии файла',
+                "Игнорирование множественного ",
+                "числа в английском названии файла",
             ),
         )
         parser.add_argument(
-            '-c',
-            '--clear',
-            action='store_true',
-            help=('Очистить модель перед импортом'),
+            "-c",
+            "--clear",
+            action="store_true",
+            help=("Очистить модель перед импортом"),
         )
         parser.add_argument(
-            '-r',
-            '--recurse',
-            action='store_true',
-            help='Рекурсивный просмотр директории',
+            "-r",
+            "--recurse",
+            action="store_true",
+            help="Рекурсивный просмотр директории",
         )
 
     def handle(self, *args, **kwargs):
         """Начало команды."""
-        self.import_file = kwargs.get('file')
-        self.import_model = kwargs.get('model')
-        self.import_dir = kwargs.get('dir')
-        self.import_clear_model = kwargs.get('clear')
-        self.import_ignore_s = kwargs.get('ignore_s')
-        self.import_recurse = kwargs.get('recurse')
+        self.import_file = kwargs.get("file")
+        self.import_model = kwargs.get("model")
+        self.import_dir = kwargs.get("dir")
+        self.import_clear_model = kwargs.get("clear")
+        self.import_ignore_s = kwargs.get("ignore_s")
+        self.import_recurse = kwargs.get("recurse")
         self.model_list = django.apps.apps.get_models(
             include_auto_created=True,
         )
@@ -79,20 +80,21 @@ class Command(BaseCommand):
         """Поиск модели по названию или имени файла с учётом ключей запуска."""
         model = None
         if filename:
-            modelname = os.path.basename(filename).split('.')[0]
+            modelname = os.path.basename(filename).split(".")[0]
         elif not modelname:
             print("Не указаны ни файл, ни модель")
         # Ищем модель по имени
         for current_model in self.model_list:
             if (
-                modelname.lower()
-                == current_model.__name__.lower()
-            ) or (
-                modelname.lower().replace('_', '')
-                == current_model.__name__.lower()
-            ) or (
-                modelname.lower().replace('-', '')
-                == current_model.__name__.lower()
+                (modelname.lower() == current_model.__name__.lower())
+                or (
+                    modelname.lower().replace("_", "")
+                    == current_model.__name__.lower()
+                )
+                or (
+                    modelname.lower().replace("-", "")
+                    == current_model.__name__.lower()
+                )
             ):
                 model = current_model
         # Ищем модель по имени игнорируя множественное число
@@ -107,26 +109,26 @@ class Command(BaseCommand):
                     model = current_model
         if not model and not silent:
             print(
-                'Невозможно получить имя модели по имени файла. ',
-                'Используйте аргумент -m <model_name>, ',
-                'или -is, если в названии файла присутствует ',
-                'множественное число.',
+                "Невозможно получить имя модели по имени файла. ",
+                "Используйте аргумент -m <model_name>, ",
+                "или -is, если в названии файла присутствует ",
+                "множественное число.",
             )
         return model
 
     def check_command(self):
         """Проверка совместимости ключей запуска."""
         if self.import_file and self.import_dir:
-            print('Можно задать либо файл, либо директорию')
+            print("Можно задать либо файл, либо директорию")
             exit(-1)
         if self.import_file and self.import_recurse:
-            print('Ключ \"--recurse\" применим только к папкам')
+            print('Ключ "--recurse" применим только к папкам')
             exit(-1)
         if self.import_model and self.import_dir:
-            print('Ключ \"--model\" применим только к файлам')
+            print('Ключ "--model" применим только к файлам')
             exit(-1)
         if not self.import_file and not self.import_dir:
-            print('Должны быть указаны либо папка, либо файл')
+            print("Должны быть указаны либо папка, либо файл")
             exit(-1)
 
     def file_import(self):
@@ -134,17 +136,14 @@ class Command(BaseCommand):
         if os.path.exists(self.import_file):
             splitted_filename = os.path.basename(
                 self.import_file,
-            ).split('.')
-            if splitted_filename[1] != 'csv':
-                print('Поддерживаются только csv файлы.')
+            ).split(".")
+            if splitted_filename[1] != "csv":
+                print("Поддерживаются только csv файлы.")
                 return
             else:
-                if (
-                    self.import_model
-                    and (
-                        model := self.find_model(
-                            modelname=self.import_model,
-                        )
+                if self.import_model and (
+                    model := self.find_model(
+                        modelname=self.import_model,
                     )
                 ):
                     self.file_model = {self.import_file: model}
@@ -153,18 +152,18 @@ class Command(BaseCommand):
                     )
                     return
                 elif self.import_model:
-                    print('Модель не найдена в проекте.')
+                    print("Модель не найдена в проекте.")
                     return
                 if model := self.find_model(
-                        filename=self.import_file,
+                    filename=self.import_file,
                 ):
-                    print(f'Импорт в модель {model.__name__}')
+                    print(f"Импорт в модель {model.__name__}")
                     self.file_model = {self.import_file: model}
                     self.import_from_file(
                         self.import_file,
                     )
         else:
-            print(f'Файл {self.import_file} не существует.')
+            print(f"Файл {self.import_file} не существует.")
             return
 
     def dir_import(self):
@@ -195,11 +194,11 @@ class Command(BaseCommand):
         with os.scandir(dir) as dir_items:
             for item in dir_items:
                 if item.is_file():
-                    if item.name.split('.')[1] == 'csv':
+                    if item.name.split(".")[1] == "csv":
                         file_list.append(item.path)
                 elif item.is_dir():
                     dir_list.append(item)
-        if (self.import_recurse):
+        if self.import_recurse:
             for dir in dir_list:
                 file_list.extend(self.get_file_list(dir))
         return file_list
@@ -224,21 +223,19 @@ class Command(BaseCommand):
             fname = field.db_column or field.attname
             # Заполняем значениями по-умолчанию или из файла, если есть
             field_value[fname] = row.get(fname) or field.get_default()
-            if (
-                field.__class__.__name__ == 'ForeignKey'
-            ):
+            if field.__class__.__name__ == "ForeignKey":
                 try:
-                    field_value[field.name] = (
-                        field.remote_field.model.objects.get(
-                            pk=int(row[fname]),
-                        )
+                    field_value[
+                        field.name
+                    ] = field.remote_field.model.objects.get(
+                        pk=int(row[fname]),
                     )
                 except ObjectDoesNotExist:
                     print(
-                        'Есть поле, которое невозможно заполнить',
-                        'данными из связанной таблицы',
+                        "Есть поле, которое невозможно заполнить",
+                        "данными из связанной таблицы",
                     )
-                    print('Пропущено')
+                    print("Пропущено")
                     continue
         return field_value
 
@@ -249,13 +246,13 @@ class Command(BaseCommand):
             model.objects.all().delete()
         model_fields = model._meta.fields
         field_value = self._prepare_field_value(model_fields)
-        print('\n' + file + ' >', model.__name__)
-        with open(file, 'r', encoding='utf-8') as csvfile:
+        print("\n" + file + " >", model.__name__)
+        with open(file, "r", encoding="utf-8") as csvfile:
             filereader = csv.DictReader(csvfile)
-            print(f'Поля файла: {filereader.fieldnames}')
-            print(f'Поля модели: {set(field_value.keys())}')
+            print(f"Поля файла: {filereader.fieldnames}")
+            print(f"Поля модели: {set(field_value.keys())}")
             for row in filereader:
-                print('Импротируем:', list(row.values()))
+                print("Импротируем:", list(row.values()))
                 field_value = self._filling_field_value(
                     row,
                     model_fields,
@@ -264,11 +261,11 @@ class Command(BaseCommand):
                 try:
                     model.objects.update_or_create(**field_value)
                 except ValueError:
-                    print('Невозможно создать объект с такими данными')
-                    print('Пропущено')
+                    print("Невозможно создать объект с такими данными")
+                    print("Пропущено")
                     continue
                 except IntegrityError as e:
-                    print(f'Ошибка импорта в таблицу: {e}')
+                    print(f"Ошибка импорта в таблицу: {e}")
                     break
         # Удаляем из словаря импортированный файл
         del self.file_model[file]

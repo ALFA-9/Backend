@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 79
+target-version = ['py310']
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "alpha_project.settings_for_tests"
+norecursedirs = "env/* venv/*"
+addopts = [
+    "-vv",
+    "-p",
+    "no:cacheprovider",
+]
+testpaths = "idps/pytest_tests/"
+python_files = "test_*.py"
+
+[tool.isort]
+known_third_party = [
+    "venv/lib/*",
+]
