@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from idps.views import IdpViewSet
+from idps.views import IdpViewSet, idp_request
 
 router = DefaultRouter()
 router.register(r"idps", IdpViewSet)
@@ -15,6 +15,7 @@ router.register(r"idps", IdpViewSet)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
+    path("api/request/", idp_request),
     # path('api/', include('djoser.urls')),
     path("api/auth/", include("djoser.urls.authtoken")),
 ]

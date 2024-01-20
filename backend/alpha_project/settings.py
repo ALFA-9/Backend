@@ -4,7 +4,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^")  # default key is just for django test
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
+)  # default key is just for django test
 
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
@@ -95,6 +97,10 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+DEFAULT_FROM_EMAIL = "alpha_idp_service@alpha.ru"
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
