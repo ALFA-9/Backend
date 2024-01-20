@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+from employees.models import Employee
 from idps.models import Idps
 
 User = get_user_model()
@@ -99,7 +100,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
     )
     employee = models.ForeignKey(
-        User,
+        Employee,
         related_name="user_comment",
         verbose_name="Пользователь",
         on_delete=models.CASCADE,
