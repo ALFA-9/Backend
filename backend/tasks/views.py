@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from rest_framework import permissions, viewsets
 
-# Create your views here.
+from .models import Task
+from .serializers import TaskSerializer
+
+
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [permissions.AllowAny]
+    http_method_names = ("get", "post", "patch", "delete")

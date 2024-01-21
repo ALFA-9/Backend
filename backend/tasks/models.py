@@ -106,7 +106,7 @@ class Task(models.Model):
         ordering = ("id",)
         verbose_name = _("Задача")
         verbose_name_plural = _("Задачи")
-        unique_together = ["name", "idp"]
+        # unique_together = ["name", "idp"]
 
     def __str__(self):
         return self.name

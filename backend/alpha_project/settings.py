@@ -2,12 +2,15 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
 )  # default key is just for django test
-
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
@@ -28,6 +31,7 @@ INSTALLED_APPS = [
     "django_filters",
     "colorfield",
     "drf_spectacular",
+    "tasks",
 ]
 
 MIDDLEWARE = [
