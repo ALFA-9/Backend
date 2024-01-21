@@ -1,13 +1,9 @@
+import datetime
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from idps.models import Employee, Idp
-
-ru_error_messages = {
-    "does_not_exist": _(
-        'Недопустимый первичный ключ "{pk_value}"' " - объект не существует."
-    ),
-}
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -26,19 +22,6 @@ class IdpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Idp
         fields = (
-            "title",
-            "employee",
-            "director",
-            "status_idp",
-            "date_start",
-            "date_end",
-        )
-
-
-class CreateIdpSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Idp
-        fields = (
             "id",
             "title",
             "employee",
@@ -47,3 +30,41 @@ class CreateIdpSerializer(serializers.ModelSerializer):
             "date_start",
             "date_end",
         )
+        extra_kwargs = {
+            'date_start': {'input_formats': ['%Y-%m-%d', '%d.%m.%Y']},
+            'date_end': {'input_formats': ['%Y-%m-%d', '%d.%m.%Y']},
+        }
+
+    def to_representation(self, instance):
+        instance.date_start = instance.date_start.strftime('%d.%m.%Y')
+        instance.date_end = instance.date_end.strftime('%d.%m.%Y')
+        return super().to_representation(instance)
+
+
+class CreateIdpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Idp
+        fields = (
+            "title",
+            "employee",
+            "director",
+            "status_idp",
+            "date_start",
+            "date_end",
+        )
+        extra_kwargs = {
+            'date_start': {'input_formats': ['%Y-%m-%d', '%d.%m.%Y']},
+            'date_end': {'input_formats': ['%Y-%m-%d', '%d.%m.%Y']},
+        }
+
+    def to_representation(self, instance):
+        instance.date_start = instance.date_start.strftime('%d.%m.%Y')
+        instance.date_end = instance.date_end.strftime('%d.%m.%Y')
+        return super().to_representation(instance)
+
+    def validate_date_end(self, value):
+        if value < datetime.date.today():
+            raise serializers.ValidationError(
+                _("Дата окончания должна быть больше даты начала.")
+            )
+        return value

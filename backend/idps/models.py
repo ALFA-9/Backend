@@ -32,7 +32,8 @@ class Idp(models.Model):
         default=IdpStatus.IN_WORK,
         verbose_name=_("статус"),
     )
-    date_start = models.DateField(verbose_name=_("дата начала"))
+    date_start = models.DateField(verbose_name=_("дата начала"),
+                                  auto_now_add=True)
     date_end = models.DateField(verbose_name=_("дата окончания"))
 
     class Meta:
@@ -50,9 +51,7 @@ class Idp(models.Model):
         return self.title
 
     def clean(self):
-        # Ensures constraint on model level, raises ValidationError
         if self.date_start >= self.date_end:
-            # raise error for field
             raise ValidationError(
                 {
                     "date_end": _(

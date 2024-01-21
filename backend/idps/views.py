@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from idps.models import Idp
 from idps.serializers import CreateIdpSerializer, IdpSerializer
 
+SEC_BEFORE_NEXT_REQUEST = 86400
+
 employees_last_request = {}
 
 
@@ -35,7 +37,7 @@ def idp_request(request):
     # Костыль? можно ли что-то другое придумать, также не хочется трогать бд
     last_request = employees_last_request.setdefault(employee.id, 0)
     time_diff = time.time() - last_request
-    if time_diff < 86400:
+    if time_diff < SEC_BEFORE_NEXT_REQUEST:
         return Response(
             {"error": "Запрос можно отправлять не чаще 1 раза в сутки."},
             status=status.HTTP_429_TOO_MANY_REQUESTS,
