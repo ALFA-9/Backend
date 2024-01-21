@@ -6,23 +6,27 @@ python import_data.py [-h] [-f FILE] [-t TABLE]
 """
 
 import argparse
+
 import pandas as pd
-from fastapi_test.src.app.database.db import engine
+
+from app.database.db import sync_engine
 
 
 def import_data(file_name, table_name):
     data = pd.read_csv(file_name)
-    data.to_sql(table_name, con=engine, index=False, if_exists='append')
+    data.to_sql(table_name, con=sync_engine, index=False, if_exists="append")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Import data from CSV to database.',
+        description="Import data from CSV to database.",
     )
-    parser.add_argument('-f', '--csv-file', required=True,
-                        help='Path to the CSV file')
-    parser.add_argument('-t', '--table-name', required=True,
-                        help='Name of the database table')
+    parser.add_argument(
+        "-f", "--csv-file", required=True, help="Path to the CSV file"
+    )
+    parser.add_argument(
+        "-t", "--table-name", required=True, help="Name of the database table"
+    )
 
     args = parser.parse_args()
     csv_filename = args.csv_file
@@ -30,5 +34,5 @@ def main():
     import_data(csv_filename, table_name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

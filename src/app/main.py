@@ -1,9 +1,10 @@
-from app.database.db import engine
-from app.database.models import Base
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+
 from app.api.employees import employees
+from app.database.db import engine
+from app.database.models import Base
 
 
 async def create_tables():

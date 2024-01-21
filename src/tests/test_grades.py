@@ -1,4 +1,5 @@
 import json
+
 from app.api import crud
 
 
@@ -18,8 +19,9 @@ def test_create_grade(test_app, monkeypatch):
 
 
 def test_create_grade_invalid_json(test_app):
-    response = test_app.post("/grades/",
-                             data=json.dumps({"name": "something"}))
+    response = test_app.post(
+        "/grades/", data=json.dumps({"name": "something"})
+    )
     assert response.status_code == 422
 
 

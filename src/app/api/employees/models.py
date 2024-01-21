@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr
-from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
 class GradeDB(BaseModel):
@@ -16,7 +15,7 @@ class EmployeeLastChild(BaseModel):
     last_name: str
     patronymic: str
     email: EmailStr
-    phone: PhoneNumber
+    phone: str
 
     class Config:
         from_attributes = True
@@ -29,14 +28,15 @@ class EmployeeChild(BaseModel):
     last_name: str
     patronymic: str
     email: EmailStr
-    phone: PhoneNumber
+    phone: str
     employees: list[EmployeeLastChild]
 
     class Config:
         from_attributes = True
 
 
-class EmployeeSchema(BaseModel):
+class EmployeeDB(BaseModel):
+    id: int
     grade_id: int
     post_id: int
     department_id: int
@@ -45,13 +45,9 @@ class EmployeeSchema(BaseModel):
     last_name: str
     patronymic: str
     email: EmailStr
-    phone: PhoneNumber
+    phone: str
     grade: GradeDB
     employees: list[EmployeeChild]
 
     class Config:
         from_attributes = True
-
-
-class EmployeeDB(EmployeeSchema):
-    id: int

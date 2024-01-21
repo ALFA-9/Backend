@@ -1,16 +1,22 @@
-from app.database.models import Idp
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+
+from app.database.models import Idp
 
 
 # Получаем ответ от дб
 async def get_all(db: AsyncSession, skip: int = 0, limit: int = 100):
-    statement = select(Idp).options(
-        joinedload(Idp.employee),
-        joinedload(Idp.director),
-        joinedload(Idp.status_idp),
-    ).offset(skip).limit(limit)
+    statement = (
+        select(Idp)
+        .options(
+            joinedload(Idp.employee),
+            joinedload(Idp.director),
+            joinedload(Idp.status_idp),
+        )
+        .offset(skip)
+        .limit(limit)
+    )
     result = await db.execute(statement)
     return result.unique().scalars().all()
 

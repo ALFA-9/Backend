@@ -4,6 +4,7 @@ fastapi==0.109.0
 SQLAlchemy==1.4.51
 uvicorn==0.11.3
 pandas==2.1.4
+email-validator==2.1.0.post1
 
 # dev
 pytest==5.4.1

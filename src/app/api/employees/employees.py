@@ -1,14 +1,15 @@
-from app.database.db import get_db
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.employees import crud
 from app.api.employees.models import EmployeeDB
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.database.db import get_db
 
 router = APIRouter()
 
 
-@router.get('/', response_model=list[EmployeeDB])
-async def get_all_grades(db: AsyncSession = Depends(get_db)):
+@router.get("/", response_model=list[EmployeeDB])
+async def get_all_employees(db: AsyncSession = Depends(get_db)):
     return await crud.get_all(db)
 
 
