@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from employees.models import Employee
-from idps.models import Idps
+from django.utils.translation import gettext_lazy as _
+
+# from employees.models import Employee
+# from idps.models import Idps
 
 User = get_user_model()
 
@@ -11,83 +14,112 @@ class Type(models.Model):
     """Тип задачи."""
 
     name = models.CharField(
-        verbose_name="Название типа задачи",
+        verbose_name=_("Название типа задачи"),
         max_length=256,
     )
+
+    class Meta:
+        ordering = ("name",)
+        verbose_name = _("Тип задачи")
+        verbose_name_plural = _("Типы задач")
+
+    def __str__(self):
+        return self.name
 
 
 class Control(models.Model):
     """Методы контроля выполнения задачи."""
 
     title = models.CharField(
-        verbose_name="Метод контроля выполнения задачи",
+        verbose_name=_("Метод контроля выполнения задачи"),
         max_length=256,
     )
+
+    class Meta:
+        ordering = ("id",)
+        verbose_name = _("Метод контроля")
+        verbose_name_plural = _("Методы контроля")
+
+    def __str__(self):
+        return self.title
 
 
 class Task(models.Model):
     """Задача."""
 
-    IN_WORKE = "in_worke"
-    DONE = "done"
-    STATUS_PROGRESS = (
-        (IN_WORKE, "in_worke"),
-        (DONE, "done"),
-    )
-    NOT_ACCEPTED = "not_accepted"
-    ACCEPTED = "accepted"
-    CANCELLED = "cancelled"
-    STATUS_ACCEPTED = (
-        (NOT_ACCEPTED, "not_accepted"),
-        (ACCEPTED, "accepted"),
-        (CANCELLED, "cancelled"),
-    )
+    class ProgresStatus(models.TextChoices):
+        IN_WORK = "in_work", _("в работе")
+        DONE = "done", _("выполнено")
+
+    class AcceptedStatus(models.TextChoices):
+        ACCEPTED = "accepted", _("принято")
+        NOT_ACCEPTED = "not_accepted", _("не принято")
+        CANCELLED = "cancelled", _("отменено")
+
     name = models.CharField(
-        verbose_name="Название задачи",
+        verbose_name=_("Название задачи"),
         max_length=256,
     )
     description = models.TextField(
-        verbose_name="Описание задачи",
+        verbose_name=_("Описание задачи"),
         max_length=500,
     )
-    idp = models.ForeignKey(
-        Idps,
-        related_name="idps_task",
-        verbose_name="ИПС",
-        on_delete=models.CASCADE,
-    )
+    # idp = models.ForeignKey(
+    #     Idps,
+    #     related_name="task_idp",
+    #     verbose_name=_("ИПС"),
+    #     on_delete=models.CASCADE,
+    # )
     type = models.ForeignKey(
         Type,
-        related_name="type_task",
-        verbose_name="Тип задачи",
+        related_name="task_type",
+        verbose_name=_("Тип задачи"),
         on_delete=models.CASCADE,
     )
     status_progress = models.CharField(
-        verbose_name="Статус выполнения",
+        verbose_name=_("Статус выполнения"),
         max_length=20,
-        choices=STATUS_PROGRESS,
-        default=IN_WORKE,
+        choices=ProgresStatus.choices,
+        default=ProgresStatus.IN_WORK,
     )
     status_accept = models.CharField(
-        verbose_name="Статус проверки",
+        verbose_name=_("Статус проверки"),
         max_length=20,
-        choices=STATUS_PROGRESS,
-        default=IN_WORKE,
+        choices=AcceptedStatus.choices,
+        default=AcceptedStatus.NOT_ACCEPTED,
     )
     control = models.ForeignKey(
         Control,
-        related_name="control_task",
-        verbose_name="Метод контроля выполнения задачи",
+        related_name="task_control",
+        verbose_name=_("Метод контроля выполнения задачи"),
         on_delete=models.CASCADE,
     )
     date_start = models.DateTimeField(
-        verbose_name="Время начала выполнения задачи",
+        verbose_name=_("Дата начала выполнения задачи"),
         default=timezone.now,
     )
     date_end = models.DateTimeField(
-        verbose_name="Время окончания выполнения задачи",
-        default=timezone.now,
+        verbose_name=_("Дата окончания выполнения задачи"),
     )
+
+    class Meta:
+        ordering = ("id",)
+        verbose_name = _("Задача")
+        verbose_name_plural = _("Задачи")
+        unique_together = ["name", "idp"]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        if self.date_start >= self.date_end:
+            raise ValidationError(
+                {
+                    "date_end": _(
+                        "Дата окончания должна быть больше даты начала.",
+                    ),
+                }
+            )
 
 
 class Comment(models.Model):
@@ -95,17 +127,31 @@ class Comment(models.Model):
 
     task = models.ForeignKey(
         Task,
-        related_name="task_comment",
-        verbose_name="Задача",
+        related_name="comment_task",
+        verbose_name=_("Задача"),
         on_delete=models.CASCADE,
     )
+    # employee = models.ForeignKey(
+    #     Employee,
+    #     related_name="comment_employee",
+    #     verbose_name=_("Пользователь"),
+    #     on_delete=models.CASCADE,
+    # )
     employee = models.ForeignKey(
-        Employee,
-        related_name="user_comment",
-        verbose_name="Пользователь",
+        User,
+        related_name="comment_employee",
+        verbose_name=_("Пользователь"),
         on_delete=models.CASCADE,
     )
     body = models.TextField(
-        verbose_name="Комментарий",
+        verbose_name=_("Комментарий"),
         max_length=500,
     )
+
+    class Meta:
+        ordering = ("id",)
+        verbose_name = _("Комментарий")
+        verbose_name_plural = _("Комментарии")
+
+    def __str__(self):
+        return self.body
