@@ -46,6 +46,7 @@ class CreateIdpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Idp
         fields = (
+            "id",
             "title",
             "employee",
             "director",

@@ -9,9 +9,6 @@ from idps.views import (IdpViewSet, get_employees_for_director,
 
 router = DefaultRouter()
 router.register(r"idps", IdpViewSet)
-# router.register(r'tags', TagViewSet)
-# router.register(r'ingredients', IngredientViewSet)
-# router.register(r'users', CustomUserViewSet)
 
 urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),

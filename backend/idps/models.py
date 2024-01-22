@@ -69,10 +69,13 @@ class Idp(models.Model):
 class Employee(MPTTModel):
     name = models.CharField(max_length=50)
     email = models.EmailField()
-    parent = TreeForeignKey(
+    director = TreeForeignKey(
         "self",
         blank=True,
         on_delete=models.DO_NOTHING,
         null=True,
         related_name="employee",
     )
+
+    class MPTTMeta:
+        parent_attr = "director"

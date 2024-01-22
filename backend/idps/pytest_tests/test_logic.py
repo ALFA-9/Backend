@@ -1,3 +1,4 @@
+import datetime as dt
 from http import HTTPStatus
 
 import pytest
@@ -29,13 +30,14 @@ def test_api_endpoint(client: APIClient, create_idp_model):
 @pytest.mark.django_db
 def test_post_idp_response(client: APIClient, create_multiple_employees):
     url = "/api/idps/"
+    date_start = dt.date.today()
+    date_end = date_start + dt.timedelta(days=180)
     data = {
         "title": "Title",
         "employee": 2,
         "director": 1,
         "status_idp": "in_work",
-        "date_start": "2024-01-20",
-        "date_end": "2024-03-20",
+        "date_end": date_end.strftime("%d.%m.%Y"),
     }
     response = client.post(url, data)
     assert response.status_code == HTTPStatus.CREATED
@@ -45,8 +47,8 @@ def test_post_idp_response(client: APIClient, create_multiple_employees):
         "employee": 2,
         "director": 1,
         "status_idp": "in_work",
-        "date_start": "2024-01-20",
-        "date_end": "2024-03-20",
+        "date_start": date_start.strftime("%d.%m.%Y"),
+        "date_end": date_end.strftime("%d.%m.%Y"),
     }
 
 
@@ -57,8 +59,7 @@ def test_post_incorrect_idp(client: APIClient, create_idp_model):
         "title": "Title",
         "employee": 2,
         "status_idp": "in_work",
-        "date_start": "2024-01-20",
-        "date_end": "2024-03-20",
+        "date_end": "20.03.2024",
     }
     response = client.post(url, data)
     assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -86,9 +87,39 @@ def test_post_exists_idp(client: APIClient, create_idp_model):
         "employee": 2,
         "director": 1,
         "status_idp": "in_work",
-        "date_start": "2024-01-20",
-        "date_end": "2024-03-20",
+        "date_end": "20.03.2024",
     }
 
     response = client.post(url, data)
     assert response.status_code == HTTPStatus.BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_statistic(client: APIClient, create_idps_for_emps):
+    url = "/api/statistic/"
+
+    response = client.get(url)
+    assert response.json() == {"in_work": 1, "canceled": 1, "done": 1}
+
+    response = client.patch(
+        "/api/idps/1/",
+        {"status_idp": "not_completed"},
+        format="Content-Type",
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+
+    response = client.get(url)
+    assert response.json() == {"not_completed": 1, "canceled": 1, "done": 1}
+
+    data = {
+        "title": "Title",
+        "employee": 2,
+        "director": 1,
+        "status_idp": "in_work",
+        "date_end": "20.03.2024",
+    }
+    response = client.post("/api/idps/", data)
+    assert response.status_code == 201
+    response = client.get(url)
+    assert response.json() == {"in_work": 1, "canceled": 1, "done": 1}

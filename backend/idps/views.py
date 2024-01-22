@@ -70,8 +70,6 @@ def get_employees_for_director(request):
     # director = request.user
     employee = Employee.objects.get(id=1)
 
-    print(employee)
-
     serializer = NestedEmployeeSerializer(employee)
     return Response(serializer.data)
 
@@ -81,12 +79,12 @@ def get_statistic_for_director(request):
     # director = request.user
     latest_idp_subquery = (
         Idp.objects.filter(employee=OuterRef("pk"))
-        .order_by("-date_start")
+        .order_by("-date_start", "-id")
         .values("status_idp")[:1]
     )
 
     # Запрос кол-во различных статусов ИПР, с учетом 1 emp = 1 ИПР(последний)
-    result_queryset = (
+    result = (
         Employee.objects.get(id=1)
         .get_descendants()
         .annotate(latest_status=Subquery(latest_idp_subquery))
@@ -95,4 +93,8 @@ def get_statistic_for_director(request):
         .values("latest_status", "status_count")
     )
 
-    return Response(result_queryset)
+    result_dict = dict(
+        (entry["latest_status"], entry["status_count"]) for entry in result
+    )
+
+    return Response(result_dict)
