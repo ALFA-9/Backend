@@ -1,12 +1,14 @@
 import time
 
 from django.core.mail import send_mail
+from django.db.models import Count, OuterRef, Subquery
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from idps.models import Idp
-from idps.serializers import CreateIdpSerializer, IdpSerializer
+from idps.models import Employee, Idp
+from idps.serializers import (CreateIdpSerializer, IdpSerializer,
+                              NestedEmployeeSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -61,3 +63,36 @@ def idp_request(request):
         {"error": "Вы не можете запросить ИПР, пока не завершено текущее."},
         status=status.HTTP_400_BAD_REQUEST,
     )
+
+
+@api_view(["GET"])
+def get_employees_for_director(request):
+    # director = request.user
+    employee = Employee.objects.get(id=1)
+
+    print(employee)
+
+    serializer = NestedEmployeeSerializer(employee)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_statistic_for_director(request):
+    # director = request.user
+    latest_idp_subquery = (
+        Idp.objects.filter(employee=OuterRef("pk"))
+        .order_by("-date_start")
+        .values("status_idp")[:1]
+    )
+
+    # Запрос кол-во различных статусов ИПР, с учетом 1 emp = 1 ИПР(последний)
+    result_queryset = (
+        Employee.objects.get(id=1)
+        .get_descendants()
+        .annotate(latest_status=Subquery(latest_idp_subquery))
+        .values("latest_status")
+        .annotate(status_count=Count("id"))
+        .values("latest_status", "status_count")
+    )
+
+    return Response(result_queryset)

@@ -4,6 +4,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def custom_show_toolbar(request):
+    return True  # Always show toolbar, for example purposes only.
+
+
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
 )  # default key is just for django test
@@ -11,6 +16,17 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
+
+if DEBUG:
+    import socket
+
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    # Меняется конечная цифра в зависимости от старта контейнеров
+    INTERNAL_IPS = [
+        ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 4)
+    ] + [
+        "127.0.0.1",
+    ]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -20,6 +36,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "debug_toolbar",
+    "mptt",
     "idps",
     "djoser",
     "django_filters",
@@ -30,6 +48,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",

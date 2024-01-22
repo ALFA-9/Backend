@@ -1,7 +1,10 @@
+from datetime import date
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from mptt.models import MPTTModel, TreeForeignKey
 
 User = get_user_model()
 
@@ -13,14 +16,14 @@ class Idp(models.Model):
         UNDONE = "not_completed", _("не выполнен")
         DONE = "done", _("выполнен")
 
-    title = models.CharField(max_length=100, verbose_name="название")
-    employee = models.ForeignKey(
+    title = models.CharField(max_length=100, verbose_name=_("название"))
+    employee = TreeForeignKey(
         "Employee",
         on_delete=models.CASCADE,
         verbose_name=_("сотрудник"),
         related_name="idp_employee",
     )
-    director = models.ForeignKey(
+    director = TreeForeignKey(
         "Employee",
         on_delete=models.CASCADE,
         verbose_name=_("директор"),
@@ -32,13 +35,15 @@ class Idp(models.Model):
         default=IdpStatus.IN_WORK,
         verbose_name=_("статус"),
     )
-    date_start = models.DateField(verbose_name=_("дата начала"),
-                                  auto_now_add=True)
+    # TODO подумать все таки о datetime?
+    date_start = models.DateField(
+        verbose_name=_("дата начала"), editable=False, default=date.today
+    )
     date_end = models.DateField(verbose_name=_("дата окончания"))
 
     class Meta:
         verbose_name = _("индивидуальный план развития")
-        ordering = ["id"]
+        ordering = ["date_start", "id"]
         unique_together = ["title", "employee", "date_start"]
         constraints = [
             models.CheckConstraint(
@@ -61,9 +66,13 @@ class Idp(models.Model):
             )
 
 
-class Employee(models.Model):
+class Employee(MPTTModel):
     name = models.CharField(max_length=50)
     email = models.EmailField()
-    director_id = models.ForeignKey(
-        "Employee", blank=True, on_delete=models.DO_NOTHING, null=True,
+    parent = TreeForeignKey(
+        "self",
+        blank=True,
+        on_delete=models.DO_NOTHING,
+        null=True,
+        related_name="employee",
     )
