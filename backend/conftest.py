@@ -53,12 +53,12 @@ def create_idps_for_emps(create_tree_structure):
         )
     emp = Employee.objects.get(id=7)
     Idp.objects.create(
-            title=f"ИПР для {emp.name}",
-            employee=emp,
-            director=emp.director,
-            date_end=dt.date.today() + dt.timedelta(days=180),
-            status_idp="not_completed",
-        )
+        title=f"ИПР для {emp.name}",
+        employee=emp,
+        director=emp.director,
+        date_end=dt.date.today() + dt.timedelta(days=180),
+        status_idp="not_completed",
+    )
 
 
 @pytest.fixture

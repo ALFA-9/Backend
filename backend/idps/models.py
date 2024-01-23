@@ -28,6 +28,7 @@ class Idp(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("директор"),
         related_name="idp_director",
+        null=True,
     )
     status_idp = models.CharField(
         max_length=100,
