@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.urls import reverse
+from mptt.models import MPTTModel, TreeForeignKey
 
 from .validators import validator_tel
 from .constants import MAX_EMAIL_CHARACTERS, MAX_NAME_CHARACTERS
@@ -25,7 +27,7 @@ class Grade(BaseEmployeeOptions):
         verbose_name_plural = "Грейды"
 
 
-class Post(models.Model):
+class Post(BaseEmployeeOptions):
     """ Модель должности. """
 
     class Meta(BaseEmployeeOptions.Meta):
@@ -33,7 +35,7 @@ class Post(models.Model):
         verbose_name_plural = "Должности"
 
 
-class Department(models.Model):
+class Department(BaseEmployeeOptions):
     """ Модель подразделения. """
 
     class Meta(BaseEmployeeOptions.Meta):
@@ -41,40 +43,42 @@ class Department(models.Model):
         verbose_name_plural = "Подразделения"
 
 
-class Employee(AbstractUser):
-    """ Класс пользователей/работников. """
+class Employee(MPTTModel):
+    """ Класс работников. """
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ("username", "password", "first_name", "last_name")
-
-    username = models.CharField(
-        'Логин',
-        max_length=MAX_NAME_CHARACTERS,
-        unique=True,
-        error_messages={
-            'unique': 'Пользователь с таким именем уже есть',
-        }
-    )
-    email = models.EmailField("E-mail", max_length=MAX_EMAIL_CHARACTERS,
-                              unique=True)
     first_name = models.CharField("Имя",
                                   max_length=MAX_NAME_CHARACTERS)
     last_name = models.CharField("Фамилия",
                                  max_length=MAX_NAME_CHARACTERS)
-    patronymic = models.CharField("Отчество",
-                                 max_length=MAX_NAME_CHARACTERS)
+    patronymic = models.CharField("Отчество", max_length=MAX_NAME_CHARACTERS)
     phone = models.CharField("Номер телефона", max_length=MAX_NAME_CHARACTERS,
                              unique=True, validators=(validator_tel,))
-    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, null=True)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
-    director = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True)
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, null=True,
+                              blank=True, verbose_name="Грейд")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True,
+                             blank=True, verbose_name="Должность")
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True,
+                                   blank=True, verbose_name="Подразделение")
+    director = TreeForeignKey("self", on_delete=models.CASCADE, blank=True,
+                              null=True, related_name="employees", verbose_name="Руководитель")
+
+    class MPTTMeta:
+        parent_attr = "director"
 
     class Meta:
         verbose_name = "Работник"
         verbose_name_plural = "Работники"
-        ordering = ("last_name",)
-        default_related_name = 'user_set'
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class User(AbstractUser):
+    """ Класс пользователей. """
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ("username", "password")
+
+    email = models.EmailField("E-mail", max_length=MAX_EMAIL_CHARACTERS,
+                              unique=True)
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, null=True)
