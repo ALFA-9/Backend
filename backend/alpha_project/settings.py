@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "debug_toolbar",
     "django_filters",
     "drf_spectacular",
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     "mptt",
     "idps",
     "tasks",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -52,17 +54,19 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
 SPECTACULAR_SETTINGS = {
     "TITLE": "Alfa People",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+DJOSER = {
+    'HIDE_USERS': False,
+    'LOGIN_FIELD': 'email',
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+    }
 }
 
 ROOT_URLCONF = "alpha_project.urls"
@@ -133,12 +137,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTH_USER_MODEL = "users.User"
+
 DEFAULT_FROM_EMAIL = "alpha_idp_service@alpha.ru"
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication",],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
