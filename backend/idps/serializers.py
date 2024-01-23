@@ -7,11 +7,13 @@ from idps.models import Employee, Idp
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email")
+
     class Meta:
         model = Employee
         fields = (
             "id",
-            "name",
+            "first_name",
             "email",
         )
 
@@ -73,9 +75,11 @@ class CreateIdpSerializer(serializers.ModelSerializer):
 
 
 class NestedEmployeeSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email")
+
     class Meta:
         model = Employee
-        fields = ("name", "email")
+        fields = ("first_name", "email")
 
     def get_fields(self):
         fields = super(NestedEmployeeSerializer, self).get_fields()
