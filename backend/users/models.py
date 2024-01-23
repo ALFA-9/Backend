@@ -5,7 +5,7 @@ from .validators import validator_tel
 from .constants import MAX_EMAIL_CHARACTERS, MAX_NAME_CHARACTERS
 
 class BaseEmployeeOptions(models.Model):
-    """ Модель грейда. """
+    """ Базовая модель для сущностей Employee. """
 
     title = models.CharField("Заголовок", max_length=MAX_NAME_CHARACTERS)
 
@@ -41,7 +41,7 @@ class Department(models.Model):
         verbose_name_plural = "Подразделения"
 
 
-class User(AbstractUser):
+class Employee(AbstractUser):
     """ Класс пользователей/работников. """
 
     USERNAME_FIELD = "email"
@@ -65,10 +65,10 @@ class User(AbstractUser):
                                  max_length=MAX_NAME_CHARACTERS)
     phone = models.CharField("Номер телефона", max_length=MAX_NAME_CHARACTERS,
                              unique=True, validators=(validator_tel,))
-    grade = models.ForeignKey(Grade, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    director = models.ForeignKey("User", on_delete=models.CASCADE)
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, null=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
+    director = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = "Работник"
