@@ -103,7 +103,6 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     },
 }
-CURRENT_BASE = os.getenv("CURRENT_BASE", "lite")
 DATABASES["default"] = DATABASES[CURRENT_BASE]
 
 AUTH_PASSWORD_VALIDATORS = [
