@@ -89,28 +89,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "alpha_project.wsgi.application"
 
-# DATABASES = {
-#     "postgre": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.getenv("POSTGRES_DB", "django_dev"),
-#         "USER": os.getenv("POSTGRES_USER", "django_user"),
-#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django_pass"),
-#         "HOST": os.getenv("DB_HOST", ""),
-#         "PORT": os.getenv("DB_PORT", 5432),
-#     },
-#     "lite": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     },
-# }
-
-# DATABASES["default"] = DATABASES[CURRENT_BASE]
 DATABASES = {
-    "default": {
+    "postgre": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "django_dev"),
+        "USER": os.getenv("POSTGRES_USER", "django_user"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django_pass"),
+        "HOST": os.getenv("DB_HOST", ""),
+        "PORT": os.getenv("DB_PORT", 5432),
+    },
+    "lite": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
-    }
+    },
 }
+CURRENT_BASE = "lite"
+DATABASES["default"] = DATABASES[CURRENT_BASE]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
