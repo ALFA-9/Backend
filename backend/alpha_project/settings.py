@@ -4,18 +4,14 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-def custom_show_toolbar(request):
-    return True  # Always show toolbar, for example purposes only.
-
-
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
 )  # default key is just for django test
-
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
+
+CURRENT_BASE = os.getenv("CURRENT_BASE", "postgre").lower()
 
 if DEBUG:
     import socket
@@ -37,11 +33,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "debug_toolbar",
+    "django_filters",
+    "drf_spectacular",
+    "djoser",
     "mptt",
     "idps",
-    "djoser",
-    "django_filters",
-    "colorfield",
+    "tasks",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +51,19 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Alfa People",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
 
 ROOT_URLCONF = "alpha_project.urls"
 
@@ -76,15 +86,21 @@ TEMPLATES = [
 WSGI_APPLICATION = "alpha_project.wsgi.application"
 
 DATABASES = {
-    "default": {
+    "postgre": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB", "django_dev"),
         "USER": os.getenv("POSTGRES_USER", "django_user"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django_pass"),
         "HOST": os.getenv("DB_HOST", ""),
         "PORT": os.getenv("DB_PORT", 5432),
-    }
+    },
+    "lite": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    },
 }
+
+DATABASES['default'] = DATABASES[CURRENT_BASE]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
