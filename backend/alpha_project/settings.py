@@ -61,12 +61,12 @@ SPECTACULAR_SETTINGS = {
 }
 
 DJOSER = {
-    'HIDE_USERS': False,
-    'LOGIN_FIELD': 'email',
-    'PERMISSIONS': {
-        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
-        'user_list': ['rest_framework.permissions.AllowAny'],
-    }
+    "HIDE_USERS": False,
+    "LOGIN_FIELD": "email",
+    "PERMISSIONS": {
+        "user": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
+        "user_list": ["rest_framework.permissions.AllowAny"],
+    },
 }
 
 ROOT_URLCONF = "alpha_project.urls"
@@ -89,23 +89,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "alpha_project.wsgi.application"
 
+# DATABASES = {
+#     "postgre": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.getenv("POSTGRES_DB", "django_dev"),
+#         "USER": os.getenv("POSTGRES_USER", "django_user"),
+#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django_pass"),
+#         "HOST": os.getenv("DB_HOST", ""),
+#         "PORT": os.getenv("DB_PORT", 5432),
+#     },
+#     "lite": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     },
+# }
+
+# DATABASES["default"] = DATABASES[CURRENT_BASE]
 DATABASES = {
-    "postgre": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "django_dev"),
-        "USER": os.getenv("POSTGRES_USER", "django_user"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django_pass"),
-        "HOST": os.getenv("DB_HOST", ""),
-        "PORT": os.getenv("DB_PORT", 5432),
-    },
-    "lite": {
+    "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
-    },
+    }
 }
-
-DATABASES['default'] = DATABASES[CURRENT_BASE]
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -144,10 +149,11 @@ EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication",],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
-

@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from mptt.models import MPTTModel, TreeForeignKey
+from mptt.models import TreeForeignKey
+from users.models import Employee
 
 User = get_user_model()
 
@@ -18,13 +19,13 @@ class Idp(models.Model):
 
     title = models.CharField(max_length=100, verbose_name=_("название"))
     employee = TreeForeignKey(
-        "Employee",
+        Employee,
         on_delete=models.CASCADE,
         verbose_name=_("сотрудник"),
         related_name="idp_employee",
     )
     director = TreeForeignKey(
-        "Employee",
+        Employee,
         on_delete=models.CASCADE,
         verbose_name=_("директор"),
         related_name="idp_director",
@@ -65,18 +66,3 @@ class Idp(models.Model):
                     )
                 }
             )
-
-
-class Employee(MPTTModel):
-    name = models.CharField(max_length=50)
-    email = models.EmailField()
-    director = TreeForeignKey(
-        "self",
-        blank=True,
-        on_delete=models.DO_NOTHING,
-        null=True,
-        related_name="employee",
-    )
-
-    class MPTTMeta:
-        parent_attr = "director"
