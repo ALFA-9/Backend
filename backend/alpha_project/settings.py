@@ -19,7 +19,7 @@ if DEBUG:
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     # Меняется конечная цифра в зависимости от старта контейнеров
     INTERNAL_IPS = [
-        ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 4)
+        ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 5)
     ] + [
         "127.0.0.1",
     ]
@@ -58,6 +58,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Alfa People",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
+    'SERVERS': [{'url': 'http://localhost:8000/'}],
 }
 
 DJOSER = {
@@ -147,7 +148,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        "rest_framework.permissions.AllowAny"
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
