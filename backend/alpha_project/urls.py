@@ -1,37 +1,43 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework import routers, serializers, viewsets
-from rest_framework.response import Response
+from rest_framework import routers
 
-from users.models import Employee
+from tasks.views import IdpViewSet, TaskViewSet
 
-
-# Это здесь для проверки работоспособности
-class EmployeeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Employee
-        fields = "__all__"
-
-
-class EmployeeViewSet(viewsets.ModelViewSet):
-    queryset = Employee.objects
-    serializer_class = EmployeeSerializer
-
-    def get_queryset(self):
-        childs = self.queryset.get(director=self.request.user.employee)
-        employees = childs.get_descendants(include_self=True)
-        if employees:
-            return employees if employees else self.queryset.none()
-
+# from idps.views import (IdpViewSet, get_employees_for_director,
+# get_statistic_for_director, idp_request)
 
 router = routers.DefaultRouter()
-router.register(r'employee', EmployeeViewSet)
+router.register(r"tasks", TaskViewSet)
+router.register(r"idps", IdpViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    path('auth/', include('djoser.urls.authtoken')),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
+    path("admin/", admin.site.urls),
+    path("api/", include(router.urls)),
+    path(
+        "api/tasks/<int:task_id>/comments/",
+        TaskViewSet.as_view({"post": "comments"}),
+        name="coments",
+    ),
+    path(
+        "api/tasks/<int:task_id>/comments/<int:comment_id>/",
+        TaskViewSet.as_view({"delete": "delete_comment"}),
+        name="delete_comment",
+    ),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="docs",
+    ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
