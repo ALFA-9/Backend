@@ -45,8 +45,16 @@ class User(AbstractUser):
     """ Класс пользователей/работников. """
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ("email", "password", "first_name", "last_name")
+    REQUIRED_FIELDS = ("username", "password", "first_name", "last_name")
 
+    username = models.CharField(
+        'Логин',
+        max_length=MAX_NAME_CHARACTERS,
+        unique=True,
+        error_messages={
+            'unique': 'Пользователь с таким именем уже есть',
+        }
+    )
     email = models.EmailField("E-mail", max_length=MAX_EMAIL_CHARACTERS,
                               unique=True)
     first_name = models.CharField("Имя",
@@ -65,7 +73,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Работник"
         verbose_name_plural = "Работники"
-        ordering = ("email",)
+        ordering = ("last_name",)
         default_related_name = 'user_set'
 
     def __str__(self):
