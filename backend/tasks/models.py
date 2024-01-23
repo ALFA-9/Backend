@@ -3,9 +3,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from users.models import Employee
 
-# from employees.models import Employee
-# from idps.models import Idps
+from idps.models import Idp
 
 User = get_user_model()
 
@@ -65,7 +65,7 @@ class Task(models.Model):
         max_length=500,
     )
     idp = models.ForeignKey(
-        "Idp",
+        Idp,
         related_name="task_idp",
         verbose_name=_("ИПС"),
         on_delete=models.CASCADE,
@@ -132,7 +132,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
     )
     employee = models.ForeignKey(
-        "Employee",
+        Employee,
         related_name="comment_employee",
         verbose_name=_("Пользователь"),
         on_delete=models.CASCADE,

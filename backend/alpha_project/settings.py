@@ -61,12 +61,12 @@ SPECTACULAR_SETTINGS = {
 }
 
 DJOSER = {
-    'HIDE_USERS': False,
-    'LOGIN_FIELD': 'email',
-    'PERMISSIONS': {
-        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
-        'user_list': ['rest_framework.permissions.AllowAny'],
-    }
+    "HIDE_USERS": False,
+    "LOGIN_FIELD": "email",
+    "PERMISSIONS": {
+        "user": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
+        "user_list": ["rest_framework.permissions.AllowAny"],
+    },
 }
 
 ROOT_URLCONF = "alpha_project.urls"
@@ -103,8 +103,7 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     },
 }
-
-DATABASES['default'] = DATABASES[CURRENT_BASE]
+DATABASES["default"] = DATABASES[CURRENT_BASE]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -144,10 +143,11 @@ EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication",],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
-
