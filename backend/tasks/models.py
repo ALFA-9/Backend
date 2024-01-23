@@ -64,12 +64,12 @@ class Task(models.Model):
         verbose_name=_("Описание задачи"),
         max_length=500,
     )
-    # idp = models.ForeignKey(
-    #     Idps,
-    #     related_name="task_idp",
-    #     verbose_name=_("ИПС"),
-    #     on_delete=models.CASCADE,
-    # )
+    idp = models.ForeignKey(
+        "Idp",
+        related_name="task_idp",
+        verbose_name=_("ИПС"),
+        on_delete=models.CASCADE,
+    )
     type = models.ForeignKey(
         Type,
         related_name="task_type",
@@ -106,7 +106,7 @@ class Task(models.Model):
         ordering = ("id",)
         verbose_name = _("Задача")
         verbose_name_plural = _("Задачи")
-        # unique_together = ["name", "idp"]
+        unique_together = ["name", "idp"]
 
     def __str__(self):
         return self.name
@@ -131,14 +131,8 @@ class Comment(models.Model):
         verbose_name=_("Задача"),
         on_delete=models.CASCADE,
     )
-    # employee = models.ForeignKey(
-    #     Employee,
-    #     related_name="comment_employee",
-    #     verbose_name=_("Пользователь"),
-    #     on_delete=models.CASCADE,
-    # )
     employee = models.ForeignKey(
-        User,
+        "Employee",
         related_name="comment_employee",
         verbose_name=_("Пользователь"),
         on_delete=models.CASCADE,
@@ -147,9 +141,13 @@ class Comment(models.Model):
         verbose_name=_("Комментарий"),
         max_length=500,
     )
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата публикации",
+    )
 
     class Meta:
-        ordering = ("id",)
+        ordering = ("-pub_date",)
         verbose_name = _("Комментарий")
         verbose_name_plural = _("Комментарии")
 
