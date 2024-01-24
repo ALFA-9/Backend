@@ -147,7 +147,7 @@ CELERY_RESULT_BACKEND = os.environ.get(
 )
 CELERY_BEAT_SCHEDULE = {
     "Status updater for idps": {
-        "task": "alpha_project.celety.update_status_for_idp",
+        "task": "idps.tasks.update_status_for_idp",
         "schedule": crontab("0", "0"),
     },
 }
