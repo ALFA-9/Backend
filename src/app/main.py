@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.employees import employees
 from app.database.db import engine
 from app.database.models import Base
+from app.employees import routers
 
 
 async def create_tables():
@@ -14,7 +14,6 @@ async def create_tables():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await create_tables()
     yield
 
 
@@ -22,5 +21,5 @@ app = FastAPI(lifespan=lifespan)
 
 
 # Добавляем маршруты как в Django
-app.include_router(employees.router, prefix="/employees", tags=["employees"])
-app.include_router(employees.router, prefix="/idps", tags=["idps"])
+app.include_router(routers.router, prefix="/employees", tags=["employees"])
+app.include_router(routers.router, prefix="/idps", tags=["idps"])

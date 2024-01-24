@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
@@ -10,10 +10,18 @@ Base = declarative_base()
 class Employee(Base):
     __tablename__ = "employee"
     id = Column(Integer, primary_key=True)
-    grade_id = Column(Integer, ForeignKey("grade.id"))
-    post_id = Column(Integer, ForeignKey("post.id"))
-    department_id = Column(Integer, ForeignKey("department.id"))
-    director_id = Column(Integer, ForeignKey("employee.id"))
+    grade_id = Column(
+        Integer, ForeignKey("grade.id", ondelete="SET NULL"), nullable=True
+    )
+    post_id = Column(
+        Integer, ForeignKey("post.id", ondelete="SET NULL"), nullable=True
+    )
+    department_id = Column(
+        Integer, ForeignKey("department.id", ondelete="CASCADE"), nullable=True
+    )
+    director_id = Column(
+        Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
+    )
     first_name = Column(String(80))
     last_name = Column(String(80))
     patronymic = Column(String(80))
@@ -23,9 +31,11 @@ class Employee(Base):
     grade = relationship("Grade", back_populates="employee", lazy="joined")
     post = relationship("Post", back_populates="employee", lazy="joined")
     department = relationship(
-        "Department", back_populates="employee", lazy="joined"
+        "Department",
+        back_populates="employee",
+        lazy="joined",
     )
-    employees = relationship("Employee", lazy="joined")
+    employees = relationship("Employee", lazy="joined", join_depth=3)
     comment = relationship("Comment", back_populates="employee", lazy="joined")
 
 
@@ -60,8 +70,12 @@ class Request(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
     letter = Column(String(1000))
-    director_id = Column(Integer, ForeignKey("employee.id"))
-    employee_id = Column(Integer, ForeignKey("employee.id"))
+    director_id = Column(
+        Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
+    )
+    employee_id = Column(
+        Integer, ForeignKey("employee.id", ondelete="CASCADE")
+    )
 
     employee = relationship(
         "Employee",
@@ -81,8 +95,10 @@ class Comment(Base):
     __tablename__ = "comment"
     id = Column(Integer, primary_key=True)
     body_comment = Column(String(200))
-    task_id = Column(Integer, ForeignKey("task.id"))
-    employee_id = Column(Integer, ForeignKey("employee.id"))
+    task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"))
+    employee_id = Column(
+        Integer, ForeignKey("employee.id", ondelete="CASCADE")
+    )
 
     employee = relationship(
         "Employee", back_populates="comment", lazy="joined"
@@ -94,22 +110,42 @@ class Task(Base):
     __tablename__ = "task"
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
-    idp_id = Column(Integer, ForeignKey("idp.id"))
-    task_type_id = Column(Integer, ForeignKey("taskType.id"))
-    status_progress_id = Column(Integer, ForeignKey("taskStatusProgress.id"))
-    status_accept_id = Column(Integer, ForeignKey("taskStatusAccept.id"))
-    control_id = Column(Integer, ForeignKey("taskControl.id"))
+    idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
+    task_type_id = Column(
+        Integer, ForeignKey("taskType.id", ondelete="SET NULL"), nullable=True
+    )
+    status_progress_id = Column(
+        Integer,
+        ForeignKey("taskStatusProgress.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    status_accept_id = Column(
+        Integer,
+        ForeignKey("taskStatusAccept.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    control_id = Column(
+        Integer,
+        ForeignKey("taskControl.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     idp = relationship("Idp", back_populates="task", lazy="joined")
     task_type = relationship("TaskType", back_populates="task", lazy="joined")
     task_status_progress = relationship(
-        "TaskStatusProgress", back_populates="task", lazy="joined"
+        "TaskStatusProgress",
+        back_populates="task",
+        lazy="joined",
     )
     task_status_accept = relationship(
-        "TaskStatusAccept", back_populates="task", lazy="joined"
+        "TaskStatusAccept",
+        back_populates="task",
+        lazy="joined",
     )
     task_control = relationship(
-        "TaskControl", back_populates="task", lazy="joined"
+        "TaskControl",
+        back_populates="task",
+        lazy="joined",
     )
     comment = relationship("Comment", back_populates="task", lazy="joined")
 
@@ -118,9 +154,15 @@ class Idp(Base):
     __tablename__ = "idp"
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
-    employee_id = Column(Integer, ForeignKey("employee.id"))
-    director_id = Column(Integer, ForeignKey("employee.id"))
-    status_idp_id = Column(Integer, ForeignKey("statusIdp.id"))
+    employee_id = Column(
+        Integer, ForeignKey("employee.id", ondelete="CASCADE")
+    )
+    director_id = Column(
+        Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
+    )
+    status_idp_id = Column(
+        Integer, ForeignKey("statusIdp.id", ondelete="SET NULL"), nullable=True
+    )
     date_start = Column(DateTime, default=func.now(), nullable=False)
     date_end = Column(DateTime)
 
@@ -129,6 +171,7 @@ class Idp(Base):
         backref="idp_emp",
         lazy="joined",
         foreign_keys=[employee_id],
+        cascade="all, delete",
     )
     director = relationship(
         "Employee",
@@ -162,7 +205,9 @@ class TaskStatusProgress(Base):
     status = Column(String(50))
 
     task = relationship(
-        "Task", back_populates="task_status_progress", lazy="joined"
+        "Task",
+        back_populates="task_status_progress",
+        lazy="joined",
     )
 
 
@@ -172,7 +217,9 @@ class TaskStatusAccept(Base):
     status = Column(String(50))
 
     task = relationship(
-        "Task", back_populates="task_status_accept", lazy="joined"
+        "Task",
+        back_populates="task_status_accept",
+        lazy="joined",
     )
 
 
