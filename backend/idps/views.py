@@ -106,7 +106,6 @@ def get_statistic_for_director(request):
         .order_by("-date_start", "-id")
         .values("status_idp")[:1]
     )
-
     # Запрос кол-во различных статусов ИПР, с учетом 1 emp = 1 ИПР(последний)
     result = (
         Employee.objects.get(id=1)
@@ -116,9 +115,7 @@ def get_statistic_for_director(request):
         .annotate(status_count=Count("id"))
         .values("latest_status", "status_count")
     )
-
     result_dict = dict(
         (entry["latest_status"], entry["status_count"]) for entry in result
     )
-
     return Response(result_dict)

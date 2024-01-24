@@ -1,13 +1,13 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, include, path
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from tasks.views import TaskViewSet
 from idps.views import (IdpViewSet, get_employees_for_director,
                         get_statistic_for_director, idp_request)
+from tasks.views import TaskViewSet
 
 router = routers.DefaultRouter()
 router.register(r"tasks", TaskViewSet)

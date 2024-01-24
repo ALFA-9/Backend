@@ -6,9 +6,16 @@ services:
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:7.2.4-alpine
+    expose:
+      - 6379
+
   backend:
     restart: always
     build: ./backend/
+    entrypoint: /app/backend_entrypoint.sh
     env_file: .env
     volumes:
       - static:/backend_static
@@ -16,6 +23,20 @@ services:
       - ./backend/:/app/
     depends_on:
       - db
+
+  worker:
+    restart: always
+    build: ./backend/
+    command: celery -A alpha_project beat --loglevel=info
+    env_file: .env
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+      - ./backend/:/app/
+    depends_on:
+      - backend
+      - redis
+
   nginx:
     build: ./nginx/
     env_file: .env

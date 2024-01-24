@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv(
@@ -103,6 +105,7 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     },
 }
+
 DATABASES["default"] = DATABASES[CURRENT_BASE]
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -138,6 +141,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
+CELERY_BROKER_URL = os.environ.get("BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "RESULT_BACKEND", "redis://redis:6379/0"
+)
+CELERY_BEAT_SCHEDULE = {
+    "Status updater for idps": {
+        "task": "alpha_project.celety.update_status_for_idp",
+        "schedule": crontab("0", "0"),
+    },
+}
+CELERY_TIMEZONE = "UTC"
+
 DEFAULT_FROM_EMAIL = "alpha_idp_service@alpha.ru"
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
@@ -147,7 +162,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
