@@ -9,5 +9,3 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt --no-cache-dir
 
 COPY . .
-
-CMD ["gunicorn", "--reload", "-b", "0.0.0.0:8000", "alpha_project.wsgi"]

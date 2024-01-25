@@ -206,13 +206,13 @@ class Command(BaseCommand):
     def _prepare_field_value(self, model_fields):
         field_value = dict()
         for field in model_fields:
-            # if field.__class__.__name__ == 'ForeignKey':
-            #     femote_field = field.remote_field.model
-            #     if femote_field in self.file_model.values():
-            #         for tfile in self.file_model.keys():
-            #             if femote_field == self.file_model[tfile]:
-            #                 self.import_from_file(tfile)
-            #                 break
+            if field.__class__.__name__ == 'ForeignKey':
+                femote_field = field.remote_field.model
+                if femote_field in self.file_model.values():
+                    for tfile in self.file_model.keys():
+                        if femote_field == self.file_model[tfile]:
+                            self.import_from_file(tfile)
+                            break
             name = field.name
             field_value[name] = None
         return field_value
