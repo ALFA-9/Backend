@@ -2,9 +2,10 @@ import time
 
 from django.core.mail import send_mail
 from django.db.models import Count, OuterRef, Subquery
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, status, viewsets, serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from idps.models import Employee, Idp
 from idps.serializers import (CreateIdpSerializer, IdpSerializer,
@@ -89,6 +90,7 @@ def idp_request(request):
     )
 
 
+@extend_schema(responses=NestedEmployeeSerializer)
 @api_view(["GET"])
 def get_employees_for_director(request):
     # director = request.user
@@ -98,9 +100,24 @@ def get_employees_for_director(request):
     return Response(serializer.data)
 
 
+@extend_schema(
+    description="Статистика по ИПР всех сотрудников директора",
+    responses=inline_serializer('succes', {
+        "in_work": serializers.IntegerField(),
+        "canceled": serializers.IntegerField(),
+        "done": serializers.IntegerField(),
+        "not_completed": serializers.IntegerField(),
+        "null": serializers.IntegerField()}
+    )
+)
 @api_view(["GET"])
 def get_statistic_for_director(request):
     # director = request.user
+    # if director.is_lead_node():
+    #     return Response(
+    #         {"error": "У вас нет подчинненых."},
+    #         status=status.HTTP_400_BAD_REQUEST,
+    #     )
     latest_idp_subquery = (
         Idp.objects.filter(employee=OuterRef("pk"))
         .order_by("-date_start", "-id")
@@ -120,5 +137,10 @@ def get_statistic_for_director(request):
     result_dict = dict(
         (entry["latest_status"], entry["status_count"]) for entry in result
     )
+    result_dict.setdefault("in_work", 0)
+    result_dict.setdefault("null", 0)
+    result_dict.setdefault("not_completed", 0)
+    result_dict.setdefault("done", 0)
+    result_dict.setdefault("cancelled", 0)
 
-    return Response(result_dict)
+    return Response(result_dict, status=status.HTTP_200_OK)
