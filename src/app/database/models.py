@@ -1,7 +1,9 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from enum import Enum as PythonEnum
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
@@ -65,32 +67,6 @@ class Department(Base):
     )
 
 
-class Request(Base):
-    __tablename__ = "request"
-    id = Column(Integer, primary_key=True)
-    title = Column(String(100))
-    letter = Column(String(1000))
-    director_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
-    )
-    employee_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="CASCADE")
-    )
-
-    employee = relationship(
-        "Employee",
-        backref="request_emp",
-        lazy="joined",
-        foreign_keys=[employee_id],
-    )
-    director = relationship(
-        "Employee",
-        backref="request_dir",
-        lazy="joined",
-        foreign_keys=[director_id],
-    )
-
-
 class Comment(Base):
     __tablename__ = "comment"
     id = Column(Integer, primary_key=True)
@@ -107,22 +83,25 @@ class Comment(Base):
 
 
 class Task(Base):
+    class StatusProgress(PythonEnum):
+        IN_WORK = "in_work"
+        DONE = "done"
+
+    class StatusAccept(PythonEnum):
+        ACCEPTED = "accepted"
+        NOT_ACCEPTED = "not_accepted"
+        CANCELED = "canceled"
+
     __tablename__ = "task"
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
     idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
+    status_progress = Column(
+        Enum(StatusProgress), default=StatusProgress.IN_WORK
+    )
+    status_accept = Column(Enum(StatusAccept), nullable=True, default=None)
     task_type_id = Column(
         Integer, ForeignKey("taskType.id", ondelete="SET NULL"), nullable=True
-    )
-    status_progress_id = Column(
-        Integer,
-        ForeignKey("taskStatusProgress.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-    status_accept_id = Column(
-        Integer,
-        ForeignKey("taskStatusAccept.id", ondelete="SET NULL"),
-        nullable=True,
     )
     control_id = Column(
         Integer,
@@ -132,16 +111,6 @@ class Task(Base):
 
     idp = relationship("Idp", back_populates="task", lazy="joined")
     task_type = relationship("TaskType", back_populates="task", lazy="joined")
-    task_status_progress = relationship(
-        "TaskStatusProgress",
-        back_populates="task",
-        lazy="joined",
-    )
-    task_status_accept = relationship(
-        "TaskStatusAccept",
-        back_populates="task",
-        lazy="joined",
-    )
     task_control = relationship(
         "TaskControl",
         back_populates="task",
@@ -151,6 +120,12 @@ class Task(Base):
 
 
 class Idp(Base):
+    class StatusIdp(PythonEnum):
+        IN_WORK = "in_work"
+        NOT_COMPLETED = "not_completed"
+        DONE = "done"
+        CANCELED = "canceled"
+
     __tablename__ = "idp"
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
@@ -160,9 +135,7 @@ class Idp(Base):
     director_id = Column(
         Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
     )
-    status_idp_id = Column(
-        Integer, ForeignKey("statusIdp.id", ondelete="SET NULL"), nullable=True
-    )
+    status_idp_id = Column(Enum(StatusIdp), default=StatusIdp.IN_WORK)
     date_start = Column(DateTime, default=func.now(), nullable=False)
     date_end = Column(DateTime)
 
