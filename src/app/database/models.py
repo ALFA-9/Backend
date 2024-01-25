@@ -1,8 +1,8 @@
 from enum import Enum as PythonEnum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import func
 
 Base = declarative_base()
@@ -12,16 +12,24 @@ class Employee(Base):
     __tablename__ = "employee"
     id = Column(Integer, primary_key=True)
     grade_id = Column(
-        Integer, ForeignKey("grade.id", ondelete="SET NULL"), nullable=True
+        Integer,
+        ForeignKey("grade.id", ondelete="SET NULL"),
+        nullable=True,
     )
     post_id = Column(
-        Integer, ForeignKey("post.id", ondelete="SET NULL"), nullable=True
+        Integer,
+        ForeignKey("post.id", ondelete="SET NULL"),
+        nullable=True,
     )
     department_id = Column(
-        Integer, ForeignKey("department.id", ondelete="CASCADE"), nullable=True
+        Integer,
+        ForeignKey("department.id", ondelete="CASCADE"),
+        nullable=True,
     )
     director_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
+        Integer,
+        ForeignKey("employee.id", ondelete="SET NULL"),
+        nullable=True,
     )
     first_name = Column(String(80))
     last_name = Column(String(80))
@@ -36,8 +44,18 @@ class Employee(Base):
         back_populates="employee",
         lazy="joined",
     )
-    employees = relationship("Employee", lazy="joined", join_depth=3)
+    employees = relationship(
+        "Employee",
+        lazy="joined",
+        join_depth=3,
+        backref=backref(
+            "director", lazy="joined", uselist=False, remote_side=[id]
+        ),
+    )
     comment = relationship("Comment", back_populates="employee", lazy="joined")
+
+    def __str__(self):
+        return f"{self.last_name} {self.first_name} {self.patronymic}"
 
 
 class Grade(Base):
@@ -47,6 +65,9 @@ class Grade(Base):
 
     employee = relationship("Employee", back_populates="grade", lazy="joined")
 
+    def __str__(self):
+        return self.title
+
 
 class Post(Base):
     __tablename__ = "post"
@@ -54,6 +75,9 @@ class Post(Base):
     title = Column(String(200))
 
     employee = relationship("Employee", back_populates="post", lazy="joined")
+
+    def __str__(self):
+        return self.title
 
 
 class Department(Base):
@@ -64,6 +88,9 @@ class Department(Base):
     employee = relationship(
         "Employee", back_populates="department", lazy="joined"
     )
+
+    def __str__(self):
+        return self.title
 
 
 class Comment(Base):
@@ -79,6 +106,9 @@ class Comment(Base):
         "Employee", back_populates="comment", lazy="joined"
     )
     task = relationship("Task", back_populates="comment", lazy="joined")
+
+    def __str__(self):
+        return self.body_comment
 
 
 class Task(Base):
@@ -117,6 +147,9 @@ class Task(Base):
     )
     comment = relationship("Comment", back_populates="task", lazy="joined")
 
+    def __str__(self):
+        return self.name
+
 
 class Idp(Base):
     class StatusIdp(PythonEnum):
@@ -135,8 +168,8 @@ class Idp(Base):
         Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
     )
     status_idp = Column(Enum(StatusIdp), default=StatusIdp.IN_WORK)
-    date_start = Column(DateTime, default=func.now(), nullable=False)
-    date_end = Column(DateTime)
+    date_start = Column(Date, server_default=func.now(), default=func.now())
+    date_end = Column(Date)
 
     employee = relationship(
         "Employee",
@@ -153,6 +186,9 @@ class Idp(Base):
     )
     task = relationship("Task", back_populates="idp", lazy="joined")
 
+    def __str__(self):
+        return self.title
+
 
 class TaskType(Base):
     __tablename__ = "taskType"
@@ -161,6 +197,9 @@ class TaskType(Base):
 
     task = relationship("Task", back_populates="task_type", lazy="joined")
 
+    def __str__(self):
+        return self.name
+
 
 class TaskControl(Base):
     __tablename__ = "taskControl"
@@ -168,3 +207,6 @@ class TaskControl(Base):
     title = Column(String(100))
 
     task = relationship("Task", back_populates="task_control", lazy="joined")
+
+    def __str__(self):
+        return self.title

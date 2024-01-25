@@ -9,7 +9,7 @@ import argparse
 
 import pandas as pd
 
-from app.database.db import sync_engine
+from app.database.session import sync_engine
 
 
 def import_data(file_name, table_name):

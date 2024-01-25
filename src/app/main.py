@@ -1,11 +1,14 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from sqladmin import Admin, ModelView
+from sqladmin import Admin
 
-from app.database.db import engine
-from app.database.models import Base, Employee
-from app.employees import routers
+from app.admin import init
+from app.database.models import Base
+from app.database.session import engine
+from app.employees.views import router as router_employees
+from app.idps.views import router as router_idps
+from app.tasks.views import router as router_tasks
 
 
 async def create_tables():
@@ -15,20 +18,14 @@ async def create_tables():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    admin_backend = Admin(app, engine)
+    init(admin_backend)
     yield
 
 
 app = FastAPI(lifespan=lifespan)
-admin = Admin(app, engine)
-
-
-class UserAdmin(ModelView, model=Employee):
-    column_list = [Employee.id, Employee.email]
-
-
-admin.add_view(UserAdmin)
 
 # Добавляем маршруты как в Django
-app.include_router(routers.router, prefix="/employees", tags=["employees"])
-app.include_router(routers.router, prefix="/idps", tags=["idps"])
-app.include_router(routers.router, prefix="/tasks", tags=["tasks"])
+app.include_router(router_employees)
+app.include_router(router_idps)
+app.include_router(router_tasks)

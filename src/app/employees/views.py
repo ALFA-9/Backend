@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.db import get_db
+from app.database.session import get_db
 from app.employees import crud
-from app.employees.models import EmployeeDB
+from app.employees.schemas import EmployeeDB
 
-router = APIRouter()
+router = APIRouter(prefix="/employees", tags=["employees"])
 
 
 @router.get("/", response_model=list[EmployeeDB])
