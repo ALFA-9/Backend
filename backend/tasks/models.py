@@ -3,9 +3,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from users.models import Employee
 
 from idps.models import Idp
+from users.models import Employee
 
 User = get_user_model()
 
@@ -19,7 +19,7 @@ class Type(models.Model):
     )
 
     class Meta:
-        ordering = ("name",)
+        ordering = ("id",)
         verbose_name = _("Тип задачи")
         verbose_name_plural = _("Типы задач")
 

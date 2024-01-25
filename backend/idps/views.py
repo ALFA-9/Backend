@@ -7,9 +7,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, inline_serializer
 
-from idps.models import Employee, Idp
-from idps.serializers import (CreateIdpSerializer, IdpSerializer,
-                              NestedEmployeeSerializer)
+from idps.models import Idp
+from idps.serializers import (
+    CreateIdpSerializer,
+    IdpSerializer,
+    NestedEmployeeSerializer,
+)
+from users.models import Employee
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 

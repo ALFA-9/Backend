@@ -103,8 +103,13 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ("username", "password")
 
     email = models.EmailField(
-        "E-mail", max_length=MAX_EMAIL_CHARACTERS, unique=True,
+        "E-mail",
+        max_length=MAX_EMAIL_CHARACTERS,
+        unique=True,
     )
     employee = models.OneToOneField(
-        Employee, on_delete=models.CASCADE, null=True, related_name="user",
+        Employee,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="user",
     )

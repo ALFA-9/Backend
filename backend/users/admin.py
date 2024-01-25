@@ -1,14 +1,57 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
-from .models import Employee, User
+
+from .models import Department, Employee, Grade, Post, User
 
 
+@admin.register(Employee)
 class EmployeeAdmin(MPTTModelAdmin):
-    pass
+    list_display = (
+        "id",
+        "first_name",
+        "last_name",
+        "patronymic",
+        "phone",
+        "grade",
+        "post",
+        "department",
+        "director",
+    )
+    empty_value_display = "-пусто-"
 
+
+@admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "id",
+        "email",
+        "employee",
+    )
+    empty_value_display = "-пусто-"
 
 
-admin.site.register(Employee, EmployeeAdmin)
-admin.site.register(User, UserAdmin)
+@admin.register(Grade)
+class GradeAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "title",
+    )
+    empty_value_display = "-пусто-"
+
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "title",
+    )
+    empty_value_display = "-пусто-"
+
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "title",
+    )
+    empty_value_display = "-пусто-"
