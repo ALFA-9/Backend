@@ -8,7 +8,6 @@ from sqlalchemy.sql import func
 Base = declarative_base()
 
 
-# Создаем таблицы(что-то вроде моделей в Django)
 class Employee(Base):
     __tablename__ = "employee"
     id = Column(Integer, primary_key=True)
@@ -135,7 +134,7 @@ class Idp(Base):
     director_id = Column(
         Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
     )
-    status_idp_id = Column(Enum(StatusIdp), default=StatusIdp.IN_WORK)
+    status_idp = Column(Enum(StatusIdp), default=StatusIdp.IN_WORK)
     date_start = Column(DateTime, default=func.now(), nullable=False)
     date_end = Column(DateTime)
 
@@ -152,16 +151,7 @@ class Idp(Base):
         lazy="joined",
         foreign_keys=[director_id],
     )
-    status_idp = relationship("StatusIdp", back_populates="idp", lazy="joined")
     task = relationship("Task", back_populates="idp", lazy="joined")
-
-
-class StatusIdp(Base):
-    __tablename__ = "statusIdp"
-    id = Column(Integer, primary_key=True)
-    title = Column(String(50))
-
-    idp = relationship("Idp", back_populates="status_idp", lazy="joined")
 
 
 class TaskType(Base):
@@ -170,30 +160,6 @@ class TaskType(Base):
     name = Column(String(50))
 
     task = relationship("Task", back_populates="task_type", lazy="joined")
-
-
-class TaskStatusProgress(Base):
-    __tablename__ = "taskStatusProgress"
-    id = Column(Integer, primary_key=True)
-    status = Column(String(50))
-
-    task = relationship(
-        "Task",
-        back_populates="task_status_progress",
-        lazy="joined",
-    )
-
-
-class TaskStatusAccept(Base):
-    __tablename__ = "taskStatusAccept"
-    id = Column(Integer, primary_key=True)
-    status = Column(String(50))
-
-    task = relationship(
-        "Task",
-        back_populates="task_status_accept",
-        lazy="joined",
-    )
 
 
 class TaskControl(Base):

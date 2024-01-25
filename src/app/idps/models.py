@@ -36,6 +36,17 @@ class IdpDB(BaseModel):
     director: DirectorDB
     status_idp: StatusIdpDB
     date_start: datetime
+    date_end: datetime
 
     class Config:
         from_attributes = True
+
+
+class IdpCreate(BaseModel):
+    id: int
+    title: str
+    employee: int
+    director: int
+    status_idp: StatusIdpDB
+    date_start: datetime = datetime.date.today()
+    date_end: datetime

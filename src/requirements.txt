@@ -6,6 +6,8 @@ uvicorn==0.11.3
 pandas==2.1.4
 email-validator==2.1.0.post1
 alembic==1.13.1
+sqladmin==0.16.0
+alembic-postgresql-enum==1.0.2
 
 # dev
 pytest==5.4.1
