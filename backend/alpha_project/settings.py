@@ -58,7 +58,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Alfa People",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
-    'SERVERS': [{'url': 'http://localhost:8000/'}],
+    "SERVERS": [{"url": "http://localhost:8000/"}],
 }
 
 DJOSER = {
@@ -137,7 +137,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.Employee"
 
 DEFAULT_FROM_EMAIL = "alpha_idp_service@alpha.ru"
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
@@ -148,8 +148,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-        "rest_framework.permissions.AllowAny"
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        # "rest_framework.permissions.AllowAny"
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }

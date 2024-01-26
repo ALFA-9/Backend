@@ -9,6 +9,7 @@ services:
   backend:
     restart: always
     build: ./backend/
+    entrypoint: /app/backend_entrypoint.sh
     env_file: .env
     volumes:
       - static:/backend_static
