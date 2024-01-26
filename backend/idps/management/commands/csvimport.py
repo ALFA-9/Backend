@@ -15,6 +15,7 @@ manage.py csvimport [-h] [-f FILE] [-m MODEL] [-d DIR] [-is] [-c] [-r]
 import csv
 import os
 import re
+import sys
 
 import django.apps
 from django.core.exceptions import ObjectDoesNotExist
@@ -82,7 +83,7 @@ class Command(BaseCommand):
         if filename:
             modelname = os.path.basename(filename).split(".")[0]
         elif not modelname:
-            print("Не указаны ни файл, ни модель")
+            sys.stdout.write("Не указаны ни файл, ни модель\n")
         # Ищем модель по имени
         for current_model in self.model_list:
             if (
@@ -108,27 +109,27 @@ class Command(BaseCommand):
                 if pattern.match(modelname.lower()):
                     model = current_model
         if not model and not silent:
-            print(
-                "Невозможно получить имя модели по имени файла. ",
-                "Используйте аргумент -m <model_name>, ",
-                "или -is, если в названии файла присутствует ",
-                "множественное число.",
+            sys.stdout.write(
+                """Невозможно получить имя модели по имени файла.
+                 Используйте аргумент -m <model_name>,
+                 или -is, если в названии файла присутствует
+                 множественное число.\n""",
             )
         return model
 
     def check_command(self):
         """Проверка совместимости ключей запуска."""
         if self.import_file and self.import_dir:
-            print("Можно задать либо файл, либо директорию")
+            sys.stdout.write("Можно задать либо файл, либо директорию\n")
             exit(-1)
         if self.import_file and self.import_recurse:
-            print('Ключ "--recurse" применим только к папкам')
+            sys.stdout.write('Ключ "--recurse" применим только к папкам\n')
             exit(-1)
         if self.import_model and self.import_dir:
-            print('Ключ "--model" применим только к файлам')
+            sys.stdout.write('Ключ "--model" применим только к файлам\n')
             exit(-1)
         if not self.import_file and not self.import_dir:
-            print("Должны быть указаны либо папка, либо файл")
+            sys.stdout.write("Должны быть указаны либо папка, либо файл\n")
             exit(-1)
 
     def file_import(self):
@@ -138,7 +139,7 @@ class Command(BaseCommand):
                 self.import_file,
             ).split(".")
             if splitted_filename[1] != "csv":
-                print("Поддерживаются только csv файлы.")
+                sys.stdout.write("Поддерживаются только csv файлы.\n")
                 return
             else:
                 if self.import_model and (
@@ -152,18 +153,18 @@ class Command(BaseCommand):
                     )
                     return
                 elif self.import_model:
-                    print("Модель не найдена в проекте.")
+                    sys.stdout.write("Модель не найдена в проекте.")
                     return
                 if model := self.find_model(
                     filename=self.import_file,
                 ):
-                    print(f"Импорт в модель {model.__name__}")
+                    sys.stdout.write(f"Импорт в модель {model.__name__}")
                     self.file_model = {self.import_file: model}
                     self.import_from_file(
                         self.import_file,
                     )
         else:
-            print(f"Файл {self.import_file} не существует.")
+            sys.stdout.write(f"Файл {self.import_file} не существует.")
             return
 
     def dir_import(self):
@@ -206,7 +207,7 @@ class Command(BaseCommand):
     def _prepare_field_value(self, model_fields):
         field_value = dict()
         for field in model_fields:
-            if field.__class__.__name__ == 'ForeignKey':
+            if field.__class__.__name__ in ("ForeignKey"):
                 femote_field = field.remote_field.model
                 if femote_field in self.file_model.values():
                     for tfile in self.file_model.keys():
@@ -223,19 +224,24 @@ class Command(BaseCommand):
             fname = field.db_column or field.attname
             # Заполняем значениями по-умолчанию или из файла, если есть
             field_value[fname] = row.get(fname) or field.get_default()
-            if field.__class__.__name__ == "ForeignKey":
+            if field.__class__.__name__ in ("ForeignKey", "TreeForeignKey"):
                 try:
-                    field_value[
-                        field.name
-                    ] = field.remote_field.model.objects.get(
-                        pk=int(row[fname]),
-                    )
+                    # Eсли fk <=0, то значения ключей = None (нет связи)
+                    if int(row[fname]) <= 0:
+                        field_value[field.name] = None
+                        field_value[fname] = None
+                    else:
+                        field_value[
+                            field.name
+                        ] = field.remote_field.model.objects.get(
+                            pk=int(row[fname]),
+                        )
                 except ObjectDoesNotExist:
-                    print(
-                        "Есть поле, которое невозможно заполнить",
-                        "данными из связанной таблицы",
+                    sys.stdout.write(
+                        """Есть поле, которое невозможно заполнить,
+                         данными из связанной таблицы\n""",
                     )
-                    print("Пропущено")
+                    sys.stdout.write("Пропущено\n")
                     continue
         return field_value
 
@@ -246,13 +252,13 @@ class Command(BaseCommand):
             model.objects.all().delete()
         model_fields = model._meta.fields
         field_value = self._prepare_field_value(model_fields)
-        print("\n" + file + " >", model.__name__)
+        sys.stdout.write("\n" + file + " >" + model.__name__)
         with open(file, "r", encoding="utf-8") as csvfile:
             filereader = csv.DictReader(csvfile)
-            print(f"Поля файла: {filereader.fieldnames}")
-            print(f"Поля модели: {set(field_value.keys())}")
+            sys.stdout.write(f"Поля файла: {filereader.fieldnames}\n")
+            sys.stdout.write(f"Поля модели: {set(field_value.keys())}\n")
             for row in filereader:
-                print("Импротируем:", list(row.values()))
+                sys.stdout.write(f"Импротируем: {list(row.values())}\n")
                 field_value = self._filling_field_value(
                     row,
                     model_fields,
@@ -261,11 +267,11 @@ class Command(BaseCommand):
                 try:
                     model.objects.update_or_create(**field_value)
                 except ValueError:
-                    print("Невозможно создать объект с такими данными")
-                    print("Пропущено")
+                    sys.stdout.write("Невозможно создать объект с такими данными\n")
+                    sys.stdout.write("Пропущено\n")
                     continue
                 except IntegrityError as e:
-                    print(f"Ошибка импорта в таблицу: {e}")
+                    sys.stdout.write(f"Ошибка импорта в таблицу: {e}\n")
                     break
         # Удаляем из словаря импортированный файл
         del self.file_model[file]

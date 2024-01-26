@@ -2,10 +2,10 @@ import time
 
 from django.core.mail import send_mail
 from django.db.models import Count, OuterRef, Subquery
-from rest_framework import permissions, status, viewsets, serializers
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, inline_serializer
 
 from idps.models import Employee, Idp
 from idps.serializers import (CreateIdpSerializer, IdpSerializer,
@@ -102,13 +102,16 @@ def get_employees_for_director(request):
 
 @extend_schema(
     description="Статистика по ИПР всех сотрудников директора",
-    responses=inline_serializer('succes', {
-        "in_work": serializers.IntegerField(),
-        "canceled": serializers.IntegerField(),
-        "done": serializers.IntegerField(),
-        "not_completed": serializers.IntegerField(),
-        "null": serializers.IntegerField()}
-    )
+    responses=inline_serializer(
+        "succes",
+        {
+            "in_work": serializers.IntegerField(),
+            "canceled": serializers.IntegerField(),
+            "done": serializers.IntegerField(),
+            "not_completed": serializers.IntegerField(),
+            "null": serializers.IntegerField(),
+        },
+    ),
 )
 @api_view(["GET"])
 def get_statistic_for_director(request):

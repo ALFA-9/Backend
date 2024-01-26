@@ -7,7 +7,6 @@ python manage.py collectstatic --noinput
 
 cp -r collected_static/. /backend_static/static/
 
-DJANGO_SUPERUSER_USERNAME=admin \
 DJANGO_SUPERUSER_PASSWORD=admin \
 DJANGO_SUPERUSER_EMAIL="admin@admin.ru" \
 python manage.py createsuperuser --noinput
