@@ -43,8 +43,8 @@ class Command(BaseCommand):
             "--ignore_s",
             action="store_true",
             help=(
-                "Игнорирование множественного ",
-                "числа в английском названии файла",
+                """Игнорирование множественного
+                 числа в английском названии файла""",
             ),
         )
         parser.add_argument(
@@ -267,7 +267,9 @@ class Command(BaseCommand):
                 try:
                     model.objects.update_or_create(**field_value)
                 except ValueError:
-                    sys.stdout.write("Невозможно создать объект с такими данными\n")
+                    sys.stdout.write(
+                        "Невозможно создать объект с такими данными\n"
+                    )
                     sys.stdout.write("Пропущено\n")
                     continue
                 except IntegrityError as e:
