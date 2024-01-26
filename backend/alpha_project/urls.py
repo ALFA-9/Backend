@@ -8,7 +8,7 @@ from rest_framework import routers
 from idps.views import (IdpViewSet, get_employees_for_director,
                         get_statistic_for_director, idp_request)
 from tasks.views import TaskViewSet
-from users.views import EmployeeViewSet, AuthAPIView
+from users.views import AuthAPIView, EmployeeViewSet
 
 router = routers.DefaultRouter()
 router.register(r"tasks", TaskViewSet)

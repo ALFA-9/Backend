@@ -19,7 +19,7 @@ employees_last_request = {}
 class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects.all()
     serializer_class = IdpSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     http_method_names = ("get", "post", "patch", "delete")
 
     def perform_create(self, serializer):
