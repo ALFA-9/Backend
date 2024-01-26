@@ -2,7 +2,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from djoser.views import UserViewSet as DjoserUserViewSet
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
@@ -13,7 +12,6 @@ from tasks.views import TaskViewSet
 router = routers.DefaultRouter()
 router.register(r"tasks", TaskViewSet)
 router.register(r"idps", IdpViewSet)
-router.register(r"employees", DjoserUserViewSet)
 
 urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
@@ -32,7 +30,7 @@ urlpatterns = [
         TaskViewSet.as_view({"delete": "delete_comment"}),
         name="delete_comment",
     ),
-    path("api/auth/", include("djoser.urls.authtoken")),
+    path("api/auth/", include("rest_framework.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",

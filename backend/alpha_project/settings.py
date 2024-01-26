@@ -61,24 +61,9 @@ SPECTACULAR_SETTINGS = {
     "SERVERS": [{"url": "http://localhost:8000/"}],
 }
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-        # "rest_framework.permissions.AllowAny"
-    ],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
 DJOSER = {
     "HIDE_USERS": False,
     "LOGIN_FIELD": "email",
-    "SERIALIZERS": {
-        "user": "users.serializers.EmployeeSerializer",
-        "current_user": "users.serializers.EmployeeSerializer",
-    },
     "PERMISSIONS": {
         "user": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
         "user_list": ["rest_framework.permissions.AllowAny"],
@@ -157,3 +142,14 @@ AUTH_USER_MODEL = "users.Employee"
 DEFAULT_FROM_EMAIL = "alpha_idp_service@alpha.ru"
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        # "rest_framework.permissions.AllowAny"
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
