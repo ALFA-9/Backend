@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_filters",
     "drf_spectacular",
-    "djoser",
     "mptt",
     "idps",
     "tasks",
@@ -70,19 +69,6 @@ REST_FRAMEWORK = {
         # "rest_framework.permissions.AllowAny"
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-DJOSER = {
-    "HIDE_USERS": False,
-    "LOGIN_FIELD": "email",
-    "SERIALIZERS": {
-        "user": "users.serializers.EmployeeSerializer",
-        "current_user": "users.serializers.EmployeeSerializer",
-    },
-    "PERMISSIONS": {
-        "user": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
-        "user_list": ["rest_framework.permissions.AllowAny"],
-    },
 }
 
 ROOT_URLCONF = "alpha_project.urls"

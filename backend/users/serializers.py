@@ -3,6 +3,10 @@ from rest_framework import serializers
 from .models import Employee
 
 
+class AuthSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     """ Сериализатор для кастомной модели пользователя. """
 
@@ -10,9 +14,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ("id", "username", "first_name", "last_name", "patronymic",
+        fields = ("id", "first_name", "last_name", "patronymic",
                   "email", "phone", "grade", "post", "department",
-                  "director", "subordinates", "is_staff")
+                  "subordinates", "is_staff")
 
     def get_subordinates(self, director):
-        return director.get_descendants(include_self=False)
+        return director.get_descendants(include_self=False).values_list("email", flat=True)
