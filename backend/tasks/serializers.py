@@ -21,6 +21,16 @@ class TaskSerializer(serializers.ModelSerializer):
             "date_end",
         )
 
+    # extra_kwargs = {
+    #     "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
+    #     "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
+    # }
+
+    # def to_representation(self, instance):
+    #     instance.date_start = instance.date_start.strftime("%d.%m.%Y")
+    #     instance.date_end = instance.date_end.strftime("%d.%m.%Y")
+    #     return super().to_representation(instance)
+
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:

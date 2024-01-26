@@ -4,17 +4,53 @@ from rest_framework.response import Response
 
 from .models import Comment, Task
 from .serializers import CommentSerializer, TaskSerializer
+from idps.models import Idp
 
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        current_user = request.user
+        idp_id = request.data["idp"]
+        if not Idp.objects.filter(id=idp_id).exists():
+            return Response(
+                {"error": "Данного ИПР не существует."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        idp = Idp.objects.get(id=idp_id)
+        if current_user != idp.director:
+            return Response(
+                {"error": "Вы не являетесь автором данного ИПР."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        current_user = request.user
+        instance = self.get_object()
+        idp_id = request.data["idp"]
+        idp = Idp.objects.get(id=idp_id)
+        if current_user != idp.director:
+            return Response(
+                {"error": "Вы не являетесь автором данного ИПР."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
         methods=["get", "post"],
-        permission_classes=(permissions.AllowAny,),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def comments(self, request, pk=None):
         task_id = self.kwargs.get("pk")
@@ -43,7 +79,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["delete"],
-        permission_classes=(permissions.AllowAny,),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def delete_comment(self, request, task_id=None, comment_id=None):
         try:
