@@ -27,10 +27,18 @@ class TaskViewSet(viewsets.ModelViewSet):
                 {"error": "Вы не являетесь автором данного ИПР."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        serializer = TaskSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+    def get_serializer_class(self):
+        if self.action in ("create", "partial_update"):
+            return TaskSerializer
+        return TaskSerializer
 
     @action(
         detail=True,
