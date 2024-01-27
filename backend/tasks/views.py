@@ -34,12 +34,44 @@ class TaskViewSet(viewsets.ModelViewSet):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    def update(self, request, *args, **kwargs):
+        current_user = request.user
+        instance = self.get_object()
+        task_id = self.kwargs.get("pk")
+        task = Task.objects.get(id=task_id)
+        if current_user == task.idp.employee:
+            data = {
+                "status_progress": request.data.get(
+                    "status_progress", "in_work"
+                )
+            }
+            serializer = self.get_serializer(instance, data=data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+
+        if current_user == task.idp.director:
+            data = {
+                "status_accept": request.data.get(
+                    "status_accept", "not_accepted"
+                )
+            }
+            serializer = self.get_serializer(instance, data=data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"error": "Вы не являетесь начальником для этого сотрудника."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     def destroy(self, request, *args, **kwargs):
         current_user = request.user
         instance = self.get_object()
-        idp_id = request.data["idp"]
-        idp = Idp.objects.get(id=idp_id)
-        if current_user != idp.director:
+        task_id = self.kwargs.get("pk")
+        task = Task.objects.get(id=task_id)
+        if current_user != task.idp.director:
             return Response(
                 {"error": "Вы не являетесь автором данного ИПР."},
                 status=status.HTTP_400_BAD_REQUEST,

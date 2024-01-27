@@ -1,6 +1,60 @@
 from rest_framework import serializers
 
-from .models import Comment, Task
+from .models import Comment, Control, Task, Type
+
+
+class TypeSerializer(serializers.ModelSerializer):
+    """Сереализатор типов задач."""
+
+    class Meta:
+        model = Type
+        fields = (
+            "id",
+            "name",
+        )
+
+
+class ControlSerializer(serializers.ModelSerializer):
+    """Сереализатор типов задач."""
+
+    class Meta:
+        model = Control
+        fields = (
+            "id",
+            "title",
+        )
+
+
+class TaskGetSerializer(serializers.ModelSerializer):
+    """Сереализатор задач."""
+
+    type = TypeSerializer()
+    control = ControlSerializer()
+
+    class Meta:
+        model = Task
+        fields = (
+            "id",
+            "name",
+            "description",
+            "idp",
+            "type",
+            "status_progress",
+            "status_accept",
+            "control",
+            "date_start",
+            "date_end",
+        )
+
+    extra_kwargs = {
+        "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
+        "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
+    }
+
+    def to_representation(self, instance):
+        instance.date_start = instance.date_start.strftime("%d.%m.%Y")
+        instance.date_end = instance.date_end.strftime("%d.%m.%Y")
+        return super().to_representation(instance)
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -21,15 +75,16 @@ class TaskSerializer(serializers.ModelSerializer):
             "date_end",
         )
 
-    # extra_kwargs = {
-    #     "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-    #     "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-    # }
+    # def update(self, task, validated_data):
+    #     """Редактирование задачи."""
+    #     super().update(instance=self.instance, validated_data=validated_data)
+    #     return task
 
-    # def to_representation(self, instance):
-    #     instance.date_start = instance.date_start.strftime("%d.%m.%Y")
-    #     instance.date_end = instance.date_end.strftime("%d.%m.%Y")
-    #     return super().to_representation(instance)
+    def to_representation(self, instance):
+        serializer = TaskGetSerializer(
+            instance, context={"request": self.context.get("request")}
+        )
+        return serializer.data
 
 
 class CommentSerializer(serializers.ModelSerializer):
