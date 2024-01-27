@@ -7,8 +7,6 @@ from idps.models import Employee, Idp
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(source="user.email")
-
     class Meta:
         model = Employee
         fields = (

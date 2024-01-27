@@ -94,11 +94,11 @@ class Task(models.Model):
         verbose_name=_("Метод контроля выполнения задачи"),
         on_delete=models.CASCADE,
     )
-    date_start = models.DateTimeField(
+    date_start = models.DateField(
         verbose_name=_("Дата начала выполнения задачи"),
         default=timezone.now,
     )
-    date_end = models.DateTimeField(
+    date_end = models.DateField(
         verbose_name=_("Дата окончания выполнения задачи"),
     )
 
