@@ -1,5 +1,6 @@
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Comment, Task
@@ -73,68 +74,66 @@ class TaskViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(
-        detail=True,
-        methods=["get"],
-        permission_classes=(permissions.IsAuthenticated,),
-    )
-    def employee_tasks(self, request):
-        employee = request.user.id
-        if Idp.objects.filter(employee=employee).exists():
-            idp = Idp.objects.get(employee=employee)
-            queryset = idp.task_idp.all()
-            serializer = TaskSerializer(instance=queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"error": "Idp для данного сотрудника не найден"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
-    @action(
-        detail=True,
-        methods=["get", "post"],
-        permission_classes=(permissions.IsAuthenticated,),
-    )
-    def comments(self, request, pk=None):
-        task_id = self.kwargs.get("pk")
-        employee = request.user.id
-        body = request.data.get("body")
-        if not Task.objects.filter(id=task_id).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        if not body:
-            return Response(
-                {"error": "Комментарий отсутствует."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if request.method == "POST":
-            serializer = CommentSerializer(
-                data={
-                    "employee": employee,
-                    "task": task_id,
-                    "request": request,
-                    "body": body,
-                },
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        queryset = Comment.objects.filter(task=task_id)
-        serializer = CommentSerializer(
-            queryset,
-            many=True,
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def employee_tasks(request):
+    employee = request.user.id
+    try:
+        idp = Idp.objects.get(employee=employee)
+        queryset = idp.task_idp.all()
+        serializer = TaskSerializer(instance=queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Idp.DoesNotExist:
+        return Response(
+            {"error": "Idp для данного сотрудника не найден"},
+            status=status.HTTP_404_NOT_FOUND,
         )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def comments(request, task_id):
+    task_id = task_id
+    employee = request.user.id
+    body = request.data.get("body")
+
+    if not Task.objects.filter(id=task_id).exists():
+        return Response(
+            {"error": "Задача с данным номером не существует."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if request.method == "POST":
+        serializer = CommentSerializer(
+            data={
+                "employee": employee,
+                "task": task_id,
+                "request": request,
+                "body": body,
+            },
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(
-        detail=True,
-        methods=["delete"],
-        permission_classes=(permissions.IsAuthenticated,),
-    )
-    def delete_comment(self, request, task_id=None, comment_id=None):
-        try:
-            comment = Comment.objects.get(id=comment_id, task=task_id)
-        except Comment.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    if not body:
+        return Response(
+            {"error": "Комментарий отсутствует."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    queryset = Comment.objects.filter(task=task_id)
+    serializer = CommentSerializer(queryset, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_comment(request, task_id, comment_id):
+    try:
+        comment = Comment.objects.get(id=comment_id, task=task_id)
+    except Comment.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    comment.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
