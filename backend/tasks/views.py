@@ -75,6 +75,24 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
+        methods=["get"],
+        permission_classes=(permissions.IsAuthenticated,),
+    )
+    def employee_tasks(self, request):
+        employee = request.user.id
+        if Idp.objects.filter(employee=employee).exists():
+            idp = Idp.objects.get(employee=employee)
+            queryset = idp.task_idp.all()
+            serializer = TaskSerializer(instance=queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"error": "Idp для данного сотрудника не найден"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    @action(
+        detail=True,
         methods=["get", "post"],
         permission_classes=(permissions.IsAuthenticated,),
     )
