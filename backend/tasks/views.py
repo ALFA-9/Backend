@@ -78,9 +78,9 @@ class TaskViewSet(viewsets.ModelViewSet):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def employee_tasks(request):
-    employee = request.user.id
+    employee_id = request.user.id
     try:
-        idp = Idp.objects.get(employee=employee)
+        idp = Idp.objects.get(employee=employee_id)
         queryset = idp.task_idp.all()
         serializer = TaskSerializer(instance=queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -95,7 +95,7 @@ def employee_tasks(request):
 @permission_classes([IsAuthenticated])
 def comments(request, task_id):
     task_id = task_id
-    employee = request.user.id
+    employee_id = request.user.id
     body = request.data.get("body")
 
     if not Task.objects.filter(id=task_id).exists():
@@ -106,7 +106,7 @@ def comments(request, task_id):
     if request.method == "POST":
         serializer = CommentSerializer(
             data={
-                "employee": employee,
+                "employee": employee_id,
                 "task": task_id,
                 "request": request,
                 "body": body,

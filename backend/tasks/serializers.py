@@ -76,9 +76,7 @@ class TaskSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        serializer = TaskGetSerializer(
-            instance, context={"request": self.context.get("request")}
-        )
+        serializer = TaskGetSerializer(instance)
         return serializer.data
 
 
