@@ -1,6 +1,10 @@
 from pydantic import BaseModel, EmailStr
 
 
+class AuthEmployeeSchema(BaseModel):
+    email: EmailStr
+
+
 class GradeDB(BaseModel):
     title: str
 

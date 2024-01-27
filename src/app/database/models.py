@@ -1,6 +1,6 @@
 from enum import Enum as PythonEnum
 
-from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import func
@@ -47,7 +47,6 @@ class Employee(Base):
     employees = relationship(
         "Employee",
         lazy="joined",
-        join_depth=3,
         backref=backref(
             "director", lazy="joined", uselist=False, remote_side=[id]
         ),
@@ -124,13 +123,19 @@ class Task(Base):
     __tablename__ = "task"
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
+    description = Column(Text)
     idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
     status_progress = Column(
-        Enum(StatusProgress), default=StatusProgress.IN_WORK
+        Enum(StatusProgress),
+        default=StatusProgress.IN_WORK,
     )
     status_accept = Column(Enum(StatusAccept), nullable=True, default=None)
+    date_start = Column(Date)
+    date_end = Column(Date)
     task_type_id = Column(
-        Integer, ForeignKey("taskType.id", ondelete="SET NULL"), nullable=True
+        Integer,
+        ForeignKey("taskType.id", ondelete="SET NULL"),
+        nullable=True,
     )
     control_id = Column(
         Integer,

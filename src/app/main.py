@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from sqladmin import Admin
 
 from app.admin import init
+from app.auth.auth import router as auth_router
 from app.database.models import Base
 from app.database.session import engine
 from app.employees.views import router as router_employees
@@ -29,3 +30,4 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(router_employees)
 app.include_router(router_idps)
 app.include_router(router_tasks)
+app.include_router(auth_router)
