@@ -75,11 +75,6 @@ class TaskSerializer(serializers.ModelSerializer):
             "date_end",
         )
 
-    # def update(self, task, validated_data):
-    #     """Редактирование задачи."""
-    #     super().update(instance=self.instance, validated_data=validated_data)
-    #     return task
-
     def to_representation(self, instance):
         serializer = TaskGetSerializer(
             instance, context={"request": self.context.get("request")}
@@ -88,6 +83,8 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сереализатор комментариев к задачам."""
+
     class Meta:
         model = Comment
         fields = (

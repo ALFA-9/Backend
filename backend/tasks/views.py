@@ -39,32 +39,26 @@ class TaskViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         task_id = self.kwargs.get("pk")
         task = Task.objects.get(id=task_id)
-        if current_user == task.idp.employee:
-            data = {
-                "status_progress": request.data.get(
-                    "status_progress", "in_work"
-                )
-            }
-            serializer = self.get_serializer(instance, data=data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            return Response(serializer.data)
-
-        if current_user == task.idp.director:
-            data = {
-                "status_accept": request.data.get(
-                    "status_accept", "not_accepted"
-                )
-            }
-            serializer = self.get_serializer(instance, data=data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            return Response(serializer.data)
+        employee = task.idp.employee
+        # если текущий пользователь исполнитель задачи
+        if current_user == employee:
+            field_name = "status_progress"
+            default = "in_work"
+        # если текущий пользователь руководитель исполнителя задачи
+        elif current_user in employee.get_ancestors():
+            field_name = "status_accept"
+            default = "not_accepted"
         else:
             return Response(
-                {"error": "Вы не являетесь начальником для этого сотрудника."},
+                {"error": "У вас нет прав для изменения статуса задачи."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        data = {field_name: request.data.get(field_name, default)}
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         current_user = request.user
@@ -87,8 +81,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def comments(self, request, pk=None):
         task_id = self.kwargs.get("pk")
         employee = self.request.user
-        task = Task.objects.filter(id=task_id)
-        if not task.exists():
+        if not Task.objects.filter(id=task_id).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == "POST":
             serializer = CommentSerializer(
