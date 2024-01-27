@@ -80,15 +80,22 @@ class TaskViewSet(viewsets.ModelViewSet):
     )
     def comments(self, request, pk=None):
         task_id = self.kwargs.get("pk")
-        employee = self.request.user
+        employee = request.user.id
+        body = request.data.get("body")
         if not Task.objects.filter(id=task_id).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        if not body:
+            return Response(
+                {"error": "Комментарий отсутствует."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if request.method == "POST":
             serializer = CommentSerializer(
                 data={
                     "employee": employee,
                     "task": task_id,
                     "request": request,
+                    "body": body,
                 },
             )
             serializer.is_valid(raise_exception=True)
