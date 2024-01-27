@@ -7,8 +7,6 @@
 git clone git@github.com:ALFA-9/Backend.git
 ````
 
-Скачать docker-compose.production.yml
-
 Установить docker: https://www.docker.com/get-started/
 
 В терминале linux это можно сделать так:
@@ -35,11 +33,11 @@ ALLOWED_HOSTS=<ваши адреса через пробел (пример:local
 
 Запустить Docker в директории с файлом (чтобы запустить в фоновом режиме добавьте флаг -d):
 ````
-docker compose -f docker-compose.production.yml up
+docker-compose up
 ````
 В терминале Linux могут потребоваться права суперпользователя:
 ````
-sudo docker compose -f docker-compose.production.yml up
+sudo docker-compose up
 ````
 ### Как начать?
 
