@@ -108,7 +108,6 @@ def comments(request, task_id):
             data={
                 "employee": employee_id,
                 "task": task_id,
-                "request": request,
                 "body": body,
             },
         )
