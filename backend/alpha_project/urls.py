@@ -5,11 +5,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from idps.views import (
-    IdpViewSet,
-    get_statistic_for_director,
-    idp_request,
-)
+from idps.views import IdpViewSet, get_statistic_for_director, idp_request
 from tasks.views import TaskViewSet, comments, delete_comment, employee_tasks
 from users.views import AuthAPIView, EmployeeViewSet
 

@@ -64,6 +64,7 @@ db.sqlite3
 db.sqlite3-journal
 media/
 collected_static/
+sent_emails/
 
 # Flask stuff:
 instance/
@@ -134,5 +135,3 @@ dmypy.json
 
 # .idea
 .idea
-
-/collected_static
