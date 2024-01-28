@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
+from idps.permissions import DirectorPermission
 from idps.serializers import (CreateIdpSerializer, IdpSerializer,
                               NestedEmployeeSerializer)
 
@@ -19,7 +20,7 @@ employees_last_request = {}
 class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects.all()
     serializer_class = IdpSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [DirectorPermission]
     http_method_names = ("get", "post", "patch", "delete")
 
     def perform_create(self, serializer):
