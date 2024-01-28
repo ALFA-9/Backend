@@ -40,13 +40,12 @@ class TaskViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         task_id = self.kwargs.get("pk")
         task = Task.objects.get(id=task_id)
-        employee = task.idp.employee
         # если текущий пользователь исполнитель задачи
-        if current_user == employee:
+        if current_user == task.idp.employee:
             field_name = "status_progress"
             default = "in_work"
         # если текущий пользователь руководитель исполнителя задачи
-        elif current_user in employee.get_ancestors():
+        elif current_user == task.idp.director:
             field_name = "status_accept"
             default = "not_accepted"
         else:
