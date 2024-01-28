@@ -73,8 +73,6 @@ class CreateIdpSerializer(serializers.ModelSerializer):
 
 
 class NestedEmployeeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(source="user.email")
-
     class Meta:
         model = Employee
         fields = ("first_name", "email")
@@ -85,3 +83,10 @@ class NestedEmployeeSerializer(serializers.ModelSerializer):
             many=True, required=False
         )
         return fields
+
+
+class RequestSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    letter = serializers.CharField()
+    director_id = serializers.IntegerField()
+    file = serializers.FileField(required=False)

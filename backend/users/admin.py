@@ -9,7 +9,7 @@ from .models import Department, Employee, Grade, Post
 
 @admin.register(Employee)
 class EmployeeAdmin(MPTTModelAdmin):
-    list_display = ("email", "first_name", "last_name", "patronymic")
+    list_display = ("id", "email", "first_name", "last_name", "patronymic")
     fieldsets = (
         (
             _("Personal info"),

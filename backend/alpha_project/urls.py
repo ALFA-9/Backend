@@ -5,12 +5,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from idps.views import (
-    IdpViewSet,
-    get_employees_for_director,
-    get_statistic_for_director,
-    idp_request,
-)
+from idps.views import IdpViewSet, get_statistic_for_director, idp_request
 from tasks.views import TaskViewSet, comments, delete_comment, employee_tasks
 from users.views import AuthAPIView, EmployeeViewSet
 
@@ -25,7 +20,6 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/request/", idp_request),
     path("api/statistic/", get_statistic_for_director),
-    path("api/employees/", get_employees_for_director),
     path("api/tasks/<int:task_id>/comments/", comments, name="comments"),
     path(
         "api/tasks/<int:task_id>/comments/<int:comment_id>/",

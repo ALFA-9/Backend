@@ -1,8 +1,7 @@
-from datetime import date
-
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from mptt.models import TreeForeignKey
 
@@ -40,7 +39,7 @@ class Idp(models.Model):
     )
     # TODO подумать все таки о datetime?
     date_start = models.DateField(
-        verbose_name=_("дата начала"), editable=False, default=date.today
+        verbose_name=_("дата начала"), editable=False, default=timezone.now
     )
     date_end = models.DateField(verbose_name=_("дата окончания"))
 
