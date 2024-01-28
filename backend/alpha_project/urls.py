@@ -7,7 +7,6 @@ from rest_framework import routers
 
 from idps.views import (
     IdpViewSet,
-    get_employees_for_director,
     get_statistic_for_director,
     idp_request,
 )
@@ -25,7 +24,6 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/request/", idp_request),
     path("api/statistic/", get_statistic_for_director),
-    path("api/employees/", get_employees_for_director),
     path("api/tasks/<int:task_id>/comments/", comments, name="comments"),
     path(
         "api/tasks/<int:task_id>/comments/<int:comment_id>/",

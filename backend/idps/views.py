@@ -3,14 +3,13 @@ import time
 from django.core.mail import send_mail
 from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework import permissions, serializers, status, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
-from idps.serializers import (CreateIdpSerializer, IdpSerializer,
-                              NestedEmployeeSerializer)
+from idps.serializers import CreateIdpSerializer, IdpSerializer
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -24,13 +23,11 @@ class IdpViewSet(viewsets.ModelViewSet):
     http_method_names = ("get", "post", "patch", "delete")
 
     def perform_create(self, serializer):
-        serializer.save(
-            director=Employee.objects.get(id=1)
-        )  # self.request.user
+        serializer.save(director=self.request.user)
 
     def create(self, request, *args, **kwargs):
         emp_id = request.data["employee"]
-        user = Employee.objects.get(id=1)  # self.request.user
+        user = self.request.user
         emp = user.get_children().filter(id=emp_id)
         if emp.exists():
             if emp.get().idp_employee.filter(status_idp="in_work").exists():
@@ -61,7 +58,7 @@ class IdpViewSet(viewsets.ModelViewSet):
 # Проверить после добавления авторизации
 @api_view(["POST"])
 def idp_request(request):
-    employee = request.user  # Для теста Employee.objects.get(id=2)
+    employee = request.user
     # Костыль? можно ли что-то другое придумать, также не хочется трогать бд
     last_request = employees_last_request.setdefault(employee.id, 0)
     time_diff = time.time() - last_request
@@ -91,14 +88,14 @@ def idp_request(request):
     )
 
 
-@extend_schema(responses=NestedEmployeeSerializer)
-@api_view(["GET"])
-def get_employees_for_director(request):
-    # director = request.user
-    employee = Employee.objects.get(id=1)
+# @extend_schema(responses=NestedEmployeeSerializer)
+# @api_view(["GET"])
+# def get_employees_for_director(request):
+#     director = request.user
+#     employee = Employee.objects.get(id=1)
 
-    serializer = NestedEmployeeSerializer(employee)
-    return Response(serializer.data)
+#     serializer = NestedEmployeeSerializer(employee)
+#     return Response(serializer.data)
 
 
 @extend_schema(
