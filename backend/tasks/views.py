@@ -12,6 +12,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    http_method_names = ("get", "post", "patch", "delete")
 
     def create(self, request, *args, **kwargs):
         current_user = request.user

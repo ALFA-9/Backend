@@ -20,10 +20,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "idps",
-    "djoser",
+    "rest_framework.authtoken",
+    "debug_toolbar",
     "django_filters",
-    "colorfield",
+    "drf_spectacular",
+    "mptt",
+    "idps",
+    "tasks",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -99,3 +103,4 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
 }
+AUTH_USER_MODEL = "users.Employee"
