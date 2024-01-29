@@ -1,12 +1,37 @@
-from sqlalchemy import select
+import os
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formatdate
+from smtplib import SMTP_SSL
+
+from fastapi import HTTPException, status
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.database.models import Idp
+from app.database.models import Employee, Idp
+from app.utils import get_all_childs_id, get_all_parents_id
+
+OWN_EMAIL = os.getenv("OWN_EMAIL")
+OWN_EMAIL_PASSWORD = os.getenv("OWN_EMAIL_PASSWORD")
+MAIL_SERVER = os.getenv("MAIL_SERVER")
 
 
-# Получаем ответ от дб
-async def get_all(db: AsyncSession, skip: int = 0, limit: int = 100):
+async def director_permission(
+    db: AsyncSession, user: Employee, employee_id: int
+):
+    childs_id = await db.execute(select(get_all_childs_id(user.id)))
+    if employee_id not in childs_id.scalars().all():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Вы не можете взаимодействовать с данным сотрудником.",
+        )
+
+
+async def get_all(
+    db: AsyncSession, user: Employee, skip: int = 0, limit: int = 100
+):
     statement = (
         select(Idp)
         .options(
@@ -15,27 +40,86 @@ async def get_all(db: AsyncSession, skip: int = 0, limit: int = 100):
         )
         .offset(skip)
         .limit(limit)
-    )
+    ).where(Idp.employee_id == user.id)
     result = await db.execute(statement)
     return result.unique().scalars().all()
 
 
-async def get_by_id(db: AsyncSession, id: int):
+async def get_by_id(db: AsyncSession, user: Employee, id: int):
     statement = (
         select(Idp)
         .options(joinedload(Idp.employee), joinedload(Idp.director))
-        .where(Idp.id == id)
+        .where(
+            Idp.id == id,
+            or_(Idp.director_id == user.id, Idp.employee_id == user.id),
+        )
     )
     return await db.scalar(statement)
 
 
-async def post(db: AsyncSession, payload):
-    idp = Idp(
-        title=payload.title,
-        employee_id=payload.employee_id,
-        director_id=payload.director_id,
-        date_end=payload.date_end,
+async def post(db: AsyncSession, user: Employee, payload):
+    await director_permission(db, user, payload)
+    active_idps = await db.execute(
+        select(Idp).where(
+            Idp.status_idp == "in_work", Idp.employee_id == payload.employee_id
+        )
     )
-    db.add(idp)
+    active_idps = active_idps.unique().scalars().all()
+    if len(active_idps) == 0:
+        idp = Idp(
+            title=payload.title,
+            employee_id=payload.employee_id,
+            director_id=user.id,
+            date_end=payload.date_end,
+        )
+        db.add(idp)
+        await db.commit()
+        return idp
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="У этого сотрудника уже есть активный ИПР.",
+    )
+
+
+async def patch(db: AsyncSession, user: Employee, payload, id: int):
+    director_permission(db, user, payload)
+    existing_model = await db.execute(select(Idp).where(Idp.id == id))
+    idp = existing_model.scalar()
+    if not idp:
+        raise HTTPException(status_code=404, detail="Item not found")
+    # Обновите значения полей модели в соответствии с запросом PATCH
+    for field, value in payload:
+        setattr(idp, field, value)
+    # Сохраните обновленную модель в базу данных
     await db.commit()
     return idp
+
+
+async def post_request(db: AsyncSession, user: Employee, payload):
+    directors_id = get_all_parents_id(user.id)
+    statement = (
+        select(Employee)
+        .filter(Employee.id.in_(select(directors_id)))
+        .where(Employee.id == payload.director_id)
+    )
+    result = await db.execute(statement)
+    if (director := result.scalar()) is None:
+        raise HTTPException(status_code=400, detail="Это не ваш начальник.")
+    msg = MIMEMultipart()
+    msg["From"] = OWN_EMAIL
+    msg["To"] = director.email
+    msg["Date"] = formatdate(localtime=True)
+    msg["Subject"] = payload.title
+    msg.attach(MIMEText(payload.letter))
+    for f in payload.file or []:
+        part = MIMEApplication(await f.read(), Name=f.filename)
+        part["Content-Disposition"] = 'attachment; filename="%s"' % f.filename
+        msg.attach(part)
+
+    port = 465
+    server = SMTP_SSL(MAIL_SERVER, port)
+    server.login(OWN_EMAIL, OWN_EMAIL_PASSWORD)
+
+    server.sendmail(OWN_EMAIL, director.email, msg.as_string())
+    server.close()
+    return {"success": "Отправлено."}

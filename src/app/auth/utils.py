@@ -14,12 +14,12 @@ def encode_jwt(
 ) -> str:
     to_encode = payload.copy()
     now = datetime.utcnow()
-    if expire_timedelta:
-        expire = now + expire_timedelta
-    else:
-        expire = now + timedelta(minutes=expire_minutes)
+    # if expire_timedelta:
+    #     expire = now + expire_timedelta
+    # else:
+    #     expire = now + timedelta(minutes=expire_minutes)
     to_encode.update(
-        exp=expire,
+        # exp=expire,
         iat=now,
     )
     encoded = jwt.encode(

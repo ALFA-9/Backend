@@ -48,13 +48,15 @@ class Employee(Base):
         "Employee",
         lazy="joined",
         backref=backref(
-            "director", lazy="joined", uselist=False, remote_side=[id]
+            "director", uselist=False, remote_side=[id], lazy="joined"
         ),
     )
     comment = relationship("Comment", back_populates="employee", lazy="joined")
 
     def __str__(self):
-        return f"{self.last_name} {self.first_name} {self.patronymic}"
+        return (
+            f"{self.id} {self.last_name} {self.first_name} {self.patronymic}"
+        )
 
 
 class Grade(Base):
@@ -112,13 +114,13 @@ class Comment(Base):
 
 class Task(Base):
     class StatusProgress(PythonEnum):
-        IN_WORK = "in_work"
-        DONE = "done"
+        in_work = "in_work"
+        done = "done"
 
     class StatusAccept(PythonEnum):
-        ACCEPTED = "accepted"
-        NOT_ACCEPTED = "not_accepted"
-        CANCELED = "canceled"
+        accepted = "accepted"
+        not_accepted = "not_accepted"
+        canceled = "canceled"
 
     __tablename__ = "task"
     id = Column(Integer, primary_key=True)
@@ -127,7 +129,7 @@ class Task(Base):
     idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
     status_progress = Column(
         Enum(StatusProgress),
-        default=StatusProgress.IN_WORK,
+        default=StatusProgress.in_work,
     )
     status_accept = Column(Enum(StatusAccept), nullable=True, default=None)
     date_start = Column(Date)
@@ -158,10 +160,10 @@ class Task(Base):
 
 class Idp(Base):
     class StatusIdp(PythonEnum):
-        IN_WORK = "in_work"
-        NOT_COMPLETED = "not_completed"
-        DONE = "done"
-        CANCELED = "canceled"
+        in_work = "in_work"
+        not_completed = "not_completed"
+        done = "done"
+        canceled = "canceled"
 
     __tablename__ = "idp"
     id = Column(Integer, primary_key=True)
@@ -172,7 +174,7 @@ class Idp(Base):
     director_id = Column(
         Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
     )
-    status_idp = Column(Enum(StatusIdp), default=StatusIdp.IN_WORK)
+    status_idp = Column(Enum(StatusIdp), default=StatusIdp.in_work)
     date_start = Column(Date, server_default=func.now(), default=func.now())
     date_end = Column(Date)
 
