@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Comment, Control, Task, Type
+from idps.serializers import IdpSerializer
 
 
 class TypeSerializer(serializers.ModelSerializer):
@@ -46,14 +47,15 @@ class TaskGetSerializer(serializers.ModelSerializer):
             "date_end",
         )
 
-    extra_kwargs = {
-        "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-        "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-    }
+        extra_kwargs = {
+            "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
+            "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
+        }
 
     def to_representation(self, instance):
         instance.date_start = instance.date_start.strftime("%d.%m.%Y")
         instance.date_end = instance.date_end.strftime("%d.%m.%Y")
+
         return super().to_representation(instance)
 
 
@@ -92,3 +94,8 @@ class CommentSerializer(serializers.ModelSerializer):
             "body",
             "pub_date",
         )
+
+
+class EmployeeTasksSerializer(serializers.Serializer):
+    idp = IdpSerializer()
+    tasks = TaskGetSerializer(many=True)

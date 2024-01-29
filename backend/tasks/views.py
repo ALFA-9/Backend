@@ -4,8 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Comment, Task
-from .serializers import CommentSerializer, TaskSerializer
+from .serializers import (
+    CommentSerializer,
+    EmployeeTasksSerializer,
+    TaskGetSerializer,
+    TaskSerializer,
+)
 from idps.models import Idp
+from idps.serializers import IdpSerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -89,9 +95,18 @@ def employee_tasks(request):
     employee_id = request.user.id
     try:
         idp = Idp.objects.get(employee=employee_id)
-        queryset = idp.task_idp.all()
-        serializer = TaskSerializer(instance=queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        tasks = idp.task_idp.all()
+        serialized_data = {
+            "idp": IdpSerializer(instance=idp).data,
+            "tasks": TaskGetSerializer(instance=tasks, many=True).data,
+        }
+
+        # Если нет задач, убираем поле "tasks"
+        if not tasks.exists():
+            serialized_data.pop("tasks")
+
+        return Response(serialized_data, status=status.HTTP_200_OK)
     except Idp.DoesNotExist:
         return Response(
             {"error": "Idp для данного сотрудника не найден"},
