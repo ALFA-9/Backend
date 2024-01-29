@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from idps.models import Employee, Idp
+from tasks.models import Control, Task, Type
 from users.models import Department, Employee, Grade, Post
 
 
@@ -89,5 +90,37 @@ def create_idp(create_employees_for_director_1):
         employee=Employee.objects.get(id=4),
         director=Employee.objects.get(id=1),
         status_idp="in_work",
+        date_end=date_end,
+    )
+
+
+@pytest.fixture
+def create_task(db, create_employee):
+    date_start = dt.date.today()
+    date_end = date_start + dt.timedelta(days=180)
+    # Используем фикстуру create_employee
+    employees = create_employee
+    employee = employees[3]
+    director = employees[0]
+    # Выбираем одного из созданных сотрудников
+    idp = Idp.objects.create(
+        title="Test idp",
+        employee=employee,
+        director=director,
+        status_idp="in_work",
+        date_end=date_end,
+    )
+    type = Type.objects.create(
+        name="Project",
+    )
+    control = Control.objects.create(
+        title="Test",
+    )
+    return Task.objects.create(
+        name="Test task",
+        idp=idp,
+        description="New test",
+        type=type,
+        control=control,
         date_end=date_end,
     )
