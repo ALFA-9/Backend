@@ -3,7 +3,8 @@ import time
 from django.core.mail import EmailMessage
 from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework import permissions, serializers, status, viewsets
+
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
@@ -19,7 +20,7 @@ employees_last_request = {}
 class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects.all()
     serializer_class = IdpSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [DirectorPermission]
     http_method_names = ("get", "post", "patch", "delete")
 
     def perform_create(self, serializer):
@@ -112,7 +113,7 @@ def idp_request(request):
 # @extend_schema(responses=NestedEmployeeSerializer)
 # @api_view(["GET"])
 # def get_employees_for_director(request):
-#     # director = request.user
+#     director = request.user
 #     employee = Employee.objects.get(id=1)
 
 #     serializer = NestedEmployeeSerializer(employee)
