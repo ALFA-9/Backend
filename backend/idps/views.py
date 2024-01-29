@@ -30,11 +30,18 @@ class IdpViewSet(viewsets.ModelViewSet):
         serializer.save(director=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        emp_id = request.data.get("employee")
+        if emp_id is None:
+            return Response(
+                {"error": "Поле 'employee' отсутствует в запросе."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         emp_id = request.data["employee"]
         user = self.request.user
-        emp = user.get_children().filter(id=emp_id)
-        if emp.exists():
-            if emp.get().idp_employee.filter(status_idp="in_work").exists():
+        employee = Employee.objects.get(id=emp_id)
+        director_list = employee.get_ancestors()
+        if user in director_list:
+            if employee.idp_employee.filter(status_idp="in_work").exists():
                 return Response(
                     {"error": "У этого сотрудника уже есть активный ИПР."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -52,6 +59,30 @@ class IdpViewSet(viewsets.ModelViewSet):
             {"error": "Вы не являетесь начальником для этого сотрудника."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    # def create(self, request, *args, **kwargs):
+    #     emp_id = request.data["employee"]
+    #     user = self.request.user
+    #     emp = user.get_children().filter(id=emp_id)
+    #     if emp.exists():
+    #         if emp.get().idp_employee.filter(status_idp="in_work").exists():
+    #             return Response(
+    #                 {"error": "У этого сотрудника уже есть активный ИПР."},
+    #                 status=status.HTTP_400_BAD_REQUEST,
+    #             )
+    #         serializer = self.get_serializer(data=request.data)
+    #         serializer.is_valid(raise_exception=True)
+    #         self.perform_create(serializer)
+    #         headers = self.get_success_headers(serializer.data)
+    #         return Response(
+    #             serializer.data,
+    #             status=status.HTTP_201_CREATED,
+    #             headers=headers,
+    #         )
+    #     return Response(
+    #         {"error": "Вы не являетесь начальником для этого сотрудника."},
+    #         status=status.HTTP_400_BAD_REQUEST,
+    #     )
 
     def get_serializer_class(self):
         if self.action in ("create", "partial_update"):
