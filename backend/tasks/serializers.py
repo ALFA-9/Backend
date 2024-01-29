@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from .models import Comment, Control, Task, Type
-from idps.serializers import IdpSerializer
 
 
 class TypeSerializer(serializers.ModelSerializer):
@@ -94,8 +93,3 @@ class CommentSerializer(serializers.ModelSerializer):
             "body",
             "pub_date",
         )
-
-
-class EmployeeTasksSerializer(serializers.Serializer):
-    idp = IdpSerializer()
-    tasks = TaskGetSerializer(many=True)

@@ -4,12 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Comment, Task
-from .serializers import (
-    CommentSerializer,
-    EmployeeTasksSerializer,
-    TaskGetSerializer,
-    TaskSerializer,
-)
+from .serializers import CommentSerializer, TaskGetSerializer, TaskSerializer
 from idps.models import Idp
 from idps.serializers import IdpSerializer
 
