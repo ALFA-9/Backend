@@ -3,10 +3,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from idps.models import Idp
-
 from .models import Comment, Task
 from .serializers import CommentSerializer, TaskSerializer
+from idps.models import Idp
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -17,25 +16,33 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         current_user = request.user
-        idp_id = request.data["idp"]
-        if not Idp.objects.filter(id=idp_id).exists():
+        try:
+            idp_id = request.data.get("idp")
+            if idp_id is None:
+                return Response(
+                    {"error": "Поле 'idp' отсутствует в запросе."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            idp = Idp.objects.get(id=request.data["idp"])
+            if current_user != idp.director:
+                return Response(
+                    {"error": "Вы не являетесь автором данного ИПР."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
             return Response(
-                {"error": "Данного ИПР не существует."},
-                status=status.HTTP_400_BAD_REQUEST,
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+                headers=headers,
             )
-        idp = Idp.objects.get(id=idp_id)
-        if current_user != idp.director:
+        except Idp.DoesNotExist:
             return Response(
-                {"error": "Вы не являетесь автором данного ИПР."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"error": "ИПР для данного сотрудника не найден"},
+                status=status.HTTP_404_NOT_FOUND,
             )
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
 
     def update(self, request, *args, **kwargs):
         current_user = request.user
