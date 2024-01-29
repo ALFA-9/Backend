@@ -1,15 +1,12 @@
+import datetime as dt
+
 import pytest
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
+from idps.models import Employee, Idp
 from users.models import Department, Employee, Grade, Post
-
-# import datetime as dt
-
-# import pytest
-
-# from idps.models import Employee, Idp
 
 
 @pytest.fixture
@@ -62,36 +59,35 @@ def create_employee_with_tokens(create_employee):
     return {"employees": employees}
 
 
-# @pytest.fixture
-# def create_idps_for_emps(create_tree_structure):
-#     STATUSES = ["in_work", "canceled", "done"]
-#     for i in range(2, 5):
-#         emp = Employee.objects.get(id=i)
-#         Idp.objects.create(
-#             title=f"ИПР для {emp.name}",
-#             employee=emp,
-#             director=emp.director,
-#             date_end=dt.date.today() + dt.timedelta(days=180),
-#             status_idp=STATUSES[i - 2],
-#         )
-#     emp = Employee.objects.get(id=7)
-#     Idp.objects.create(
-#         title=f"ИПР для {emp.name}",
-#         employee=emp,
-#         director=emp.director,
-#         date_end=dt.date.today() + dt.timedelta(days=180),
-#         status_idp="not_completed",
-#     )
+@pytest.fixture
+def create_multiple_directors():
+    for dir in range(1, 4):
+        Employee.objects.create(
+            first_name=f"Emp{dir}",
+            email=f"email{dir}@dir.com",
+            phone=f"7 (999) 99{dir}-00-00",
+        )
 
 
-# @pytest.fixture
-# def create_idp_model(create_multiple_employees):
-#     date_start = dt.date.today()
-#     date_end = date_start + dt.timedelta(days=180)
-#     return Idp.objects.create(
-#         title="Title",
-#         employee=create_multiple_employees[1],
-#         director=create_multiple_employees[0],
-#         status_idp="in_work",
-#         date_end=date_end,
-#     )
+@pytest.fixture
+def create_employees_for_director_1(create_multiple_directors):
+    for emp in range(1, 4):
+        Employee.objects.create(
+            first_name=f"Emp1-{emp}",
+            email=f"email1-{emp}@dir.com",
+            phone=f"7 (999) 991-{emp}0-00",
+            director=Employee.objects.get(id=1),
+        )
+
+
+@pytest.fixture
+def create_idp(create_employees_for_director_1):
+    date_start = dt.date.today()
+    date_end = date_start + dt.timedelta(days=180)
+    return Idp.objects.create(
+        title="Title",
+        employee=Employee.objects.get(id=4),
+        director=Employee.objects.get(id=1),
+        status_idp="in_work",
+        date_end=date_end,
+    )
