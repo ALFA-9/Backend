@@ -1,11 +1,10 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import generics, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
 from .models import Employee
-from .serializers import AuthSerializer, EmployeeSerializer
-from .permissions import UserIsDirectorPermission
+from .serializers import AuthSerializer, DirectorSerializer
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -29,9 +28,13 @@ class AuthAPIView(generics.GenericAPIView):
         return Response("Неверный запрос", status=status.HTTP_400_BAD_REQUEST)
 
 
-class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
-    """Информация о сотрудниках"""
+class EmployeeAPIView(generics.GenericAPIView):
+    """ Аутентифицированный аккаунт. """
 
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [UserIsDirectorPermission]
+    permission_classes = [permissions.IsAuthenticated,]
+    http_method_names = ("get", )
+    serializer_class = DirectorSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

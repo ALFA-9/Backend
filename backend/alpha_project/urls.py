@@ -7,17 +7,17 @@ from rest_framework import routers
 
 from idps.views import IdpViewSet, get_statistic_for_director, idp_request
 from tasks.views import TaskViewSet, comments, delete_comment, employee_tasks
-from users.views import AuthAPIView, EmployeeViewSet
+from users.views import AuthAPIView, EmployeeAPIView
 
 router = routers.DefaultRouter()
 router.register(r"tasks", TaskViewSet)
 router.register(r"idps", IdpViewSet)
-router.register(r"employees", EmployeeViewSet)
 
 urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
+    path("api/employees/", EmployeeAPIView.as_view()),
     path("api/request/", idp_request),
     path("api/statistic/", get_statistic_for_director),
     path("api/tasks/<int:task_id>/comments/", comments, name="comments"),
