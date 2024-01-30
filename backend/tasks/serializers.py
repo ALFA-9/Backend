@@ -67,13 +67,6 @@ class TaskGetSerializer(serializers.ModelSerializer):
 
         return super().to_representation(instance)
 
-    def validate_date_end(self, value):
-        if value < datetime.date.today():
-            raise serializers.ValidationError(
-                _("Дата окончания должна быть больше даты начала.")
-            )
-        return value
-
 
 class TaskSerializer(serializers.ModelSerializer):
     """Сереализатор задач."""
@@ -96,6 +89,13 @@ class TaskSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializer = TaskGetSerializer(instance)
         return serializer.data
+
+    def validate_date_end(self, value):
+        if value < datetime.date.today():
+            raise serializers.ValidationError(
+                _("Дата окончания должна быть больше даты начала.")
+            )
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):

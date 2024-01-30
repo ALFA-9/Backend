@@ -99,5 +99,10 @@ def comments(request, task_id):
 @permission_classes([IsAuthenticated])
 def delete_comment(request, task_id, comment_id):
     comment = get_object_or_404(Comment, id=comment_id, task=task_id)
-    comment.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    if request.user == comment.employee:
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(
+        {"error": "Вы не являетесь автором данного комментария."},
+        status=status.HTTP_400_BAD_REQUEST,
+    )

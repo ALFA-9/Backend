@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from idps.models import Employee, Idp
+from idps.models import Idp
 from tasks.models import Control, Task, Type
 from users.models import Department, Employee, Grade, Post
 

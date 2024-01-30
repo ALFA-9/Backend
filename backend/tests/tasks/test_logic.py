@@ -1,5 +1,4 @@
 import datetime as dt
-import json
 from http import HTTPStatus
 
 import pytest
@@ -8,7 +7,6 @@ from rest_framework.test import APIClient
 
 from idps.models import Idp
 from tasks.models import Control, Task, Type
-from tasks.serializers import TaskSerializer
 from users.models import Employee
 
 
@@ -63,6 +61,7 @@ def test_post_task(client: APIClient, create_employee):
         "control": {"id": 1, "title": "Test"},
         "date_start": date_start.strftime("%d.%m.%Y"),
         "date_end": date_end.strftime("%d.%m.%Y"),
+        "comments": [],
     }
 
     client.force_login(Employee.objects.get(id=3))
