@@ -1,12 +1,12 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Comment, Task
-from .serializers import CommentSerializer, TaskGetSerializer, TaskSerializer
+from .serializers import CommentSerializer, TaskSerializer
 from idps.models import Idp
-from idps.serializers import IdpSerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -17,33 +17,22 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         current_user = request.user
-        try:
-            idp_id = request.data.get("idp")
-            if idp_id is None:
-                return Response(
-                    {"error": "Поле 'idp' отсутствует в запросе."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            idp = Idp.objects.get(id=request.data["idp"])
-            if current_user != idp.director:
-                return Response(
-                    {"error": "Вы не являетесь автором данного ИПР."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
+        idp_id = request.data.get("idp")
+        idp = get_object_or_404(Idp, id=idp_id)
+        if current_user != idp.director:
             return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED,
-                headers=headers,
+                {"error": "Вы не являетесь автором данного ИПР."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        except Idp.DoesNotExist:
-            return Response(
-                {"error": "ИПР для данного сотрудника не найден"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
     def update(self, request, *args, **kwargs):
         current_user = request.user
@@ -84,43 +73,12 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def employee_tasks(request):
-    employee_id = request.user.id
-    try:
-        idp = Idp.objects.get(employee=employee_id)
-
-        tasks = idp.task_idp.all()
-        serialized_data = {
-            "idp": IdpSerializer(instance=idp).data,
-            "tasks": TaskGetSerializer(instance=tasks, many=True).data,
-        }
-
-        # Если нет задач, убираем поле "tasks"
-        if not tasks.exists():
-            serialized_data.pop("tasks")
-
-        return Response(serialized_data, status=status.HTTP_200_OK)
-    except Idp.DoesNotExist:
-        return Response(
-            {"error": "Idp для данного сотрудника не найден"},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def comments(request, task_id):
-    task_id = task_id
     employee_id = request.user.id
     body = request.data.get("body")
-
-    if not Task.objects.filter(id=task_id).exists():
-        return Response(
-            {"error": "Задача с данным номером не существует."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    task = get_object_or_404(Task, id=task_id)
     if request.method == "POST":
         serializer = CommentSerializer(
             data={
@@ -132,14 +90,7 @@ def comments(request, task_id):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    if not body:
-        return Response(
-            {"error": "Комментарий отсутствует."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    queryset = Comment.objects.filter(task=task_id)
+    queryset = task.comment_task.all()
     serializer = CommentSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -147,10 +98,6 @@ def comments(request, task_id):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_comment(request, task_id, comment_id):
-    try:
-        comment = Comment.objects.get(id=comment_id, task=task_id)
-    except Comment.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
+    comment = get_object_or_404(Comment, id=comment_id, task=task_id)
     comment.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
