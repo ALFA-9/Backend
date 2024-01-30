@@ -3,6 +3,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
+from .constants import MAX_DEPTH
 from .models import Employee
 from .serializers import AuthSerializer, DirectorSerializer
 
@@ -33,8 +34,7 @@ class EmployeeAPIView(generics.GenericAPIView):
 
     permission_classes = [permissions.IsAuthenticated,]
     http_method_names = ("get", )
-    serializer_class = DirectorSerializer
 
     def get(self, request, *args, **kwargs):
-        serializer = self.get_serializer(request.user)
+        serializer = DirectorSerializer(request.user, max_depth=MAX_DEPTH)
         return Response(serializer.data, status=status.HTTP_200_OK)

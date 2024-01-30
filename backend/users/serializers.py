@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from .constants import MAX_DEPTH
 from .models import Employee
 
 
@@ -32,6 +31,10 @@ class DirectorSerializer(EmployeeSerializer):
 
     subordinates = serializers.SerializerMethodField()
 
+    def __init__(self, *kwrgs, max_depth):
+        self.max_depth = max_depth
+        super().__init__(*kwrgs)
+
     class Meta:
         model = Employee
         fields = (
@@ -49,6 +52,10 @@ class DirectorSerializer(EmployeeSerializer):
         )
 
     def get_subordinates(self, director):
-        return DirectorSerializer(director.get_descendants(
-            include_self=False).filter(level__lte=director.level + MAX_DEPTH),
-            many=True).data
+        if self.max_depth > 1:
+            serializer = DirectorSerializer(director.get_descendants(
+                include_self=False).filter(
+                level__lte=director.level + self.max_depth),
+                max_depth=self.max_depth - 1,
+                many=True)
+            return serializer.data
