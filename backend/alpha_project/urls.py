@@ -26,7 +26,7 @@ urlpatterns = [
         delete_comment,
         name="delete_comment",
     ),
-    path("api/employee/tasks/", employee_tasks, name="employee_tasks"),
+    path("api/employees/tasks/", employee_tasks, name="employee_tasks"),
     path("api/auth/", AuthAPIView.as_view()),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

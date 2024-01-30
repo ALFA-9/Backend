@@ -49,6 +49,6 @@ class DirectorSerializer(EmployeeSerializer):
         )
 
     def get_subordinates(self, director):
-        return EmployeeSerializer(director.get_descendants(
+        return DirectorSerializer(director.get_descendants(
             include_self=False).filter(level__lte=director.level + MAX_DEPTH),
             many=True).data
