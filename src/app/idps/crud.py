@@ -1,21 +1,10 @@
-import os
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.utils import formatdate
-from smtplib import SMTP_SSL
-
 from fastapi import HTTPException, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.database.models import Employee, Idp
-from app.utils import get_all_childs_id, get_all_parents_id
-
-OWN_EMAIL = os.getenv("OWN_EMAIL")
-OWN_EMAIL_PASSWORD = os.getenv("OWN_EMAIL_PASSWORD")
-MAIL_SERVER = os.getenv("MAIL_SERVER")
+from app.utils import get_all_childs_id, get_all_parents_id, send_email
 
 
 async def director_permission(
@@ -24,7 +13,7 @@ async def director_permission(
     childs_id = await db.execute(select(get_all_childs_id(user.id)))
     if employee_id not in childs_id.scalars().all():
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы не можете взаимодействовать с данным сотрудником.",
         )
 
@@ -58,7 +47,7 @@ async def get_by_id(db: AsyncSession, user: Employee, id: int):
 
 
 async def post(db: AsyncSession, user: Employee, payload):
-    await director_permission(db, user, payload)
+    await director_permission(db, user, payload.employee_id)
     active_idps = await db.execute(
         select(Idp).where(
             Idp.status_idp == "in_work", Idp.employee_id == payload.employee_id
@@ -82,15 +71,13 @@ async def post(db: AsyncSession, user: Employee, payload):
 
 
 async def patch(db: AsyncSession, user: Employee, payload, id: int):
-    director_permission(db, user, payload)
     existing_model = await db.execute(select(Idp).where(Idp.id == id))
     idp = existing_model.scalar()
     if not idp:
-        raise HTTPException(status_code=404, detail="Item not found")
-    # Обновите значения полей модели в соответствии с запросом PATCH
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ИПР с таким id не существует")
+    await director_permission(db, user, idp.employee_id)
     for field, value in payload:
         setattr(idp, field, value)
-    # Сохраните обновленную модель в базу данных
     await db.commit()
     return idp
 
@@ -105,21 +92,12 @@ async def post_request(db: AsyncSession, user: Employee, payload):
     result = await db.execute(statement)
     if (director := result.scalar()) is None:
         raise HTTPException(status_code=400, detail="Это не ваш начальник.")
-    msg = MIMEMultipart()
-    msg["From"] = OWN_EMAIL
-    msg["To"] = director.email
-    msg["Date"] = formatdate(localtime=True)
-    msg["Subject"] = payload.title
-    msg.attach(MIMEText(payload.letter))
-    for f in payload.file or []:
-        part = MIMEApplication(await f.read(), Name=f.filename)
-        part["Content-Disposition"] = 'attachment; filename="%s"' % f.filename
-        msg.attach(part)
-
-    port = 465
-    server = SMTP_SSL(MAIL_SERVER, port)
-    server.login(OWN_EMAIL, OWN_EMAIL_PASSWORD)
-
-    server.sendmail(OWN_EMAIL, director.email, msg.as_string())
-    server.close()
+    try:
+        await send_email(
+            payload.title, payload.letter, payload.files, director.email
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail="Мы не смогли отправить сообщение."
+        )
     return {"success": "Отправлено."}

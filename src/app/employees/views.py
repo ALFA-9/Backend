@@ -30,7 +30,7 @@ async def get_all_employees(
     return await crud.get_all(db, user)
 
 
-@router.get("/me/", response_model=EmployeeDB)
+@router.get("/me/", response_model=EmployeeLastChild)
 async def auth_user_check_self_info(
     user: EmployeeDB = Depends(get_current_auth_user),
 ):

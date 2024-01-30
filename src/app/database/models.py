@@ -127,11 +127,8 @@ class Task(Base):
     name = Column(String(100))
     description = Column(Text)
     idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
-    status_progress = Column(
-        Enum(StatusProgress),
-        default=StatusProgress.in_work,
-    )
-    status_accept = Column(Enum(StatusAccept), nullable=True, default=None)
+    status_progress = Column(Enum(StatusProgress), default=StatusProgress.in_work)
+    status_accept = Column(Enum(StatusAccept), nullable=True)
     date_start = Column(Date)
     date_end = Column(Date)
     task_type_id = Column(

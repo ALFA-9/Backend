@@ -71,4 +71,4 @@ class RequestSchema:
     title: str = Form(...)
     letter: str = Form(...)
     director_id: int = Form(...)
-    file: list[UploadFile] = File(None)
+    files: list[UploadFile] = File(None)
