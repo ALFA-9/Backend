@@ -29,6 +29,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         )
 
     def get_subordinates(self, director):
-        return EmployeeSerializer(director.get_descendants(
-            include_self=False),
-            many=True).data
+        return EmployeeSerializer(
+            director.get_descendants(include_self=False), many=True
+        ).data

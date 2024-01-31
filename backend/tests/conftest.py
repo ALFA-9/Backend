@@ -3,8 +3,8 @@ import datetime as dt
 import pytest
 
 from idps.models import Idp
-from users.models import Employee
 from tasks.models import Task
+from users.models import Employee
 
 
 @pytest.fixture

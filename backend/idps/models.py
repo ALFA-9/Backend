@@ -40,7 +40,8 @@ class Idp(models.Model):
     )
     # TODO подумать все таки о datetime?
     date_start = models.DateTimeField(
-        verbose_name=_("дата начала"), auto_now_add=True,
+        verbose_name=_("дата начала"),
+        auto_now_add=True,
     )
     date_end = models.DateField(verbose_name=_("дата окончания"))
 

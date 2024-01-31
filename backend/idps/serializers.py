@@ -4,8 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from idps.models import Idp
-from users.models import Employee
 from tasks.models import Task
+from users.models import Employee
 
 
 def create_tasks(data, model):
@@ -17,9 +17,7 @@ def create_tasks(data, model):
 class TaskForIdpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        exclude = (
-            "idp",
-        )
+        exclude = ("idp",)
 
 
 class EmployeeForIdpSerializer(serializers.ModelSerializer):
@@ -59,16 +57,26 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
         )
 
     def get_current_task(self, obj):
-        current_task = obj.task_idp.filter(status_progress="in_work", date_end__gt=dt.date.today()).order_by("date_start").first()
+        current_task = (
+            obj.task_idp.filter(
+                status_progress="in_work", date_end__gt=dt.date.today()
+            )
+            .order_by("date_start")
+            .first()
+        )
         if not current_task:
             return None
         return CurrentTaskSerializer(current_task).data
 
     def get_progress(self, obj):
-        tasks_not_canceled_count = obj.task_idp.exclude(status_accept="canceled").count()
+        tasks_not_canceled_count = obj.task_idp.exclude(
+            status_accept="canceled"
+        ).count()
         if not tasks_not_canceled_count:
             return None
-        tasks_done_count = obj.task_idp.filter(status_accept="accepted").count()
+        tasks_done_count = obj.task_idp.filter(
+            status_accept="accepted"
+        ).count()
         return tasks_done_count / tasks_not_canceled_count * 100
 
 
@@ -113,7 +121,7 @@ class CreateIdpSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        tasks_data = validated_data.pop('task_idp')
+        tasks_data = validated_data.pop("task_idp")
         idp = Idp.objects.create(**validated_data)
         create_tasks(tasks_data, idp)
         return idp

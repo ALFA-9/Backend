@@ -3,14 +3,14 @@ import time
 from django.core.mail import EmailMessage
 from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework.decorators import action
-from rest_framework import serializers, status, viewsets, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions, serializers, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
-from idps.serializers import CreateIdpSerializer, RequestSerializer, IdpWithCurrentTaskSerializer
+from idps.serializers import (CreateIdpSerializer,
+                              IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -59,7 +59,9 @@ class IdpViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
     @action(
-        methods=["get"], url_path='employee/(?P<user_id>\d+)', detail=False,
+        methods=["get"],
+        url_path="employee/(?P<user_id>\d+)",
+        detail=False,
     )
     def get_employee_idp(self, request, user_id):
         emp = request.user.get_descendants().filter(id=user_id)

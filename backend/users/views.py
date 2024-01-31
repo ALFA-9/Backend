@@ -4,8 +4,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
 from .models import Employee
-from .serializers import AuthSerializer, EmployeeSerializer
 from .permissions import UserIsDirectorPermission
+from .serializers import AuthSerializer, EmployeeSerializer
 
 
 class AuthAPIView(generics.GenericAPIView):

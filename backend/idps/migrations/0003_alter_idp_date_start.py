@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('idps', '0002_initial'),
+        ("idps", "0002_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='idp',
-            name='date_start',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='дата начала'),
+            model_name="idp",
+            name="date_start",
+            field=models.DateTimeField(
+                auto_now_add=True, verbose_name="дата начала"
+            ),
         ),
     ]
