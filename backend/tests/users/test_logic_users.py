@@ -1,8 +1,6 @@
-import datetime as dt
 from http import HTTPStatus
 
 import pytest
-from django.utils.translation import gettext_lazy as _
 from rest_framework.test import APIClient
 
 from users.models import Employee
@@ -12,9 +10,7 @@ from users.models import Employee
 def test_user_auth(client: APIClient, create_employees_for_director_1):
     user = Employee.objects.get(id=1)
     url = "/api/auth/"
-    data = {
-        "email": user.email
-    }
+    data = {"email": user.email}
     response = client.post(url, data)
     assert response.status_code == HTTPStatus.OK
     assert response.json().get("token")

@@ -4,9 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from idps.models import Idp
+
 from .models import Comment, Task
 from .serializers import CommentSerializer, TaskSerializer
-from idps.models import Idp
 
 
 class TaskViewSet(viewsets.ModelViewSet):

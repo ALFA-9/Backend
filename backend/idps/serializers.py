@@ -1,24 +1,88 @@
-import datetime
+import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from idps.models import Employee, Idp
+from idps.models import Idp
+from tasks.models import Task
+from users.models import Employee
 
 
-class EmployeeSerializer(serializers.ModelSerializer):
+def create_tasks(data, model):
+    for task_data in data:
+        task_data["idp"] = model
+        Task.objects.create(**task_data)
+
+
+class TaskForIdpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        exclude = ("idp",)
+
+
+class EmployeeForIdpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = (
             "id",
             "first_name",
-            "email",
+            "last_name",
+            "patronymic",
         )
+
+
+class CurrentTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = (
+            "id",
+            "name",
+            "date_end",
+        )
+
+
+class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
+    current_task = serializers.SerializerMethodField()
+    progress = serializers.SerializerMethodField()
+    director = EmployeeForIdpSerializer()
+
+    class Meta:
+        model = Idp
+        fields = (
+            "id",
+            "title",
+            "progress",
+            "current_task",
+            "director",
+        )
+
+    def get_current_task(self, obj):
+        current_task = (
+            obj.task_idp.filter(
+                status_progress="in_work", date_end__gt=dt.date.today()
+            )
+            .order_by("date_start")
+            .first()
+        )
+        if not current_task:
+            return None
+        return CurrentTaskSerializer(current_task).data
+
+    def get_progress(self, obj):
+        tasks_not_canceled_count = obj.task_idp.exclude(
+            status_accept="canceled"
+        ).count()
+        if not tasks_not_canceled_count:
+            return None
+        tasks_done_count = obj.task_idp.filter(
+            status_accept="accepted"
+        ).count()
+        return tasks_done_count / tasks_not_canceled_count * 100
 
 
 class IdpSerializer(serializers.ModelSerializer):
-    employee = EmployeeSerializer()
-    director = EmployeeSerializer()
+    employee = EmployeeForIdpSerializer()
+    director = EmployeeForIdpSerializer()
 
     class Meta:
         model = Idp
@@ -31,18 +95,11 @@ class IdpSerializer(serializers.ModelSerializer):
             "date_start",
             "date_end",
         )
-        extra_kwargs = {
-            "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-            "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-        }
-
-    def to_representation(self, instance):
-        instance.date_start = instance.date_start.strftime("%d.%m.%Y")
-        instance.date_end = instance.date_end.strftime("%d.%m.%Y")
-        return super().to_representation(instance)
 
 
 class CreateIdpSerializer(serializers.ModelSerializer):
+    tasks = TaskForIdpSerializer(many=True, source="task_idp")
+
     class Meta:
         model = Idp
         fields = (
@@ -51,38 +108,23 @@ class CreateIdpSerializer(serializers.ModelSerializer):
             "employee",
             "director",
             "status_idp",
+            "tasks",
             "date_start",
             "date_end",
         )
-        extra_kwargs = {
-            "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-            "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-        }
-
-    def to_representation(self, instance):
-        instance.date_start = instance.date_start.strftime("%d.%m.%Y")
-        instance.date_end = instance.date_end.strftime("%d.%m.%Y")
-        return super().to_representation(instance)
 
     def validate_date_end(self, value):
-        if value < datetime.date.today():
+        if value <= dt.date.today():
             raise serializers.ValidationError(
                 _("Дата окончания должна быть больше даты начала.")
             )
         return value
 
-
-class NestedEmployeeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Employee
-        fields = ("first_name", "email")
-
-    def get_fields(self):
-        fields = super(NestedEmployeeSerializer, self).get_fields()
-        fields["employee"] = NestedEmployeeSerializer(
-            many=True, required=False
-        )
-        return fields
+    def create(self, validated_data):
+        tasks_data = validated_data.pop("task_idp")
+        idp = Idp.objects.create(**validated_data)
+        create_tasks(tasks_data, idp)
+        return idp
 
 
 class RequestSerializer(serializers.Serializer):

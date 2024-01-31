@@ -2,11 +2,12 @@
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+if os.path.exists(BASE_DIR / ".env"):
+    from dotenv import load_dotenv
+
+    load_dotenv()
 
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
@@ -66,6 +67,9 @@ SPECTACULAR_SETTINGS = {
 }
 
 REST_FRAMEWORK = {
+    "DATE_INPUT_FORMATS": ["%d.%m.%Y"],
+    "DATETIME_FORMAT": "%d.%m.%Y",
+    "DATE_FORMAT": "%d.%m.%Y",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],

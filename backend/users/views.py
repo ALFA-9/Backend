@@ -6,8 +6,7 @@ from rest_framework.response import Response
 
 from .constants import MAX_DEPTH
 from .models import Employee
-from .serializers import (AuthSerializer, DirectorSerializer,
-                          EmployeeSerializer)
+from .serializers import AuthSerializer, DirectorSerializer, EmployeeSerializer
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -32,10 +31,12 @@ class AuthAPIView(generics.GenericAPIView):
 
 
 class EmployeeAPIView(generics.GenericAPIView):
-    """ Аутентифицированный аккаунт. """
+    """Аутентифицированный аккаунт."""
 
-    permission_classes = [permissions.IsAuthenticated,]
-    http_method_names = ("get", )
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
+    http_method_names = ("get",)
 
     def get(self, request, *args, **kwargs):
         serializer = DirectorSerializer(request.user, max_depth=MAX_DEPTH)
@@ -46,11 +47,12 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     """Информация о сотрудниках"""
 
     serializer_class = EmployeeSerializer
-    permission_classes = [permissions.IsAuthenticated,]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get_queryset(self):
-        return self.request.user.get_descendants(
-             include_self=False)
+        return self.request.user.get_descendants(include_self=False)
 
     @action(detail=False, methods=("get",))
     def me(self, request):

@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 from mptt.admin import MPTTModelAdmin
-from rest_framework.authtoken.models import TokenProxy
 
 from .models import Department, Employee, Grade, Post
 
@@ -35,4 +34,3 @@ admin.site.register(Grade)
 admin.site.register(Post)
 admin.site.register(Department)
 admin.site.unregister(Group)
-# admin.site.unregister(TokenProxy)

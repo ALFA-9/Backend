@@ -55,7 +55,7 @@ def create_employee_with_tokens(create_employee):
         # Создаем токены для каждого сотрудника
         url = reverse("registration")
         data = {"email": employee.email}
-        response = client.post(url, data, format="json")
+        client.post(url, data, format="json")
 
     return {"employees": employees}
 
