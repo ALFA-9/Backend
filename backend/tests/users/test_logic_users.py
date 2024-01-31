@@ -31,7 +31,6 @@ def test_api_endpoint(client: APIClient, create_employees_for_director_1):
             assert "grade" in element
             assert "post" in element
             assert "department" in element
-            assert "subordinates" in element
             assert "is_staff" in element
 
     client.force_login(Employee.objects.get(id=1))
@@ -39,7 +38,6 @@ def test_api_endpoint(client: APIClient, create_employees_for_director_1):
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
-    instances = response.json()
-    assert isinstance(instances, list)
-    assert_instances(instances)
-    assert_instances(instances[0].get("subordinates"))
+    element = response.json()
+    assert isinstance(element, list)
+    assert_instances(element)

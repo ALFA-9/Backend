@@ -7,6 +7,7 @@ from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
+from .permissions import DirectorPermission
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
 from idps.serializers import (CreateIdpSerializer,
@@ -27,6 +28,12 @@ class IdpViewSet(viewsets.ModelViewSet):
         serializer.save(director=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        emp_id = request.data.get("employee")
+        if emp_id is None:
+            return Response(
+                {"error": "Поле 'employee' отсутствует в запросе."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         emp_id = request.data["employee"]
         user = self.request.user
         emp = user.get_descendants().filter(id=emp_id)

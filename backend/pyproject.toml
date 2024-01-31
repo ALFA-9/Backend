@@ -10,7 +10,7 @@ addopts = [
     "-p",
     "no:cacheprovider",
 ]
-testpaths = "idps/pytest_tests/"
+testpaths = "tests/"
 python_files = "test_*.py"
 
 [tool.isort]
