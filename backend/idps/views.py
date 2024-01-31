@@ -7,11 +7,12 @@ from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
-from .permissions import DirectorPermission
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
 from idps.serializers import (CreateIdpSerializer,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
+
+from .permissions import DirectorPermission
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 

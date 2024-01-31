@@ -53,9 +53,11 @@ class DirectorSerializer(EmployeeSerializer):
 
     def get_subordinates(self, director):
         if self.max_depth > 1:
-            serializer = DirectorSerializer(director.get_descendants(
-                include_self=False).filter(
-                level__lte=director.level + self.max_depth),
+            serializer = DirectorSerializer(
+                director.get_descendants(include_self=False).filter(
+                    level__lte=director.level + self.max_depth
+                ),
                 max_depth=self.max_depth - 1,
-                many=True)
+                many=True,
+            )
             return serializer.data
