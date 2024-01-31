@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from .models import Employee
 from .serializers import AuthSerializer, EmployeeSerializer
+from .permissions import UserIsDirectorPermission
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -33,4 +34,4 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = [UserIsDirectorPermission]
