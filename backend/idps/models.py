@@ -1,7 +1,8 @@
+import datetime as dt
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from mptt.models import TreeForeignKey
 
@@ -38,8 +39,8 @@ class Idp(models.Model):
         verbose_name=_("статус"),
     )
     # TODO подумать все таки о datetime?
-    date_start = models.DateField(
-        verbose_name=_("дата начала"), editable=False, default=timezone.now
+    date_start = models.DateTimeField(
+        verbose_name=_("дата начала"), auto_now_add=True,
     )
     date_end = models.DateField(verbose_name=_("дата окончания"))
 
@@ -47,18 +48,12 @@ class Idp(models.Model):
         verbose_name = _("индивидуальный план развития")
         ordering = ["date_start", "id"]
         unique_together = ["title", "employee", "date_start"]
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(date_end__gt=models.F("date_start")),
-                name="check_start_date",
-            ),
-        ]
 
     def __str__(self):
         return self.title
 
     def clean(self):
-        if self.date_start >= self.date_end:
+        if dt.date.today() >= self.date_end:
             raise ValidationError(
                 {
                     "date_end": _(
