@@ -74,7 +74,7 @@ class IdpViewSet(viewsets.ModelViewSet):
 
     @action(
         methods=["get"],
-        url_path="employee/(?P<user_id>\\d+)",
+        url_path="employees/(?P<user_id>\\d+)",
         detail=False,
     )
     def get_employee_idp(self, request, user_id):

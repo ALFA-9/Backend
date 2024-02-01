@@ -31,8 +31,8 @@ class ControlSerializer(serializers.ModelSerializer):
 class CommentTaskSerializer(serializers.ModelSerializer):
     """Сереализатор комментариев к задачам."""
 
-    employee = serializers.SerializerMethodField()
-    employee_post = serializers.SerializerMethodField()
+    employee = serializers.StringRelatedField()
+    employee_post = serializers.StringRelatedField(source="employee.post")
 
     class Meta:
         model = Comment
@@ -42,18 +42,6 @@ class CommentTaskSerializer(serializers.ModelSerializer):
             "body",
             "pub_date",
         )
-
-    def get_employee(self, obj):
-        """ФИО работника."""
-        employee = obj.employee
-        employee = (
-            f"{employee.last_name} {employee.first_name} {employee.patronymic}"
-        )
-        return employee
-
-    def get_employee_post(self, obj):
-        """Должность работника."""
-        return obj.employee.post.title
 
 
 class TaskGetSerializer(serializers.ModelSerializer):
