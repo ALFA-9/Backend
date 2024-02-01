@@ -3,15 +3,16 @@ import time
 from django.core.mail import EmailMessage
 from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import extend_schema, inline_serializer
-
-from rest_framework import serializers, status, viewsets, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions, serializers, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
-from idps.serializers import (CreateIdpSerializer, IdpSerializer,
-                              RequestSerializer)
+from idps.serializers import (CreateIdpSerializer,
+                              IdpWithCurrentTaskSerializer, RequestSerializer)
+
+from .permissions import DirectorPermission
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -19,8 +20,8 @@ employees_last_request = {}
 
 
 class IdpViewSet(viewsets.ModelViewSet):
-    queryset = Idp.objects.all()
-    serializer_class = IdpSerializer
+    queryset = Idp.objects
+    serializer_class = IdpWithCurrentTaskSerializer
     permission_classes = [DirectorPermission]
     http_method_names = ("get", "post", "patch", "delete")
 
@@ -28,9 +29,15 @@ class IdpViewSet(viewsets.ModelViewSet):
         serializer.save(director=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        emp_id = request.data.get("employee")
+        if emp_id is None:
+            return Response(
+                {"error": "Поле 'employee' отсутствует в запросе."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         emp_id = request.data["employee"]
         user = self.request.user
-        emp = user.get_children().filter(id=emp_id)
+        emp = user.get_descendants().filter(id=emp_id)
         if emp.exists():
             if emp.get().idp_employee.filter(status_idp="in_work").exists():
                 return Response(
@@ -51,10 +58,29 @@ class IdpViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    def get_queryset(self):
+        return self.queryset.filter(employee=self.request.user)
+
     def get_serializer_class(self):
-        if self.action in ("create", "partial_update"):
+        if self.action not in ("list"):
             return CreateIdpSerializer
-        return IdpSerializer
+        return self.serializer_class
+
+    @action(
+        methods=["get"],
+        url_path="employee/(?P<user_id>\d+)",
+        detail=False,
+    )
+    def get_employee_idp(self, request, user_id):
+        emp = request.user.get_descendants().filter(id=user_id)
+        if not emp.exists():
+            return Response(
+                {"error": "Вы не являетесь начальником для этого сотрудника."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        queryset = Idp.objects.filter(employee__id=user_id)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema(
@@ -109,16 +135,6 @@ def idp_request(request):
         {"error": "Вы не можете запросить ИПР, пока не завершено текущее."},
         status=status.HTTP_400_BAD_REQUEST,
     )
-
-
-# @extend_schema(responses=NestedEmployeeSerializer)
-# @api_view(["GET"])
-# def get_employees_for_director(request):
-#     director = request.user
-#     employee = Employee.objects.get(id=1)
-
-#     serializer = NestedEmployeeSerializer(employee)
-#     return Response(serializer.data)
 
 
 @extend_schema(

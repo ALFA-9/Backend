@@ -6,18 +6,19 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from idps.views import IdpViewSet, get_statistic_for_director, idp_request
-from tasks.views import TaskViewSet, comments, delete_comment, employee_tasks
-from users.views import AuthAPIView, EmployeeViewSet
+from tasks.views import TaskViewSet, comments, delete_comment
+from users.views import AuthAPIView, EmployeeAPIView, EmployeeViewSet
 
 router = routers.DefaultRouter()
 router.register(r"tasks", TaskViewSet)
 router.register(r"idps", IdpViewSet)
-router.register(r"employees", EmployeeViewSet)
+router.register(r"employees", EmployeeViewSet, basename="employees")
 
 urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
+    path("api/employees/get_subordinates", EmployeeAPIView.as_view()),
     path("api/request/", idp_request),
     path("api/statistic/", get_statistic_for_director),
     path("api/tasks/<int:task_id>/comments/", comments, name="comments"),
@@ -26,8 +27,7 @@ urlpatterns = [
         delete_comment,
         name="delete_comment",
     ),
-    path("api/employee/tasks/", employee_tasks, name="employee_tasks"),
-    path("api/auth/", AuthAPIView.as_view()),
+    path("api/auth/", AuthAPIView.as_view(), name="registration"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
