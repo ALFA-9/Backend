@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
@@ -35,3 +35,5 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [UserIsDirectorPermission]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^first_name', '^last_name', '^patronymic')
