@@ -4,7 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from idps.models import Idp
-from tasks.models import Task
+from tasks.models import Comment, Task
+from tasks.serializers import TaskSerializer
 from users.models import Employee
 
 
@@ -45,6 +46,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
     current_task = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
     director = EmployeeForIdpSerializer()
+    tasks = TaskSerializer(many=True, source="task_idp")
 
     class Meta:
         model = Idp
@@ -54,6 +56,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
             "progress",
             "current_task",
             "director",
+            "tasks",
         )
 
     def get_current_task(self, obj):
@@ -132,3 +135,43 @@ class RequestSerializer(serializers.Serializer):
     letter = serializers.CharField()
     director_id = serializers.IntegerField()
     file = serializers.FileField(required=False)
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    employee = serializers.StringRelatedField()
+    employee_post = serializers.StringRelatedField(
+        source="employee.post.title"
+    )
+
+    class Meta:
+        model = Comment
+        fields = ("id", "employee", "employee_post", "body", "pub_date")
+
+
+class TaskWithComments(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True, source="comment_task")
+    type = serializers.StringRelatedField(source="type.name")
+    control = serializers.StringRelatedField(source="control.title")
+
+    class Meta:
+        model = Task
+        fields = (
+            "id",
+            "name",
+            "description",
+            "type",
+            "control",
+            "status_progress",
+            "status_accept",
+            "date_start",
+            "date_end",
+            "comments",
+        )
+
+
+class IdpWithAllTasksWithComments(serializers.ModelSerializer):
+    tasks = TaskWithComments(many=True, source="task_idp")
+
+    class Meta:
+        model = Idp
+        fields = ("title", "employee", "director", "status_idp", "tasks")

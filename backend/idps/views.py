@@ -9,10 +9,8 @@ from rest_framework.response import Response
 
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
-from idps.serializers import (CreateIdpSerializer,
+from idps.serializers import (CreateIdpSerializer, IdpWithAllTasksWithComments,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
-
-from .permissions import DirectorPermission
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -59,11 +57,15 @@ class IdpViewSet(viewsets.ModelViewSet):
         )
 
     def get_queryset(self):
+        if self.action in ("retrieve"):
+            return self.queryset
         return self.queryset.filter(employee=self.request.user)
 
     def get_serializer_class(self):
-        if self.action not in ("list"):
+        if self.action not in ("list", "retrieve"):
             return CreateIdpSerializer
+        elif self.action in ("retrieve"):
+            return IdpWithAllTasksWithComments
         return self.serializer_class
 
     @action(

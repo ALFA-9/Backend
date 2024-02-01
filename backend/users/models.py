@@ -106,11 +106,15 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = "Сотрудники"
 
     def get_full_name(self):
-        full_name = "%s %s" % (self.first_name, self.last_name)
+        full_name = "%s %s %s" % (
+            self.last_name,
+            self.first_name,
+            self.patronymic,
+        )
         return full_name.strip()
 
     def get_short_name(self):
         return self.first_name
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.last_name} {self.first_name} {self.patronymic}"
