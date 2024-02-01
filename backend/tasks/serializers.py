@@ -121,3 +121,19 @@ class CommentSerializer(serializers.ModelSerializer):
             "body",
             "pub_date",
         )
+
+
+class CurrentTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = (
+            "id",
+            "name",
+            "date_end",
+        )
+
+
+class TaskForIdpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        exclude = ("idp",)

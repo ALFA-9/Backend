@@ -9,12 +9,8 @@ from rest_framework.response import Response
 
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
-from idps.serializers import (
-    CreateIdpSerializer,
-    IdpWithAllTasksWithComments,
-    IdpWithCurrentTaskSerializer,
-    RequestSerializer,
-)
+from idps.serializers import (CreateIdpSerializer, IdpWithAllTasksWithComments,
+                              IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
