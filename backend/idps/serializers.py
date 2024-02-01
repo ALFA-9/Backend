@@ -4,8 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from idps.models import Idp
-from tasks.models import Comment, Task
-from tasks.serializers import TaskSerializer
+from tasks.models import Task
+from tasks.serializers import TaskGetSerializer
 from users.models import Employee
 
 
@@ -46,7 +46,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
     current_task = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
     director = EmployeeForIdpSerializer()
-    tasks = TaskSerializer(many=True, source="task_idp")
+    tasks = TaskGetSerializer(many=True, source="task_idp")
 
     class Meta:
         model = Idp
@@ -54,6 +54,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "progress",
+            "status_idp",
             "current_task",
             "director",
             "tasks",
@@ -83,21 +84,21 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
         return tasks_done_count / tasks_not_canceled_count * 100
 
 
-class IdpSerializer(serializers.ModelSerializer):
-    employee = EmployeeForIdpSerializer()
-    director = EmployeeForIdpSerializer()
+# class IdpSerializer(serializers.ModelSerializer):
+#     employee = EmployeeForIdpSerializer()
+#     director = EmployeeForIdpSerializer()
 
-    class Meta:
-        model = Idp
-        fields = (
-            "id",
-            "title",
-            "employee",
-            "director",
-            "status_idp",
-            "date_start",
-            "date_end",
-        )
+#     class Meta:
+#         model = Idp
+#         fields = (
+#             "id",
+#             "title",
+#             "employee",
+#             "director",
+#             "status_idp",
+#             "date_start",
+#             "date_end",
+#         )
 
 
 class CreateIdpSerializer(serializers.ModelSerializer):
@@ -137,40 +138,8 @@ class RequestSerializer(serializers.Serializer):
     file = serializers.FileField(required=False)
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    employee = serializers.StringRelatedField()
-    employee_post = serializers.StringRelatedField(
-        source="employee.post.title"
-    )
-
-    class Meta:
-        model = Comment
-        fields = ("id", "employee", "employee_post", "body", "pub_date")
-
-
-class TaskWithComments(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, source="comment_task")
-    type = serializers.StringRelatedField(source="type.name")
-    control = serializers.StringRelatedField(source="control.title")
-
-    class Meta:
-        model = Task
-        fields = (
-            "id",
-            "name",
-            "description",
-            "type",
-            "control",
-            "status_progress",
-            "status_accept",
-            "date_start",
-            "date_end",
-            "comments",
-        )
-
-
 class IdpWithAllTasksWithComments(serializers.ModelSerializer):
-    tasks = TaskWithComments(many=True, source="task_idp")
+    tasks = TaskGetSerializer(many=True, source="task_idp")
 
     class Meta:
         model = Idp
