@@ -3,7 +3,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.database.models import Employee, Idp
+from app.database.models import Employee, Idp, Task
 from app.utils import get_all_childs_id, get_all_parents_id, send_email
 
 
@@ -62,7 +62,20 @@ async def post(db: AsyncSession, user: Employee, payload):
             date_end=payload.date_end,
         )
         db.add(idp)
+        await db.flush()
+        for task_data in payload.tasks:
+            task = Task(
+                name=task_data.name,
+                description=task_data.description,
+                idp_id=idp.id,
+                date_start=task_data.date_start,
+                date_end=task_data.date_end,
+                task_type_id=task_data.task_type_id,
+                control_id=task_data.control_id,
+            )
+            db.add(task)
         await db.commit()
+        await db.refresh(idp)
         return idp
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -74,7 +87,10 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
     existing_model = await db.execute(select(Idp).where(Idp.id == id))
     idp = existing_model.scalar()
     if not idp:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ИПР с таким id не существует")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ИПР с таким id не существует",
+        )
     await director_permission(db, user, idp.employee_id)
     for field, value in payload:
         setattr(idp, field, value)

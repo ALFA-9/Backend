@@ -4,6 +4,8 @@ from datetime import datetime
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field, validator
 
+from app.tasks.schemas import TaskForIdpCreate, TaskForIdpCreateDB
+
 
 def datetime_format(dt: datetime):
     return dt.strftime("%d.%m.%Y")
@@ -11,6 +13,18 @@ def datetime_format(dt: datetime):
 
 class IdpPut(BaseModel):
     status_idp: str
+
+
+class IdpForEmployee(BaseModel):
+    id: int
+    title: str
+    status_idp: str
+    director: str
+    date_start: datetime = Field(..., examples=["13.05.2024"])
+    date_end: datetime = Field(..., examples=["13.11.2024"])
+
+    class Config:
+        json_encoders = {datetime: datetime_format}
 
 
 class IdpList(BaseModel):
@@ -48,6 +62,7 @@ class IdpDB(IdpList):
 class IdpCreate(BaseModel):
     title: str
     employee_id: int
+    tasks: list[TaskForIdpCreate]
     date_end: datetime = Field(..., examples=["13.11.2024"])
 
     @validator("date_end", pre=True)
@@ -64,6 +79,10 @@ class IdpCreateDB(IdpCreate):
     date_start: datetime = Field(..., examples=["13.05.2024"])
     status_idp: str
     id: int
+    tasks: list[TaskForIdpCreateDB]
+
+    class Config:
+        from_attributes = True
 
 
 @dataclass

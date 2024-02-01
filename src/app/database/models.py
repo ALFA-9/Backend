@@ -127,7 +127,9 @@ class Task(Base):
     name = Column(String(100))
     description = Column(Text)
     idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
-    status_progress = Column(Enum(StatusProgress), default=StatusProgress.in_work)
+    status_progress = Column(
+        Enum(StatusProgress), default=StatusProgress.in_work
+    )
     status_accept = Column(Enum(StatusAccept), nullable=True)
     date_start = Column(Date)
     date_end = Column(Date)
@@ -142,7 +144,7 @@ class Task(Base):
         nullable=True,
     )
 
-    idp = relationship("Idp", back_populates="task", lazy="joined")
+    idp = relationship("Idp", back_populates="tasks", lazy="joined")
     task_type = relationship("TaskType", back_populates="task", lazy="joined")
     task_control = relationship(
         "TaskControl",
@@ -166,10 +168,10 @@ class Idp(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
     employee_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="CASCADE")
+        Integer, ForeignKey("employee.id", ondelete="CASCADE"),
     )
     director_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey("employee.id"), nullable=True,
     )
     status_idp = Column(Enum(StatusIdp), default=StatusIdp.in_work)
     date_start = Column(Date, server_default=func.now(), default=func.now())
@@ -180,7 +182,6 @@ class Idp(Base):
         backref="idp_emp",
         lazy="joined",
         foreign_keys=[employee_id],
-        cascade="all, delete",
     )
     director = relationship(
         "Employee",
@@ -188,7 +189,7 @@ class Idp(Base):
         lazy="joined",
         foreign_keys=[director_id],
     )
-    task = relationship("Task", back_populates="idp", lazy="joined")
+    tasks = relationship("Task", back_populates="idp", lazy="joined")
 
     def __str__(self):
         return self.title

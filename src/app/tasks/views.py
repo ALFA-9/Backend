@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.session import get_db
 from app.database.models import Employee
+from app.database.session import get_db
 from app.employees.views import get_current_auth_user
 from app.tasks import crud
 from app.tasks.schemas import TaskCreate, TaskCreateDB, TaskDB, TaskPut

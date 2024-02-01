@@ -1,9 +1,9 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select, or_, and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.utils import get_all_childs_id
 
-from app.database.models import Task, Employee, Idp
+from app.database.models import Employee, Idp, Task
+from app.utils import get_all_childs_id
 
 
 # Получаем ответ от дб
@@ -14,10 +14,22 @@ async def get_all(db: AsyncSession, user: Employee):
 
 
 async def get_by_id(db: AsyncSession, user: Employee, id: int):
-    statement = select(Task).join(Idp).where(and_(Task.id == id, Idp.employee_id.in_(select(get_all_childs_id(user.id)))))
+    statement = (
+        select(Task)
+        .join(Idp)
+        .where(
+            and_(
+                Task.id == id,
+                Idp.employee_id.in_(select(get_all_childs_id(user.id))),
+            )
+        )
+    )
     result = await db.scalar(statement)
     if result is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="У вас недостаточно прав или такого id не существует.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="У вас недостаточно прав или такого id не существует.",
+        )
     return result
 
 
@@ -25,9 +37,15 @@ async def post(db: AsyncSession, user: Employee, payload):
     statement = select(Idp).where(Idp.id == payload.idp_id)
     idp = await db.scalar(statement)
     if idp is None:
-        raise HTTPException(status_code=status.HTTP_404_FORBIDDEN, detail="ИПР с таким id не существует.")
+        raise HTTPException(
+            status_code=status.HTTP_404_FORBIDDEN,
+            detail="ИПР с таким id не существует.",
+        )
     if idp.director_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="У вас недостаточно прав.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="У вас недостаточно прав.",
+        )
     print(Task.StatusProgress.in_work)
     task = Task(
         name=payload.name,
@@ -45,9 +63,15 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
     existing_model = await db.execute(select(Task).where(Task.id == id))
     task = existing_model.scalar()
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Задачи с таким id не существует")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Задачи с таким id не существует",
+        )
     if task.idp.director_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="У вас недостаточно прав")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="У вас недостаточно прав",
+        )
     for field, value in payload:
         setattr(task, field, value)
     await db.commit()
@@ -58,8 +82,14 @@ async def delete(db: AsyncSession, user: Employee, id: int):
     existing_model = await db.execute(select(Task).where(Task.id == id))
     task = existing_model.scalar()
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Задачи с таким id не существует")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Задачи с таким id не существует",
+        )
     if task.idp.director_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="У вас недостаточно прав")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="У вас недостаточно прав",
+        )
     await db.delete(task)
     await db.commit()
