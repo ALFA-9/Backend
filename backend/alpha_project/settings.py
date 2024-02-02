@@ -18,17 +18,6 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
 
 CURRENT_BASE = os.getenv("CURRENT_BASE", "postgre").lower()
 
-if DEBUG:
-    import socket
-
-    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    # Меняется конечная цифра в зависимости от старта контейнеров
-    INTERNAL_IPS = [
-        ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 5)
-    ] + [
-        "127.0.0.1",
-    ]
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -58,11 +47,30 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+if DEBUG:
+    import socket
+
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    # Меняется конечная цифра в зависимости от старта контейнеров
+    INTERNAL_IPS = [
+        ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 5)
+    ] + [
+        "127.0.0.1",
+    ]
+
+    INSTALLED_APPS.insert(6, "corsheaders")
+    MIDDLEWARE.insert(2, "corsheaders.middleware.CorsMiddleware")
+
+    CORS_ALLOW_ALL_ORIGINS = True
+    CSRF_TRUSTED_ORIGINS = (
+        [os.getenv("HOST_URL")] if os.getenv("HOST_URL") else []
+    )
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "Alfa People",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
-    "SERVERS": [{"url": "http://localhost:8000/"}],
+    "SERVERS": [{"url": os.getenv("HOST_URL", "http://localhost:8000")}],
     "COMPONENT_SPLIT_REQUEST": True,
 }
 

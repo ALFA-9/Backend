@@ -4,7 +4,7 @@ from django.core.mail import EmailMessage
 from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, serializers, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
@@ -21,7 +21,7 @@ class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects
     serializer_class = IdpWithCurrentTaskSerializer
     permission_classes = [DirectorPermission]
-    http_method_names = ("get", "post", "patch", "delete")
+    http_method_names = ("get", "post")
 
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
@@ -67,22 +67,6 @@ class IdpViewSet(viewsets.ModelViewSet):
         elif self.action in ("retrieve"):
             return IdpWithAllTasksWithComments
         return self.serializer_class
-
-    @action(
-        methods=["get"],
-        url_path="employees/(?P<user_id>\\d+)",
-        detail=False,
-    )
-    def get_employee_idp(self, request, user_id):
-        emp = request.user.get_descendants().filter(id=user_id)
-        if not emp.exists():
-            return Response(
-                {"error": "Вы не являетесь начальником для этого сотрудника."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        queryset = Idp.objects.filter(employee__id=user_id)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
 
 @extend_schema(

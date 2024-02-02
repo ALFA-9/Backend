@@ -12,7 +12,7 @@ class TaskAdmin(admin.ModelAdmin):
         "idp",
         "type",
         "status_progress",
-        "status_accept",
+        "is_completed",
         "control",
         "date_start",
         "date_end",

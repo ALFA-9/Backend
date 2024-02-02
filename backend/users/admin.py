@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.utils.safestring import mark_safe
@@ -37,8 +39,8 @@ class EmployeeAdmin(MPTTModelAdmin):
 
     def preview(self, obj):
         return mark_safe(
-            f'<img src="http://localhost:8000/media/{obj.image}" '
-            'style="max-height: 200px;">'
+            f'<img src="{os.getenv("HOST_URL", "http://localhost:8000")}'
+            f'/media/{obj.image}" style="max-height: 200px;">'
         )
 
 

@@ -12,6 +12,5 @@ class IdpAdmin(admin.ModelAdmin):
         "director",
         "status_idp",
         "date_start",
-        "date_end",
     )
     empty_value_display = "-пусто-"

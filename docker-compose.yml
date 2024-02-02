@@ -8,7 +8,10 @@ services:
       - postgres_data:/var/lib/postgresql/data/
   backend:
     restart: always
-    build: ./backend/
+    build: 
+      context: ./backend/
+      args:
+        - DEBUG=${DEBUG}
     entrypoint: /app/backend_entrypoint.sh
     env_file: .env
     volumes:

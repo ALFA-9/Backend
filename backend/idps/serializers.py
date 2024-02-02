@@ -1,6 +1,5 @@
 import datetime as dt
 
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from idps.models import Idp
@@ -57,13 +56,11 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
 
     def get_progress(self, obj):
         tasks_not_canceled_count = obj.task_idp.exclude(
-            status_accept="canceled"
+            status_progress="cancelled"
         ).count()
         if not tasks_not_canceled_count:
             return None
-        tasks_done_count = obj.task_idp.filter(
-            status_accept="accepted"
-        ).count()
+        tasks_done_count = obj.task_idp.filter(status_progress="done").count()
         return int(tasks_done_count / tasks_not_canceled_count * 100)
 
 
@@ -79,16 +76,7 @@ class CreateIdpSerializer(serializers.ModelSerializer):
             "director",
             "status_idp",
             "tasks",
-            "date_start",
-            "date_end",
         )
-
-    def validate_date_end(self, value):
-        if value <= dt.date.today():
-            raise serializers.ValidationError(
-                _("Дата окончания должна быть больше даты начала.")
-            )
-        return value
 
     def create(self, validated_data):
         tasks_data = validated_data.pop("task_idp")
