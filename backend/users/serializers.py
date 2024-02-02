@@ -4,45 +4,30 @@ from rest_framework import serializers
 
 from .models import Employee
 from .constants import HARD_SKILLS, SOFT_SKILLS
-
-
-class SkillsMixin:
-    hard_skills = serializers.SerializerMethodField()
-    soft_skills = serializers.SerializerMethodField()
-
-    def get_hard_skills(self):
-        hard_skills = dict()
-        score = 0
-        for skill in HARD_SKILLS:
-            hard_skills[skill] = random.randint(1,11)
-            score += hard_skills[skill]
-        hard_skills["average"] = score / len(HARD_SKILLS)
-        return hard_skills
-    
-    def get_soft_skills(self):
-        soft_skills = dict()
-        score = 0
-        for skill in SOFT_SKILLS:
-            soft_skills[skill] = random.randint(1,11)
-            score += soft_skills[skill]
-        soft_skills["average"] = score / len(SOFT_SKILLS)
-        return soft_skills
+from idps.serializers import IdpSerializer
 
 
 class AuthSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-class EmployeeSerializer(SkillsMixin, serializers.ModelSerializer):
+class ShortDirectorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "patronymic",
+        )
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
     """Сериализатор для кастомной модели пользователя."""
     idps = serializers.SerializerMethodField()
     directors = serializers.SerializerMethodField()
-
-    def get_idps(self, user):
-        return user.idp_employee
-    
-    def get_directors(self, user):
-        return Employee.get_ancestors(ascending=False, include_self=False)
+    hard_skills = serializers.SerializerMethodField()
+    soft_skills = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -60,7 +45,35 @@ class EmployeeSerializer(SkillsMixin, serializers.ModelSerializer):
             "image",
             "hard_skills",
             "soft_skills",
+            "directors",
+            "is_director",
+            "idps",
         )
+
+    def get_hard_skills(self, obj):
+        hard_skills = dict()
+        score = 0
+        for skill in HARD_SKILLS:
+            hard_skills[skill] = random.randint(1, 10)
+            score += hard_skills[skill]
+        hard_skills["average"] = score / len(HARD_SKILLS)
+        return hard_skills
+
+    def get_soft_skills(self, obj):
+        soft_skills = dict()
+        score = 0
+        for skill in SOFT_SKILLS:
+            soft_skills[skill] = random.randint(1, 10)
+            score += soft_skills[skill]
+        soft_skills["average"] = score / len(SOFT_SKILLS)
+        return soft_skills
+
+    def get_idps(self, user):
+        return IdpSerializer(user.idp_employee.first()).data
+
+    def get_directors(self, user):
+        return ShortDirectorSerializer(user.get_ancestors(
+            ascending=False, include_self=False), many=True).data
 
 
 class DirectorSerializer(EmployeeSerializer):
@@ -85,7 +98,6 @@ class DirectorSerializer(EmployeeSerializer):
             "post",
             "department",
             "subordinates",
-            "is_staff",
         )
 
     def get_subordinates(self, director):

@@ -94,6 +94,7 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
         verbose_name="Руководитель",
     )
     is_staff = models.BooleanField(default=False)
+    is_director = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
