@@ -51,10 +51,6 @@ class Task(models.Model):
         IN_WORK = "in_work", _("в работе")
         DONE = "done", _("выполнено")
         NOT_COMPLETED = "not_completed", _("не выполнено")
-
-    class AcceptedStatus(models.TextChoices):
-        ACCEPTED = "accepted", _("принято")
-        NOT_ACCEPTED = "not_accepted", _("не принято")
         CANCELLED = "cancelled", _("отменено")
 
     name = models.CharField(
@@ -83,11 +79,9 @@ class Task(models.Model):
         choices=ProgresStatus.choices,
         default=ProgresStatus.IN_WORK,
     )
-    status_accept = models.CharField(
-        verbose_name=_("Статус проверки"),
-        max_length=20,
-        choices=AcceptedStatus.choices,
-        default=AcceptedStatus.NOT_ACCEPTED,
+    is_completed = models.BooleanField(
+        verbose_name=_("Статус работы сотрудника"),
+        default=False,
     )
     control = models.ForeignKey(
         Control,

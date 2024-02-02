@@ -14,7 +14,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    http_method_names = ("get", "post", "patch", "delete")
+    http_method_names = ("post", "patch", "delete")
 
     def create(self, request, *args, **kwargs):
         current_user = request.user
@@ -74,7 +74,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(["GET", "POST"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def comments(request, task_id):
     employee_id = request.user.id

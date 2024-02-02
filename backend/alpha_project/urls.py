@@ -6,7 +6,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from idps.views import IdpViewSet, get_statistic_for_director, idp_request
-from tasks.views import TaskViewSet, comments, delete_comment
+from tasks.views import TaskViewSet, comments
 from users.views import AuthAPIView, EmployeeAPIView, EmployeeViewSet
 
 router = routers.DefaultRouter()
@@ -22,11 +22,6 @@ urlpatterns = [
     path("api/request/", idp_request),
     path("api/statistic/", get_statistic_for_director),
     path("api/tasks/<int:task_id>/comments/", comments, name="comments"),
-    path(
-        "api/tasks/<int:task_id>/comments/<int:comment_id>/",
-        delete_comment,
-        name="delete_comment",
-    ),
     path("api/auth/", AuthAPIView.as_view(), name="registration"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

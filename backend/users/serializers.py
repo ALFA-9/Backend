@@ -111,6 +111,8 @@ class DirectorSerializer(EmployeeSerializer):
 
 
 class DirectorForEmployeeSerializer(serializers.ModelSerializer):
+    """Сериализатор для кастомной модели полльзователя."""
+
     name = serializers.SerializerMethodField()
 
     class Meta:
