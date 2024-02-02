@@ -12,7 +12,7 @@ User = get_user_model()
 class Idp(models.Model):
     class IdpStatus(models.TextChoices):
         IN_WORK = "in_work", _("в работе")
-        CANCELED = "canceled", _("отменен")
+        CANCELLED = "cancelled", _("отменен")
         NOT_COMPLETED = "not_completed", _("не выполнен")
         DONE = "done", _("выполнен")
 
