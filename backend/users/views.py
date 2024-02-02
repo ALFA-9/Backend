@@ -59,7 +59,7 @@ class EmployeeAPIView(generics.GenericAPIView):
 
 
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
-    """Информация о сотрудниках"""
+    """Информация о сотрудниках."""
 
     serializer_class = EmployeeSerializer
     permission_classes = [
