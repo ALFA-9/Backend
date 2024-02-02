@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -6,8 +7,12 @@ from rest_framework.response import Response
 
 from .constants import MAX_DEPTH
 from .models import Employee
-from .serializers import (AuthSerializer, DirectorForEmployeeSerializer,
-                          DirectorSerializer, EmployeeSerializer)
+from .serializers import (
+    AuthSerializer,
+    DirectorForEmployeeSerializer,
+    DirectorSerializer,
+    EmployeeSerializer,
+)
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -18,6 +23,11 @@ class AuthAPIView(generics.GenericAPIView):
     ]
     serializer_class = AuthSerializer
 
+    @extend_schema(
+        description="Авторизация по email.",
+        request=AuthSerializer,
+        responses={200: {"token": str()}},
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -39,6 +49,10 @@ class EmployeeAPIView(generics.GenericAPIView):
     ]
     http_method_names = ("get",)
 
+    @extend_schema(
+        description="Аутентифицированном аккаунте.",
+        responses={200: DirectorSerializer(many=True, max_depth=MAX_DEPTH)},
+    )
     def get(self, request, *args, **kwargs):
         serializer = DirectorSerializer(request.user, max_depth=MAX_DEPTH)
         return Response(serializer.data, status=status.HTTP_200_OK)

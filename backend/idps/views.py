@@ -9,8 +9,12 @@ from rest_framework.response import Response
 
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
-from idps.serializers import (CreateIdpSerializer, IdpWithAllTasksWithComments,
-                              IdpWithCurrentTaskSerializer, RequestSerializer)
+from idps.serializers import (
+    CreateIdpSerializer,
+    IdpWithAllTasksWithComments,
+    IdpWithCurrentTaskSerializer,
+    RequestSerializer,
+)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -23,9 +27,34 @@ class IdpViewSet(viewsets.ModelViewSet):
     permission_classes = [DirectorPermission]
     http_method_names = ("get", "post", "patch", "delete")
 
+    @extend_schema(
+        description="Список ИПР.",
+        responses={200: IdpWithCurrentTaskSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Получение ИПР по идентификатору.",
+        responses={200: IdpWithAllTasksWithComments},
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Частичное обновление ИПР по идентификатору.",
+        responses={200: IdpWithCurrentTaskSerializer},
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
 
+    @extend_schema(
+        description="Создание нового ИПР.",
+        responses={201: CreateIdpSerializer},
+    )
     def create(self, request, *args, **kwargs):
         emp_id = request.data.get("employee")
         if emp_id is None:
@@ -68,6 +97,10 @@ class IdpViewSet(viewsets.ModelViewSet):
             return IdpWithAllTasksWithComments
         return self.serializer_class
 
+    @extend_schema(
+        description="Получение ИПР работника.",
+        responses={200: IdpWithAllTasksWithComments},
+    )
     @action(
         methods=["get"],
         url_path="employees/(?P<user_id>\\d+)",

@@ -1,13 +1,13 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from idps.models import Idp
-
 from .models import Comment, Task
-from .serializers import CommentSerializer, TaskSerializer
+from .serializers import CommentSerializer, TaskGetSerializer, TaskSerializer
+from idps.models import Idp
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -16,6 +16,24 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("get", "post", "patch", "delete")
 
+    @extend_schema(
+        description="Получение списка задач.",
+        responses={200: TaskGetSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Получение задачи.", responses={200: TaskGetSerializer}
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Создание новой задачи для ИПР.",
+        request=TaskSerializer,
+        responses={201: TaskGetSerializer},
+    )
     def create(self, request, *args, **kwargs):
         current_user = request.user
         idp_id = request.data.get("idp")
@@ -35,6 +53,11 @@ class TaskViewSet(viewsets.ModelViewSet):
             headers=headers,
         )
 
+    @extend_schema(
+        description="Частичное обновление задачи.",
+        request=TaskSerializer,
+        responses={200: TaskGetSerializer},
+    )
     def update(self, request, *args, **kwargs):
         current_user = request.user
         instance = self.get_object()
@@ -60,6 +83,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
+    @extend_schema(
+        description="Удаление задачи.",
+        responses={204: None},
+    )
     def destroy(self, request, *args, **kwargs):
         current_user = request.user
         instance = self.get_object()
@@ -74,6 +101,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    description="Создание или получение списка комментариев задачи.",
+    request=CommentSerializer,
+    responses={200: CommentSerializer(many=True)},
+)
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def comments(request, task_id):
@@ -96,6 +128,10 @@ def comments(request, task_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    description="Удаление комментария задачи.",
+    responses={204: None},
+)
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_comment(request, task_id, comment_id):
