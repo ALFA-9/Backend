@@ -5,6 +5,8 @@ from rest_framework import serializers
 
 from idps.models import Idp
 from tasks.models import Task
+from tasks.serializers import (CurrentTaskSerializer, TaskForIdpSerializer,
+                               TaskGetSerializer)
 from users.models import Employee
 
 
@@ -12,12 +14,6 @@ def create_tasks(data, model):
     for task_data in data:
         task_data["idp"] = model
         Task.objects.create(**task_data)
-
-
-class TaskForIdpSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        exclude = ("idp",)
 
 
 class EmployeeForIdpSerializer(serializers.ModelSerializer):
@@ -31,20 +27,10 @@ class EmployeeForIdpSerializer(serializers.ModelSerializer):
         )
 
 
-class CurrentTaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        fields = (
-            "id",
-            "name",
-            "date_end",
-        )
-
-
 class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
     current_task = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
-    director = EmployeeForIdpSerializer()
+    director = serializers.StringRelatedField()
 
     class Meta:
         model = Idp
@@ -52,6 +38,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "progress",
+            "status_idp",
             "current_task",
             "director",
         )
@@ -78,23 +65,6 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
             status_accept="accepted"
         ).count()
         return tasks_done_count / tasks_not_canceled_count * 100
-
-
-class IdpSerializer(serializers.ModelSerializer):
-    employee = EmployeeForIdpSerializer()
-    director = EmployeeForIdpSerializer()
-
-    class Meta:
-        model = Idp
-        fields = (
-            "id",
-            "title",
-            "employee",
-            "director",
-            "status_idp",
-            "date_start",
-            "date_end",
-        )
 
 
 class CreateIdpSerializer(serializers.ModelSerializer):
@@ -132,3 +102,11 @@ class RequestSerializer(serializers.Serializer):
     letter = serializers.CharField()
     director_id = serializers.IntegerField()
     file = serializers.FileField(required=False)
+
+
+class IdpWithAllTasksWithComments(serializers.ModelSerializer):
+    tasks = TaskGetSerializer(many=True, source="task_idp")
+
+    class Meta:
+        model = Idp
+        fields = ("title", "employee", "director", "status_idp", "tasks")

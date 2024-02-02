@@ -28,12 +28,28 @@ class ControlSerializer(serializers.ModelSerializer):
         )
 
 
+class CommentTaskSerializer(serializers.ModelSerializer):
+    """Сереализатор комментариев к задачам."""
+
+    employee = serializers.StringRelatedField()
+    employee_post = serializers.StringRelatedField(source="employee.post")
+
+    class Meta:
+        model = Comment
+        fields = (
+            "employee",
+            "employee_post",
+            "body",
+            "pub_date",
+        )
+
+
 class TaskGetSerializer(serializers.ModelSerializer):
     """Сереализатор задач."""
 
-    comments = serializers.SerializerMethodField()
-    type = TypeSerializer()
-    control = ControlSerializer()
+    comments = CommentTaskSerializer(many=True, source="comment_task")
+    type = serializers.StringRelatedField(source="type.name")
+    control = serializers.StringRelatedField(source="control.title")
 
     class Meta:
         model = Task
@@ -55,11 +71,6 @@ class TaskGetSerializer(serializers.ModelSerializer):
             "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
             "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
         }
-
-    def get_comments(self, obj):
-        """Сообщения."""
-        comments = obj.comment_task.all()
-        return CommentSerializer(comments, many=True).data
 
     def to_representation(self, instance):
         instance.date_start = instance.date_start.strftime("%d.%m.%Y")
@@ -99,7 +110,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сереализатор комментариев к задачам."""
+    """Сереализатор комментариев."""
 
     class Meta:
         model = Comment
@@ -110,3 +121,19 @@ class CommentSerializer(serializers.ModelSerializer):
             "body",
             "pub_date",
         )
+
+
+class CurrentTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = (
+            "id",
+            "name",
+            "date_end",
+        )
+
+
+class TaskForIdpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        exclude = ("idp",)

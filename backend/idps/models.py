@@ -15,7 +15,7 @@ class Idp(models.Model):
     class IdpStatus(models.TextChoices):
         IN_WORK = "in_work", _("в работе")
         CANCELED = "canceled", _("отменен")
-        UNDONE = "not_completed", _("не выполнен")
+        NOT_COMPLETED = "not_completed", _("не выполнен")
         DONE = "done", _("выполнен")
 
     title = models.CharField(max_length=100, verbose_name=_("название"))
