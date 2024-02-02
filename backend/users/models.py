@@ -51,8 +51,12 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField("Имя", max_length=MAX_NAME_CHARACTERS)
     last_name = models.CharField("Фамилия", max_length=MAX_NAME_CHARACTERS)
     patronymic = models.CharField("Отчество", max_length=MAX_NAME_CHARACTERS)
-    image = models.ImageField("Фото", upload_to="profiles/",
-                              null=True, default="profiles/default_pic.jpeg")
+    image = models.ImageField(
+        "Фото",
+        upload_to="profiles/",
+        null=True,
+        default="profiles/default_pic.jpeg",
+    )
     email = models.EmailField(
         "E-mail",
         max_length=MAX_EMAIL_CHARACTERS,

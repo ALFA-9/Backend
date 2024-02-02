@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from mptt.admin import MPTTModelAdmin
 
 from .models import Department, Employee, Grade, Post
@@ -36,7 +36,10 @@ class EmployeeAdmin(MPTTModelAdmin):
     readonly_fields = ["preview"]
 
     def preview(self, obj):
-        return mark_safe(f'<img src="http://localhost:8000/media/{obj.image}" style="max-height: 200px;">')
+        return mark_safe(
+            f'<img src="http://localhost:8000/media/{obj.image}" '
+            'style="max-height: 200px;">'
+        )
 
 
 admin.site.register(Grade)

@@ -2,9 +2,10 @@ import random
 
 from rest_framework import serializers
 
-from .models import Employee
-from .constants import HARD_SKILLS, SOFT_SKILLS
 from idps.serializers import IdpWithCurrentTaskSerializer
+
+from .constants import HARD_SKILLS, SOFT_SKILLS
+from .models import Employee
 
 
 class AuthSerializer(serializers.Serializer):
@@ -24,6 +25,7 @@ class ShortDirectorSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Сериализатор для кастомной модели пользователя."""
+
     idps = IdpWithCurrentTaskSerializer(many=True, source="idp_employee")
     hard_skills = serializers.SerializerMethodField()
     soft_skills = serializers.SerializerMethodField()

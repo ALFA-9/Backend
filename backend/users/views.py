@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from .constants import MAX_DEPTH
 from .models import Employee
-from .serializers import AuthSerializer, DirectorSerializer, EmployeeSerializer, DirectorForEmployeeSerializer
+from .serializers import (AuthSerializer, DirectorForEmployeeSerializer,
+                          DirectorSerializer, EmployeeSerializer)
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -45,12 +46,13 @@ class EmployeeAPIView(generics.GenericAPIView):
 
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     """Информация о сотрудниках"""
+
     serializer_class = EmployeeSerializer
     permission_classes = [
         permissions.IsAuthenticated,
     ]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('^first_name', '^last_name', '^patronymic')
+    search_fields = ("^first_name", "^last_name", "^patronymic")
 
     def get_queryset(self):
         return self.request.user.get_descendants(include_self=False)
