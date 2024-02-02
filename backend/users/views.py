@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from .constants import MAX_DEPTH
 from .models import Employee
-from .serializers import AuthSerializer, DirectorSerializer, EmployeeSerializer
+from .serializers import AuthSerializer, DirectorSerializer, EmployeeSerializer, DirectorForEmployeeSerializer
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -58,4 +58,10 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=("get",))
     def me(self, request):
         serializer = self.get_serializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=("get",))
+    def directors(self, request):
+        queryset = request.user.get_ancestors()
+        serializer = DirectorForEmployeeSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

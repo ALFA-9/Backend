@@ -52,7 +52,7 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField("Фамилия", max_length=MAX_NAME_CHARACTERS)
     patronymic = models.CharField("Отчество", max_length=MAX_NAME_CHARACTERS)
     image = models.ImageField("Фото", upload_to="profiles/",
-                              null=True, default=None)
+                              null=True, default="profiles/default_pic.jpeg")
     email = models.EmailField(
         "E-mail",
         max_length=MAX_EMAIL_CHARACTERS,
@@ -94,7 +94,6 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
         verbose_name="Руководитель",
     )
     is_staff = models.BooleanField(default=False)
-    is_director = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

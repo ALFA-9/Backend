@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from .models import Employee
 from .constants import HARD_SKILLS, SOFT_SKILLS
-from idps.serializers import IdpSerializer
+from idps.serializers import IdpWithCurrentTaskSerializer
 
 
 class AuthSerializer(serializers.Serializer):
@@ -24,10 +24,13 @@ class ShortDirectorSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Сериализатор для кастомной модели пользователя."""
-    idps = serializers.SerializerMethodField()
-    directors = serializers.SerializerMethodField()
+    idps = IdpWithCurrentTaskSerializer(many=True, source="idp_employee")
     hard_skills = serializers.SerializerMethodField()
     soft_skills = serializers.SerializerMethodField()
+    is_director = serializers.SerializerMethodField()
+    grade = serializers.StringRelatedField()
+    post = serializers.StringRelatedField()
+    department = serializers.StringRelatedField()
 
     class Meta:
         model = Employee
@@ -37,18 +40,18 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "last_name",
             "patronymic",
             "email",
-            "phone",
             "grade",
             "post",
             "department",
-            "is_staff",
             "image",
             "hard_skills",
             "soft_skills",
-            "directors",
             "is_director",
             "idps",
         )
+
+    def get_is_director(self, obj):
+        return not obj.is_leaf_node()
 
     def get_hard_skills(self, obj):
         hard_skills = dict()
@@ -67,13 +70,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
             score += soft_skills[skill]
         soft_skills["average"] = score / len(SOFT_SKILLS)
         return soft_skills
-
-    def get_idps(self, user):
-        return IdpSerializer(user.idp_employee.first()).data
-
-    def get_directors(self, user):
-        return ShortDirectorSerializer(user.get_ancestors(
-            ascending=False, include_self=False), many=True).data
 
 
 class DirectorSerializer(EmployeeSerializer):
@@ -110,3 +106,14 @@ class DirectorSerializer(EmployeeSerializer):
                 many=True,
             )
             return serializer.data
+
+
+class DirectorForEmployeeSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = ("id", "name")
+
+    def get_name(self, obj):
+        return obj.get_full_name()

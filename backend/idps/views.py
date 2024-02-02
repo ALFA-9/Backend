@@ -156,7 +156,7 @@ def idp_request(request):
 @permission_classes([permissions.IsAuthenticated])
 def get_statistic_for_director(request):
     director = request.user
-    if director.is_lead_node():
+    if director.is_leaf_node():
         return Response(
             {"error": "У вас нет подчинненых."},
             status=status.HTTP_400_BAD_REQUEST,

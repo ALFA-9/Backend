@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
+from django.utils.safestring import mark_safe
 from mptt.admin import MPTTModelAdmin
 
 from .models import Department, Employee, Grade, Post
@@ -14,6 +15,8 @@ class EmployeeAdmin(MPTTModelAdmin):
             _("Personal info"),
             {
                 "fields": (
+                    "preview",
+                    "image",
                     "first_name",
                     "last_name",
                     "patronymic",
@@ -29,6 +32,11 @@ class EmployeeAdmin(MPTTModelAdmin):
     )
     empty_value_display = "-пусто-"
     search_fields = ("^first_name", "^last_name", "^patronymic")
+
+    readonly_fields = ["preview"]
+
+    def preview(self, obj):
+        return mark_safe(f'<img src="http://localhost:8000/media/{obj.image}" style="max-height: 200px;">')
 
 
 admin.site.register(Grade)

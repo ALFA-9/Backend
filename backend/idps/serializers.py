@@ -64,7 +64,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
         tasks_done_count = obj.task_idp.filter(
             status_accept="accepted"
         ).count()
-        return tasks_done_count / tasks_not_canceled_count * 100
+        return int(tasks_done_count / tasks_not_canceled_count * 100)
 
 
 class CreateIdpSerializer(serializers.ModelSerializer):
