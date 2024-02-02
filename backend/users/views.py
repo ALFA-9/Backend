@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,11 +45,12 @@ class EmployeeAPIView(generics.GenericAPIView):
 
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     """Информация о сотрудниках"""
-
     serializer_class = EmployeeSerializer
     permission_classes = [
         permissions.IsAuthenticated,
     ]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^first_name', '^last_name', '^patronymic')
 
     def get_queryset(self):
         return self.request.user.get_descendants(include_self=False)

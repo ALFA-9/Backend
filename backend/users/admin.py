@@ -28,6 +28,7 @@ class EmployeeAdmin(MPTTModelAdmin):
         ),
     )
     empty_value_display = "-пусто-"
+    search_fields = ("^first_name", "^last_name", "^patronymic")
 
 
 admin.site.register(Grade)
