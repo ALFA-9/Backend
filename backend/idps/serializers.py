@@ -76,7 +76,6 @@ class CreateIdpSerializer(serializers.ModelSerializer):
             "director",
             "status_idp",
             "tasks",
-            "date_start",
         )
 
     def create(self, validated_data):
