@@ -1,6 +1,13 @@
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
-from rest_framework import filters, generics, permissions, status, viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import (
+    filters,
+    generics,
+    permissions,
+    serializers,
+    status,
+    viewsets,
+)
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -26,7 +33,18 @@ class AuthAPIView(generics.GenericAPIView):
     @extend_schema(
         description="Авторизация по email.",
         request=AuthSerializer,
-        responses={200: {"token": str()}},
+        responses={
+            200: inline_serializer(
+                "token", {"token": serializers.StringRelatedField()}
+            ),
+            400: inline_serializer(
+                "BAD_REQUEST",
+                {"error": serializers.StringRelatedField()},
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -38,7 +56,10 @@ class AuthAPIView(generics.GenericAPIView):
                 "token": token.key,
             }
             return Response(success_value, status=status.HTTP_200_OK)
-        return Response("Неверный запрос", status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Пользователь с указанным email не найден"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class EmployeeAPIView(generics.GenericAPIView):

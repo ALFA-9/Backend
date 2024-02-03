@@ -29,21 +29,45 @@ class IdpViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         description="Список ИПР.",
-        responses={200: IdpWithCurrentTaskSerializer(many=True)},
+        responses={
+            200: IdpWithCurrentTaskSerializer(many=True),
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
     @extend_schema(
         description="Получение ИПР по идентификатору.",
-        responses={200: IdpWithAllTasksWithComments},
+        responses={
+            200: IdpWithAllTasksWithComments,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
     @extend_schema(
         description="Частичное обновление ИПР по идентификатору.",
-        responses={200: IdpWithCurrentTaskSerializer},
+        responses={
+            200: IdpWithCurrentTaskSerializer,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
@@ -53,7 +77,15 @@ class IdpViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         description="Создание нового ИПР.",
-        responses={201: CreateIdpSerializer},
+        responses={
+            201: CreateIdpSerializer,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def create(self, request, *args, **kwargs):
         emp_id = request.data.get("employee")
@@ -99,7 +131,15 @@ class IdpViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         description="Получение ИПР работника.",
-        responses={200: IdpWithAllTasksWithComments},
+        responses={
+            200: IdpWithAllTasksWithComments,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     @action(
         methods=["get"],
@@ -121,7 +161,15 @@ class IdpViewSet(viewsets.ModelViewSet):
 @extend_schema(
     parameters=[RequestSerializer],
     description="Отправить запрос на ИПР.",
-    responses=RequestSerializer,
+    responses={
+        201: RequestSerializer,
+        400: inline_serializer(
+            "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+        ),
+        404: inline_serializer(
+            "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+        ),
+    },
 )
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])

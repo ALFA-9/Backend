@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, status, viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,13 +18,30 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         description="Получение списка задач.",
-        responses={200: TaskGetSerializer(many=True)},
+        responses={
+            200: TaskGetSerializer(many=True),
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
     @extend_schema(
-        description="Получение задачи.", responses={200: TaskGetSerializer}
+        description="Получение задачи.",
+        responses={
+            200: TaskGetSerializer,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -32,7 +49,15 @@ class TaskViewSet(viewsets.ModelViewSet):
     @extend_schema(
         description="Создание новой задачи для ИПР.",
         request=TaskSerializer,
-        responses={201: TaskGetSerializer},
+        responses={
+            201: TaskGetSerializer,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def create(self, request, *args, **kwargs):
         current_user = request.user
@@ -56,7 +81,15 @@ class TaskViewSet(viewsets.ModelViewSet):
     @extend_schema(
         description="Частичное обновление задачи.",
         request=TaskSerializer,
-        responses={200: TaskGetSerializer},
+        responses={
+            200: TaskGetSerializer,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def update(self, request, *args, **kwargs):
         current_user = request.user
@@ -85,7 +118,15 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         description="Удаление задачи.",
-        responses={204: None},
+        responses={
+            204: None,
+            400: inline_serializer(
+                "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+            ),
+            404: inline_serializer(
+                "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+            ),
+        },
     )
     def destroy(self, request, *args, **kwargs):
         current_user = request.user
@@ -104,7 +145,15 @@ class TaskViewSet(viewsets.ModelViewSet):
 @extend_schema(
     description="Создание или получение списка комментариев задачи.",
     request=CommentSerializer,
-    responses={200: CommentSerializer(many=True)},
+    responses={
+        200: CommentSerializer(many=True),
+        400: inline_serializer(
+            "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+        ),
+        404: inline_serializer(
+            "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+        ),
+    },
 )
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
@@ -130,7 +179,15 @@ def comments(request, task_id):
 
 @extend_schema(
     description="Удаление комментария задачи.",
-    responses={204: None},
+    responses={
+        204: None,
+        400: inline_serializer(
+            "BAD_REQUEST", {"error": serializers.StringRelatedField()}
+        ),
+        404: inline_serializer(
+            "NOT_FOUND", {"detail": serializers.StringRelatedField()}
+        ),
+    },
 )
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
