@@ -75,7 +75,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class EmployeeForDirectorSerializer(EmployeeSerializer):
     """Сериализатор для кастомной модели пользователя."""
-
+    status_idp = serializers.SerializerMethodField()
     subordinates = serializers.SerializerMethodField()
 
     def __init__(self, *kwrgs, max_depth):
@@ -86,12 +86,20 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
         model = Employee
         fields = (
             "id",
+            "director",
             "first_name",
             "last_name",
             "patronymic",
             "post",
+            "status_idp",
             "subordinates",
         )
+
+    def get_status_idp(self, obj) -> str | None:
+        last_idp = obj.idp_employee.order_by("-date_start").first()
+        if last_idp:
+            return last_idp.status_idp
+        return
 
     def get_subordinates(self, director) -> dict:
         if self.max_depth > 1:
@@ -122,6 +130,7 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
     """Сериализатор для кастомной модели пользователя."""
 
     status_idp = serializers.SerializerMethodField()
+    post = serializers.StringRelatedField()
 
     class Meta:
         model = Employee
@@ -131,6 +140,7 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "patronymic",
+            "post",
             "status_idp",
         )
 
