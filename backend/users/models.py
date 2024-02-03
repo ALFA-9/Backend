@@ -127,3 +127,20 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.last_name} {self.first_name} {self.patronymic}"
+
+
+class Email(models.Model):
+    subject = models.CharField(max_length=MAX_EMAIL_CHARACTERS)
+    body = models.CharField(max_length=MAX_EMAIL_CHARACTERS)
+    to = models.EmailField(
+        "E-mail",
+        max_length=MAX_EMAIL_CHARACTERS,
+        unique=True,
+    )
+
+    class Meta(BaseEmployeeOptions.Meta):
+        verbose_name = "Email"
+        verbose_name_plural = "Emails"
+
+    def __str__(self):
+        return f"{self.subject}"

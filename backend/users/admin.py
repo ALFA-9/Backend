@@ -6,7 +6,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from mptt.admin import MPTTModelAdmin
 
-from users.models import Department, Employee, Grade, Post
+from users.models import (Department, Employee, Grade,
+						  Post, Email)
 
 
 @admin.register(Employee)
@@ -43,6 +44,10 @@ class EmployeeAdmin(MPTTModelAdmin):
             f'/media/{obj.image}" style="max-height: 200px;">'
         )
 
+
+@admin.register(Email)
+class EmailAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(Grade)
 admin.site.register(Post)

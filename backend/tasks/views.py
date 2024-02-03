@@ -1,3 +1,5 @@
+from django.utils import timezone
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -7,6 +9,7 @@ from rest_framework.response import Response
 from idps.models import Idp
 from tasks.models import Comment, Task
 from tasks.serializers import CommentSerializer, TaskSerializer
+from users.models import Email
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -51,6 +54,19 @@ class TaskViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(task, data=data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
+                email, _ = Email.objects.get_or_create(
+					subject=f"Задача {task.name}",
+					body=f"Задача '{task.name}' завершена",
+					to=task.idp.director.email
+				)
+                email.save()
+                task, _ = PeriodicTask.objects.get_or_create(
+					name="Отправка почты",
+					task="send_mail",
+					interval=IntervalSchedule.objects.get(every=1, period="days"),
+					start_time=timezone.now(),
+				)
+                task.enabled = True
                 return Response(serializer.data)
 
         # если текущий пользователь руководитель исполнителя задачи
@@ -62,6 +78,19 @@ class TaskViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(task, data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
+                email, _ = Email.objects.get_or_create(
+					subject=f"Задача {task.name}",
+					body=f"Задача '{task.name}' завершена",
+					to=task.idp.director.email
+				)
+                email.save()
+                task, _ = PeriodicTask.objects.get_or_create(
+					name="Отправка почты",
+					task="send_mail",
+					interval=IntervalSchedule.objects.get(every=1, period="days"),
+					start_time=timezone.now(),
+				)
+                task.enabled = True
                 return Response(serializer.data)
 
         return Response(

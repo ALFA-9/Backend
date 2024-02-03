@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_filters",
     "drf_spectacular",
+    "django_celery_beat",
     "mptt",
     "idps",
     "tasks",
@@ -158,4 +159,15 @@ AUTH_USER_MODEL = "users.Employee"
 
 DEFAULT_FROM_EMAIL = "alpha_idp_service@alpha.ru"
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+
+CELERY_BROKER_URL = os.environ.get("BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "RESULT_BACKEND", "redis://redis:6379/0"
+)
+CELERY_TIMEZONE = "UTC"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
