@@ -2,7 +2,7 @@ import re
 
 from django.core.exceptions import ValidationError
 
-from .constants import REGEX_TEL
+from users.constants import REGEX_TEL
 
 
 def validator_tel(value):

@@ -3,9 +3,9 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
-from .constants import MAX_EMAIL_CHARACTERS, MAX_NAME_CHARACTERS
-from .managers import CustomUserManager
-from .validators import validator_tel
+from users.constants import MAX_EMAIL_CHARACTERS, MAX_NAME_CHARACTERS
+from users.managers import CustomUserManager
+from users.validators import validator_tel
 
 
 class BaseEmployeeOptions(models.Model):
@@ -98,6 +98,9 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
         verbose_name="Руководитель",
     )
     is_staff = models.BooleanField(default=False)
+    last_request = models.DateTimeField(
+        "Последний запрос", blank=True, null=True
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

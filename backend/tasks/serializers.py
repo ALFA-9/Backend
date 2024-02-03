@@ -1,9 +1,9 @@
-import datetime
+import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from .models import Comment, Control, Task, Type
+from tasks.models import Comment, Control, Task, Type
 
 
 class TypeSerializer(serializers.ModelSerializer):
@@ -101,8 +101,15 @@ class TaskSerializer(serializers.ModelSerializer):
         serializer = TaskGetSerializer(instance)
         return serializer.data
 
+    def validate_date_start(self, value):
+        if value < dt.date.today():
+            raise serializers.ValidationError(
+                _("Нельзя создать задачу задним числом.")
+            )
+        return value
+
     def validate_date_end(self, value):
-        if value < datetime.date.today():
+        if value < dt.date.today():
             raise serializers.ValidationError(
                 _("Дата окончания должна быть больше даты начала.")
             )

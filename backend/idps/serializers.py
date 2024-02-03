@@ -1,5 +1,6 @@
 import datetime as dt
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from idps.models import Idp
@@ -78,6 +79,19 @@ class CreateIdpSerializer(serializers.ModelSerializer):
             "tasks",
         )
 
+    def validate_tasks(self, value):
+        print(value)
+        for task in value:
+            if task["date_start"] < dt.date.today():
+                raise serializers.ValidationError(
+                    _("Нельзя создать задачу задним числом.")
+                )
+            elif task["date_start"] >= task["date_end"]:
+                raise serializers.ValidationError(
+                    _("Дата окончания должна быть больше даты начала.")
+                )
+        return value
+
     def create(self, validated_data):
         tasks_data = validated_data.pop("task_idp")
         idp = Idp.objects.create(**validated_data)
@@ -90,6 +104,10 @@ class RequestSerializer(serializers.Serializer):
     letter = serializers.CharField()
     director_id = serializers.IntegerField()
     file = serializers.FileField(required=False)
+
+    def to_representation(self, instance):
+        instance["file"] = instance["file"].name
+        return instance
 
 
 class IdpWithAllTasksWithComments(serializers.ModelSerializer):

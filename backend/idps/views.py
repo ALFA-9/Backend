@@ -1,7 +1,6 @@
-import time
+import datetime as dt
 
 from django.core.mail import EmailMessage
-from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -13,8 +12,6 @@ from idps.serializers import (CreateIdpSerializer, IdpWithAllTasksWithComments,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
-
-employees_last_request = {}
 
 
 class IdpViewSet(viewsets.ModelViewSet):
@@ -70,7 +67,17 @@ class IdpViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    parameters=[RequestSerializer],
+    request={
+        "multipart/form-data": RequestSerializer(),
+        "application/json": inline_serializer(
+            "json",
+            {
+                "director_id": serializers.IntegerField(),
+                "title": serializers.CharField(),
+                "letter": serializers.CharField(),
+            },
+        ),
+    },
     description="Отправить запрос на ИПР.",
     responses=RequestSerializer,
 )
@@ -78,14 +85,19 @@ class IdpViewSet(viewsets.ModelViewSet):
 @permission_classes([permissions.IsAuthenticated])
 def idp_request(request):
     employee = request.user
-    # Костыль? можно ли что-то другое придумать, также не хочется трогать бд
-    last_request = employees_last_request.setdefault(employee.id, 0)
-    time_diff = time.time() - last_request
-    if time_diff < SEC_BEFORE_NEXT_REQUEST:
+    if employee.idp_employee.filter(status_idp="in_work").exists():
         return Response(
-            {"error": "Запрос можно отправлять не чаще 1 раза в сутки."},
-            status=status.HTTP_429_TOO_MANY_REQUESTS,
+            {"error": "Нельзя запросить ИПР, пока не завершено текущее."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
+    last_request = employee.last_request.replace(tzinfo=None)
+    if last_request:
+        time_diff = (dt.datetime.now() - last_request).total_seconds()
+        if time_diff < SEC_BEFORE_NEXT_REQUEST:
+            return Response(
+                {"error": "Запрос можно отправлять не чаще 1 раза в сутки."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
     serializer = RequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
@@ -97,77 +109,19 @@ def idp_request(request):
             {"error": "Вы не можете отправить запрос данному сотруднику."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    active_idps = Idp.objects.filter(
-        employee_id=employee.id,
-        status_idp="in_work",
+    email = EmailMessage(
+        subject=serializer.data["title"],
+        body=serializer.data["letter"],
+        to=[director.email],
     )
-    if active_idps.count() == 0:
-        email = EmailMessage(
-            subject=serializer.data["title"],
-            body=serializer.data["letter"],
-            to=[director.email],
-        )
-        if file := request.FILES.get("file"):
-            email.attach(file.name, file.read(), file.content_type)
-        sended = email.send()
-        if sended:
-            globals().get("employees_last_request")[employee.id] = time.time()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(
-            {"error": "Сообщение не отправлено."},
-            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
+    if file := request.FILES.get("file"):
+        email.attach(file.name, file.read(), file.content_type)
+    sended = email.send()
+    if sended:
+        employee.last_request = dt.datetime.now()
+        employee.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(
-        {"error": "Вы не можете запросить ИПР, пока не завершено текущее."},
-        status=status.HTTP_400_BAD_REQUEST,
+        {"error": "Сообщение не отправлено."},
+        status=status.HTTP_422_UNPROCESSABLE_ENTITY,
     )
-
-
-@extend_schema(
-    description="Статистика по ИПР всех сотрудников директора",
-    responses=inline_serializer(
-        "success",
-        {
-            "in_work": serializers.IntegerField(),
-            "canceled": serializers.IntegerField(),
-            "done": serializers.IntegerField(),
-            "not_completed": serializers.IntegerField(),
-            "null": serializers.IntegerField(),
-        },
-    ),
-)
-@api_view(["GET"])
-@permission_classes([permissions.IsAuthenticated])
-def get_statistic_for_director(request):
-    director = request.user
-    if director.is_leaf_node():
-        return Response(
-            {"error": "У вас нет подчинненых."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    latest_idp_subquery = (
-        Idp.objects.filter(employee=OuterRef("pk"))
-        .order_by("-date_start")
-        .values("status_idp")[:1]
-    )
-
-    # Запрос кол-во различных статусов ИПР, с учетом 1 emp = 1 ИПР(последний)
-    result = (
-        Employee.objects.get(id=1)
-        .get_descendants()
-        .annotate(latest_status=Subquery(latest_idp_subquery))
-        .values("latest_status")
-        .annotate(status_count=Count("id"))
-        .values("latest_status", "status_count")
-    )
-
-    result_dict = dict(
-        (entry["latest_status"], entry["status_count"]) for entry in result
-    )
-    result_dict.setdefault("in_work", 0)
-    result_dict.setdefault("null", 0)
-    result_dict.setdefault("not_completed", 0)
-    result_dict.setdefault("done", 0)
-    result_dict.setdefault("cancelled", 0)
-
-    return Response(result_dict, status=status.HTTP_200_OK)

@@ -12,13 +12,19 @@ from users.models import Department, Employee, Grade, Post
 
 @pytest.fixture
 def create_employee():
-    grades = [Grade.objects.create(title=f"Grade{i}") for i in range(1, 5)]
-    posts = [Post.objects.create(title=f"Post{i}") for i in range(1, 5)]
+    grades = [Grade.objects.create(title=f"Grade{i}") for i in range(1, 6)]
+    posts = [Post.objects.create(title=f"Post{i}") for i in range(1, 6)]
     departments = [
-        Department.objects.create(title=f"Department{i}") for i in range(1, 5)
+        Department.objects.create(title=f"Department{i}") for i in range(1, 6)
     ]
+    Type.objects.create(
+        name="Project",
+    )
+    Control.objects.create(
+        title="Test",
+    )
     employee_list = []
-    for i in range(1, 5):
+    for i in range(1, 6):
         employee = Employee.objects.create(
             first_name=f"Иван{i}",
             last_name=f"Иванов{i}",
@@ -61,40 +67,6 @@ def create_employee_with_tokens(create_employee):
 
 
 @pytest.fixture
-def create_multiple_directors():
-    for dir in range(1, 4):
-        Employee.objects.create(
-            first_name=f"Emp{dir}",
-            email=f"email{dir}@dir.com",
-            phone=f"7 (999) 99{dir}-00-00",
-        )
-
-
-@pytest.fixture
-def create_employees_for_director_1(create_multiple_directors):
-    for emp in range(1, 4):
-        Employee.objects.create(
-            first_name=f"Emp1-{emp}",
-            email=f"email1-{emp}@dir.com",
-            phone=f"7 (999) 991-{emp}0-00",
-            director=Employee.objects.get(id=1),
-        )
-
-
-@pytest.fixture
-def create_idp(create_employees_for_director_1):
-    date_start = dt.date.today()
-    date_end = date_start + dt.timedelta(days=180)
-    return Idp.objects.create(
-        title="Title",
-        employee=Employee.objects.get(id=4),
-        director=Employee.objects.get(id=1),
-        status_idp="in_work",
-        date_end=date_end,
-    )
-
-
-@pytest.fixture
 def create_task(db, create_employee):
     date_start = dt.date.today()
     date_end = date_start + dt.timedelta(days=180)
@@ -108,19 +80,12 @@ def create_task(db, create_employee):
         employee=employee,
         director=director,
         status_idp="in_work",
-        date_end=date_end,
-    )
-    type = Type.objects.create(
-        name="Project",
-    )
-    control = Control.objects.create(
-        title="Test",
     )
     return Task.objects.create(
         name="Test task",
         idp=idp,
         description="New test",
-        type=type,
-        control=control,
+        type=Type.objects.get(id=1),
+        control=Control.objects.get(id=1),
         date_end=date_end,
     )

@@ -3,9 +3,8 @@ import random
 from rest_framework import serializers
 
 from idps.serializers import IdpWithCurrentTaskSerializer
-
-from .constants import HARD_SKILLS, SOFT_SKILLS
-from .models import Employee
+from users.constants import HARD_SKILLS, SOFT_SKILLS
+from users.models import Employee
 
 
 class AuthSerializer(serializers.Serializer):
@@ -74,7 +73,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return soft_skills
 
 
-class DirectorSerializer(EmployeeSerializer):
+class EmployeeForDirectorSerializer(EmployeeSerializer):
     """Сериализатор для кастомной модели пользователя."""
 
     subordinates = serializers.SerializerMethodField()
@@ -90,17 +89,13 @@ class DirectorSerializer(EmployeeSerializer):
             "first_name",
             "last_name",
             "patronymic",
-            "email",
-            "phone",
-            "grade",
             "post",
-            "department",
             "subordinates",
         )
 
     def get_subordinates(self, director):
         if self.max_depth > 1:
-            serializer = DirectorSerializer(
+            serializer = EmployeeForDirectorSerializer(
                 director.get_descendants(include_self=False).filter(
                     level__lte=director.level + self.max_depth
                 ),
@@ -111,7 +106,7 @@ class DirectorSerializer(EmployeeSerializer):
 
 
 class DirectorForEmployeeSerializer(serializers.ModelSerializer):
-    """Сериализатор для кастомной модели полльзователя."""
+    """Сериализатор для кастомной модели пользователя."""
 
     name = serializers.SerializerMethodField()
 
@@ -121,3 +116,26 @@ class DirectorForEmployeeSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         return obj.get_full_name()
+
+
+class EmployeeWithIdpStatus(serializers.ModelSerializer):
+    """Сериализатор для кастомной модели пользователя."""
+
+    status_idp = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "director",
+            "first_name",
+            "last_name",
+            "patronymic",
+            "status_idp",
+        )
+
+    def get_status_idp(self, obj):
+        last_idp = obj.idp_employee.order_by("-date_start").first()
+        if last_idp:
+            return last_idp.status_idp
+        return

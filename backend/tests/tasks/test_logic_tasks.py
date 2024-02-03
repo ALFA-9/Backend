@@ -5,8 +5,7 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from idps.models import Idp
-from tasks.models import Control, Task, Type
+from tasks.models import Task
 from users.models import Employee
 
 
@@ -19,46 +18,32 @@ def test_create_task(create_task):
 
 
 @pytest.mark.django_db
-def test_post_task(client: APIClient, create_employee):
+def test_post_task(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=1))
-    employee = Employee.objects.get(id=2)
-    director = Employee.objects.get(id=1)
     url = "/api/tasks/"
     date_start = dt.date.today()
     date_end = date_start + dt.timedelta(days=180)
-    idp = Idp.objects.create(
-        title="Test idp",
-        employee=employee,
-        director=director,
-        status_idp="in_work",
-        date_end=date_end,
-    )
-    type = Type.objects.create(
-        name="Project",
-    )
-    control = Control.objects.create(
-        title="Test",
-    )
 
     data = {
-        "name": "Test task",
-        "idp": idp.id,
+        "name": "Another test task",
+        "idp": 1,
         "description": "New test",
-        "type": type.id,
-        "control": control.id,
-        "date_end": date_end,
+        "type": 1,
+        "control": 1,
+        "date_start": date_start.strftime("%d.%m.%Y"),
+        "date_end": date_end.strftime("%d.%m.%Y"),
     }
     response = client.post(url, data)
     assert response.status_code == HTTPStatus.CREATED
     assert response.json() == {
-        "id": 1,
-        "name": "Test task",
+        "id": 2,
+        "name": "Another test task",
         "description": "New test",
         "idp": 1,
-        "type": {"id": 1, "name": "Project"},
+        "type": "Project",
         "status_progress": "in_work",
-        "status_accept": "not_accepted",
-        "control": {"id": 1, "title": "Test"},
+        "is_completed": False,
+        "control": "Test",
         "date_start": date_start.strftime("%d.%m.%Y"),
         "date_end": date_end.strftime("%d.%m.%Y"),
         "comments": [],
@@ -71,15 +56,16 @@ def test_post_task(client: APIClient, create_employee):
 
 
 @pytest.mark.django_db
-def test_update_task_status_accept(
-    client: APIClient, create_task, create_employee
+def test_update_task_is_completed(
+    client: APIClient,
+    create_task,
 ):
     task = create_task
     # employees = create_employee
-    client.force_login(Employee.objects.get(id=1))
+    client.force_login(Employee.objects.get(id=4))
 
     url = f"/api/tasks/{task.id}/"
-    data = {"status_accept": "accepted"}
+    data = {"is_completed": True}
 
     response = client.patch(url, data, content_type="application/json")
     assert response.status_code == status.HTTP_200_OK
@@ -87,16 +73,25 @@ def test_update_task_status_accept(
     # Перезагружаем объект из базы данных, чтобы получить актуальные данные
     task.refresh_from_db()
     # Проверяем, что данные были обновлены
-    assert task.status_accept == "accepted"
+    assert task.is_completed is True
 
-    client.force_login(Employee.objects.get(id=3))
-    data = {"status_accept": "not_accepted"}
+    client.force_login(Employee.objects.get(id=1))
+    data = {"status_progress": "in_work"}
     response = client.patch(url, data, content_type="application/json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_200_OK
     # Перезагружаем объект из базы данных, чтобы получить актуальные данные
     task.refresh_from_db()
     # Проверяем, что данные не были обновлены
-    assert task.status_accept == "accepted"
+    assert task.is_completed is False
+
+    client.force_login(Employee.objects.get(id=2))
+    data = {"status_progress": "done"}
+    response = client.patch(url, data, content_type="application/json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    # Перезагружаем объект из базы данных, чтобы получить актуальные данные
+    task.refresh_from_db()
+    # Проверяем, что данные не были обновлены
+    assert task.status_progress == "in_work"
 
 
 @pytest.mark.django_db
@@ -110,21 +105,21 @@ def test_update_task_status_progress(
     data = {"status_progress": "done"}
 
     response = client.patch(url, data, content_type="application/json")
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
     # Перезагружаем объект из базы данных, чтобы получить актуальные данные
     task.refresh_from_db()
     # Проверяем, что данные были обновлены
-    assert task.status_progress == "done"
+    assert task.status_progress == "in_work"
 
-    client.force_login(Employee.objects.get(id=2))
-    data = {"status_progress": "in_work"}
-    response = client.patch(url, data, content_type="application/json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    # Перезагружаем объект из базы данных, чтобы получить актуальные данные
-    task.refresh_from_db()
-    # Проверяем, что данные не были обновлены
-    assert task.status_progress == "done"
+    # client.force_login(Employee.objects.get(id=2))
+    # data = {"status_progress": "done"}
+    # response = client.patch(url, data, content_type="application/json")
+    # assert response.status_code == status.HTTP_400_BAD_REQUEST
+    # # Перезагружаем объект из базы данных, чтобы получить актуальные данные
+    # task.refresh_from_db()
+    # # Проверяем, что данные не были обновлены
+    # assert task.status_progress == "done"
 
 
 @pytest.mark.django_db

@@ -5,9 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from idps.models import Idp
-
-from .models import Comment, Task
-from .serializers import CommentSerializer, TaskSerializer
+from tasks.models import Comment, Task
+from tasks.serializers import CommentSerializer, TaskSerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -37,28 +36,38 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         current_user = request.user
-        instance = self.get_object()
-        task_id = self.kwargs.get("pk")
-        task = Task.objects.get(id=task_id)
+        task = self.get_object()
+
+        if task.status_progress != "in_work":
+            return Response(
+                {"error": "С этой задачей уже нельзя взаимодействовать."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         # если текущий пользователь исполнитель задачи
         if current_user == task.idp.employee:
-            field_name = "status_progress"
-            default = "in_work"
+            is_completed = request.data.get("is_completed")
+            if is_completed:
+                data = {"is_completed": True}
+                serializer = self.get_serializer(task, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+                return Response(serializer.data)
+
         # если текущий пользователь руководитель исполнителя задачи
         elif current_user == task.idp.director:
-            field_name = "status_accept"
-            default = "not_accepted"
-        else:
-            return Response(
-                {"error": "У вас нет прав для изменения статуса задачи."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            status_progress = request.data.get("status_progress")
+            if status_progress != "not_completed":
+                data = request.data
+                data["is_completed"] = False
+                serializer = self.get_serializer(task, data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+                return Response(serializer.data)
 
-        data = {field_name: request.data.get(field_name, default)}
-        serializer = self.get_serializer(instance, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        return Response(
+            {"error": "У вас нет прав для изменения статуса задачи."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     def destroy(self, request, *args, **kwargs):
         current_user = request.user

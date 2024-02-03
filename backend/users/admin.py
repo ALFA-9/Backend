@@ -6,7 +6,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from mptt.admin import MPTTModelAdmin
 
-from .models import Department, Employee, Grade, Post
+from users.models import Department, Employee, Grade, Post
 
 
 @admin.register(Employee)

@@ -7,7 +7,7 @@ from users.models import Employee
 
 
 @pytest.mark.django_db
-def test_user_auth(client: APIClient, create_employees_for_director_1):
+def test_user_auth(client: APIClient, create_employee):
     user = Employee.objects.get(id=1)
     url = "/api/auth/"
     data = {"email": user.email}
@@ -17,25 +17,43 @@ def test_user_auth(client: APIClient, create_employees_for_director_1):
 
 
 @pytest.mark.django_db
-def test_api_endpoint(client: APIClient, create_employees_for_director_1):
+def test_api_endpoint_get_subordinates(client: APIClient, create_task):
     def assert_instances(instances):
         for element in instances:
             assert "id" in element
             assert "first_name" in element
             assert "last_name" in element
             assert "patronymic" in element
-            assert "email" in element
-            assert "phone" in element
-            assert "grade" in element
             assert "post" in element
-            assert "department" in element
-            assert "is_staff" in element
+            assert "subordinates" in element
 
-    client.force_login(Employee.objects.get(id=1))
-    url = "/api/employees/"
+    client.force_login(Employee.objects.get(id=3))
+    url = "/api/employees/get_subordinates"
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
     element = response.json()
-    assert isinstance(element, list)
-    assert_instances(element)
+    assert_instances(element["subordinates"])
+
+
+@pytest.mark.django_db
+def test_api_endpoint_me(client: APIClient, create_task):
+    def assert_instances(instances):
+        for element in instances:
+            assert "id" in element
+            assert "progress" in element
+            assert "title" in element
+            assert "status_idp" in element
+            assert "director" in element
+
+            assert "id" in element["current_task"]
+            assert "date_end" in element["current_task"]
+            assert "name" in element["current_task"]
+
+    client.force_login(Employee.objects.get(id=4))
+    url = "/api/employees/me/"
+
+    response = client.get(url)
+    assert response.status_code == HTTPStatus.OK
+    element = response.json()
+    assert_instances(element["idps"])

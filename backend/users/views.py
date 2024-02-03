@@ -4,10 +4,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .constants import MAX_DEPTH
-from .models import Employee
-from .serializers import (AuthSerializer, DirectorForEmployeeSerializer,
-                          DirectorSerializer, EmployeeSerializer)
+from users.constants import MAX_DEPTH
+from users.models import Employee
+from users.serializers import (AuthSerializer, DirectorForEmployeeSerializer,
+                               EmployeeForDirectorSerializer,
+                               EmployeeSerializer, EmployeeWithIdpStatus)
 
 
 class AuthAPIView(generics.GenericAPIView):
@@ -31,7 +32,7 @@ class AuthAPIView(generics.GenericAPIView):
         return Response("Неверный запрос", status=status.HTTP_400_BAD_REQUEST)
 
 
-class EmployeeAPIView(generics.GenericAPIView):
+class EmployeeAPIView(generics.ListAPIView):
     """Аутентифицированный аккаунт."""
 
     permission_classes = [
@@ -40,7 +41,9 @@ class EmployeeAPIView(generics.GenericAPIView):
     http_method_names = ("get",)
 
     def get(self, request, *args, **kwargs):
-        serializer = DirectorSerializer(request.user, max_depth=MAX_DEPTH)
+        serializer = EmployeeForDirectorSerializer(
+            request.user.employees, max_depth=MAX_DEPTH, many=True
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -56,6 +59,11 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.request.user.get_descendants(include_self=False)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return EmployeeWithIdpStatus
+        return self.serializer_class
 
     @action(detail=False, methods=("get",))
     def me(self, request):

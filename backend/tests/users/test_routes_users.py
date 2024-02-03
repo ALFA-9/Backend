@@ -7,9 +7,9 @@ from users.models import Employee
 
 
 @pytest.mark.django_db
-def test_api_employees(client: APIClient, create_employees_for_director_1):
+def test_api_employees(client: APIClient, create_employee):
     client.force_login(Employee.objects.get(id=1))
-    response = client.get("/api/employees/")
+    response = client.get("/api/employees/me/")
     assert response.status_code == HTTPStatus.OK
 
 
