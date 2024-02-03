@@ -82,9 +82,7 @@ def test_post_idp_when_emp_have_active(client: APIClient, create_task):
 
     response = client.post(url, data, "application/json")
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert response.json() == {
-        "error": "У этого сотрудника уже есть активный ИПР."
-    }
+    assert response.json() == {"error": "У этого сотрудника уже есть активный ИПР."}
 
 
 @pytest.mark.django_db

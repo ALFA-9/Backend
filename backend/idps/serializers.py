@@ -45,9 +45,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
 
     def get_current_task(self, obj) -> CurrentTaskSerializer:
         current_task = (
-            obj.task_idp.filter(
-                status_progress="in_work", date_end__gt=dt.date.today()
-            )
+            obj.task_idp.filter(status_progress="in_work", date_end__gt=dt.date.today())
             .order_by("date_start")
             .first()
         )

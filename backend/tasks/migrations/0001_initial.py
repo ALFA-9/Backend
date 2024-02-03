@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "body",
-                    models.TextField(
-                        max_length=500, verbose_name="Комментарий"
-                    ),
+                    models.TextField(max_length=500, verbose_name="Комментарий"),
                 ),
                 (
                     "pub_date",
@@ -109,15 +107,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        max_length=256, verbose_name="Название задачи"
-                    ),
+                    models.CharField(max_length=256, verbose_name="Название задачи"),
                 ),
                 (
                     "description",
-                    models.TextField(
-                        max_length=500, verbose_name="Описание задачи"
-                    ),
+                    models.TextField(max_length=500, verbose_name="Описание задачи"),
                 ),
                 (
                     "status_progress",
@@ -148,9 +142,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "date_end",
-                    models.DateField(
-                        verbose_name="Дата окончания выполнения задачи"
-                    ),
+                    models.DateField(verbose_name="Дата окончания выполнения задачи"),
                 ),
                 (
                     "control",

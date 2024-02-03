@@ -41,9 +41,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "date_start",
-                    models.DateTimeField(
-                        auto_now_add=True, verbose_name="дата начала"
-                    ),
+                    models.DateTimeField(auto_now_add=True, verbose_name="дата начала"),
                 ),
                 ("date_end", models.DateField(verbose_name="дата окончания")),
             ],

@@ -1,7 +1,6 @@
 import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 from rest_framework import serializers
 
 from tasks.models import Comment, Control, Task, Type
@@ -102,9 +101,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def validate_date_start(self, value):
         if value < dt.date.today():
-            raise serializers.ValidationError(
-                _("Нельзя создать задачу задним числом.")
-            )
+            raise serializers.ValidationError(_("Нельзя создать задачу задним числом."))
         return value
 
     def validate_date_end(self, value):

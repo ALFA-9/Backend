@@ -98,9 +98,7 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
         verbose_name="Руководитель",
     )
     is_staff = models.BooleanField(default=False)
-    last_request = models.DateTimeField(
-        "Последний запрос", blank=True, null=True
-    )
+    last_request = models.DateTimeField("Последний запрос", blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

@@ -54,9 +54,7 @@ if DEBUG:
 
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     # Меняется конечная цифра в зависимости от старта контейнеров
-    INTERNAL_IPS = [
-        ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 5)
-    ] + [
+    INTERNAL_IPS = [ip[: ip.rfind(".")] + f".{x}" for ip in ips for x in range(1, 5)] + [
         "127.0.0.1",
     ]
 
@@ -64,9 +62,7 @@ if DEBUG:
     MIDDLEWARE.insert(2, "corsheaders.middleware.CorsMiddleware")
 
     CORS_ALLOW_ALL_ORIGINS = True
-    CSRF_TRUSTED_ORIGINS = (
-        [os.getenv("HOST_URL")] if os.getenv("HOST_URL") else []
-    )
+    CSRF_TRUSTED_ORIGINS = [os.getenv("HOST_URL")] if os.getenv("HOST_URL") else []
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Alfa People",
@@ -74,7 +70,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SERVERS": [{"url": HOST_URL}],
     "COMPONENT_SPLIT_REQUEST": True,
-    'SWAGGER_UI_FAVICON_HREF': (HOST_URL + "/media/logo.svg"),
+    "SWAGGER_UI_FAVICON_HREF": (HOST_URL + "/media/logo.svg"),
 }
 
 REST_FRAMEWORK = {

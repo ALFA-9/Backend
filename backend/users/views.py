@@ -194,9 +194,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
         description="Получить список начальников.",
         responses=DirectorForEmployeeSerializer(many=True),
         examples=[
-            OpenApiExample(
-                "Response", value={"id": 1, "name": "Johnov John Johnovich"}
-            )
+            OpenApiExample("Response", value={"id": 1, "name": "Johnov John Johnovich"})
         ],
     )
     @action(detail=False, methods=("get",))
@@ -207,9 +205,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(
         description="Получить список подчинненых.",
-        responses=EmployeeForDirectorSerializer(
-            max_depth=MAX_DEPTH, many=True
-        ),
+        responses=EmployeeForDirectorSerializer(max_depth=MAX_DEPTH, many=True),
         examples=[
             OpenApiExample(
                 "Response",

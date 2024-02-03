@@ -88,14 +88,8 @@ class Command(BaseCommand):
         for current_model in self.model_list:
             if (
                 (modelname.lower() == current_model.__name__.lower())
-                or (
-                    modelname.lower().replace("_", "")
-                    == current_model.__name__.lower()
-                )
-                or (
-                    modelname.lower().replace("-", "")
-                    == current_model.__name__.lower()
-                )
+                or (modelname.lower().replace("_", "") == current_model.__name__.lower())
+                or (modelname.lower().replace("-", "") == current_model.__name__.lower())
             ):
                 model = current_model
         # Ищем модель по имени игнорируя множественное число
@@ -231,9 +225,7 @@ class Command(BaseCommand):
                         field_value[field.name] = None
                         field_value[fname] = None
                     else:
-                        field_value[
-                            field.name
-                        ] = field.remote_field.model.objects.get(
+                        field_value[field.name] = field.remote_field.model.objects.get(
                             pk=int(row[fname]),
                         )
                 except ObjectDoesNotExist:
@@ -267,9 +259,7 @@ class Command(BaseCommand):
                 try:
                     model.objects.update_or_create(**field_value)
                 except ValueError:
-                    sys.stdout.write(
-                        "Невозможно создать объект с такими данными\n"
-                    )
+                    sys.stdout.write("Невозможно создать объект с такими данными\n")
                     sys.stdout.write("Пропущено\n")
                     continue
                 except IntegrityError as e:

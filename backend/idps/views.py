@@ -9,9 +9,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
-from idps.permissions import DirectorPermission, CreatorPermission
+from idps.permissions import CreatorPermission, DirectorPermission
 from idps.serializers import (CreateIdpScheme, CreateIdpSerializer,
-                              IdpWithAllTasksWithComments, IdpPatchSerializer,
+                              IdpPatchSerializer, IdpWithAllTasksWithComments,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
@@ -125,9 +125,7 @@ class IdpViewSet(viewsets.ModelViewSet):
                 examples=[
                     OpenApiExample(
                         name="Bad request",
-                        value={
-                            "error": "Поле 'employee' отсутствует в запросе."
-                        },
+                        value={"error": "Поле 'employee' отсутствует в запросе."},
                     )
                 ],
             ),
@@ -238,9 +236,7 @@ class IdpViewSet(viewsets.ModelViewSet):
             examples=[
                 OpenApiExample(
                     name="Bad request",
-                    value={
-                        "error": "Нельзя запросить ИПР, пока не завершено текущее."
-                    },
+                    value={"error": "Нельзя запросить ИПР, пока не завершено текущее."},
                 )
             ],
         ),
@@ -249,9 +245,7 @@ class IdpViewSet(viewsets.ModelViewSet):
             examples=[
                 OpenApiExample(
                     name="Too many requests",
-                    value={
-                        "error": "Запрос можно отправлять не чаще 1 раза в сутки."
-                    },
+                    value={"error": "Запрос можно отправлять не чаще 1 раза в сутки."},
                 )
             ],
         ),
@@ -297,9 +291,7 @@ def idp_request(request):
     serializer = RequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
-        director = employee.get_ancestors().get(
-            id=serializer.data["director_id"]
-        )
+        director = employee.get_ancestors().get(id=serializer.data["director_id"])
     except Employee.DoesNotExist:
         return Response(
             {"error": "Вы не можете отправить запрос данному сотруднику."},
