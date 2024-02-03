@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -66,6 +66,124 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
             return EmployeeWithIdpStatus
         return self.serializer_class
 
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                "Response",
+                value={
+                    "id": 27,
+                    "director": 4,
+                    "first_name": "Alex",
+                    "last_name": "Alexov",
+                    "patronymic": "Alexovich",
+                    "post": "IT-recruiter",
+                    "status_idp": "cancelled",
+                },
+            )
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                "Response",
+                value={
+                    "id": 22001,
+                    "first_name": "John",
+                    "last_name": "Johnov",
+                    "patronymic": "Johnovich",
+                    "email": "john_superlead@alfa.com",
+                    "grade": "Senior+",
+                    "post": "Java-developer",
+                    "department": "IT",
+                    "image": "/way/to/hell.jpg",
+                    "hard_skills": {
+                        "Структуры данных и алгоритмы": 8,
+                        "Инфраструктура разработки": 2,
+                        "Аналитическое мышление": 4,
+                        "Высшая математика": 8,
+                        "average": 5.5,
+                    },
+                    "soft_skills": {
+                        "Наставничество": 10,
+                        "Работа в коллективе": 10,
+                        "Коммуникабельность": 10,
+                        "Аналитическое мышление": 4,
+                        "Личная эффективность": 7,
+                        "average": 8.2,
+                    },
+                    "is_director": True,
+                    "idps": [
+                        {
+                            "id": 105,
+                            "director": "Samov Sam Samovich",
+                            "title": "Super IDP",
+                            "progress": 72,
+                            "status_idp": "in_work",
+                            "current_task": {
+                                "id": 780,
+                                "name": "Simple task",
+                                "date_end": "03.09.2024",
+                            },
+                        }
+                    ],
+                },
+            )
+        ],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                "Response",
+                value={
+                    "id": 22001,
+                    "first_name": "John",
+                    "last_name": "Johnov",
+                    "patronymic": "Johnovich",
+                    "email": "john_superlead@alfa.com",
+                    "grade": "Senior+",
+                    "post": "Java-developer",
+                    "department": "IT",
+                    "image": "/way/to/hell.jpg",
+                    "hard_skills": {
+                        "Структуры данных и алгоритмы": 8,
+                        "Инфраструктура разработки": 2,
+                        "Аналитическое мышление": 4,
+                        "Высшая математика": 8,
+                        "average": 5.5,
+                    },
+                    "soft_skills": {
+                        "Наставничество": 10,
+                        "Работа в коллективе": 10,
+                        "Коммуникабельность": 10,
+                        "Аналитическое мышление": 4,
+                        "Личная эффективность": 7,
+                        "average": 8.2,
+                    },
+                    "is_director": True,
+                    "idps": [
+                        {
+                            "id": 105,
+                            "director": "Samov Sam Samovich",
+                            "title": "Super IDP",
+                            "progress": 72,
+                            "status_idp": "in_work",
+                            "current_task": {
+                                "id": 780,
+                                "name": "Simple task",
+                                "date_end": "03.09.2024",
+                            },
+                        }
+                    ],
+                },
+            )
+        ],
+    )
     @action(detail=False, methods=("get",))
     def me(self, request):
         serializer = self.get_serializer(request.user)
@@ -74,6 +192,11 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         description="Получить список начальников.",
         responses=DirectorForEmployeeSerializer(many=True),
+        examples=[
+            OpenApiExample(
+                "Response", value={"id": 1, "name": "Johnov John Johnovich"}
+            )
+        ],
     )
     @action(detail=False, methods=("get",))
     def directors(self, request):
@@ -86,6 +209,43 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
         responses=EmployeeForDirectorSerializer(
             max_depth=MAX_DEPTH, many=True
         ),
+        examples=[
+            OpenApiExample(
+                "Response",
+                value={
+                    "id": 3,
+                    "director": 1,
+                    "first_name": "Thomas",
+                    "last_name": "Thomasov",
+                    "patronymic": "Thomasovich",
+                    "post": "Branch Director",
+                    "status_idp": "in_work",
+                    "subordinates": [
+                        {
+                            "id": 72,
+                            "director": 3,
+                            "first_name": "Jessica",
+                            "last_name": "Jessicova",
+                            "patronymic": "Jessicovna",
+                            "post": "Project manager",
+                            "status_idp": "done",
+                            "subordinates": [
+                                {
+                                    "id": 1027,
+                                    "director": 72,
+                                    "first_name": "Peter",
+                                    "last_name": "Peterov",
+                                    "patronymic": "Petrovich",
+                                    "post": "Backend-developer",
+                                    "status_idp": "not_completed",
+                                    "subordinates": [],
+                                }
+                            ],
+                        }
+                    ],
+                },
+            )
+        ],
     )
     @action(detail=False, methods=("get",))
     def get_subordinates(self, request):

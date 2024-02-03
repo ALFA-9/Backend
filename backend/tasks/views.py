@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import (OpenApiExample, OpenApiRequest,
+                                   OpenApiResponse, extend_schema)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -6,7 +8,8 @@ from rest_framework.response import Response
 
 from idps.models import Idp
 from tasks.models import Comment, Task
-from tasks.serializers import CommentSerializer, TaskSerializer
+from tasks.serializers import (CommentSerializer, TaskGetSerializer,
+                               TaskSerializer)
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -15,6 +18,48 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("post", "patch", "delete")
 
+    @extend_schema(
+        request=OpenApiRequest(
+            request=TaskSerializer,
+            examples=[
+                OpenApiExample(
+                    "Request",
+                    value={
+                        "name": "New task",
+                        "description": "Not so hard but not so easy",
+                        "idp": 120,
+                        "type": 1,
+                        "status_progress": "in_work",
+                        "is_completed": True,
+                        "control": 2,
+                        "date_start": "03.02.2024",
+                        "date_end": "03.12.2024",
+                    },
+                )
+            ],
+        ),
+        responses={
+            201: OpenApiResponse(
+                response=TaskGetSerializer,
+                examples=[
+                    OpenApiExample(
+                        "Response",
+                        value={
+                            "name": "New task",
+                            "description": "Not so hard but not so easy",
+                            "idp": 120,
+                            "type": "Project",
+                            "status_progress": "in_work",
+                            "is_completed": True,
+                            "control": "Test",
+                            "date_start": "03.02.2024",
+                            "date_end": "03.12.2024",
+                        },
+                    )
+                ],
+            )
+        },
+    )
     def create(self, request, *args, **kwargs):
         current_user = request.user
         idp_id = request.data.get("idp")
@@ -33,6 +78,51 @@ class TaskViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+    @extend_schema(
+        request=OpenApiRequest(
+            request=TaskSerializer,
+            examples=[
+                OpenApiExample(
+                    "Request",
+                    value={
+                        "name": "New task",
+                        "description": "Not so hard but not so easy",
+                        "idp": 120,
+                        "type": 1,
+                        "status_progress": "in_work",
+                        "is_completed": True,
+                        "control": 2,
+                        "date_start": "03.02.2024",
+                        "date_end": "03.12.2024",
+                    },
+                )
+            ],
+        ),
+        responses={
+            201: OpenApiResponse(
+                response=TaskGetSerializer,
+                examples=[
+                    OpenApiExample(
+                        "Response",
+                        value={
+                            "name": "New task",
+                            "description": "Not so hard but not so easy",
+                            "idp": 120,
+                            "type": "Project",
+                            "status_progress": "in_work",
+                            "is_completed": True,
+                            "control": "Test",
+                            "date_start": "03.02.2024",
+                            "date_end": "03.12.2024",
+                        },
+                    )
+                ],
+            )
+        },
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         current_user = request.user

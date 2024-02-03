@@ -125,6 +125,5 @@ class CreateIdpScheme(CreateIdpSerializer):
             "id",
             "title",
             "employee",
-            "status_idp",
             "tasks",
         )

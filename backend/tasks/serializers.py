@@ -33,7 +33,6 @@ class CommentTaskSerializer(serializers.ModelSerializer):
 
     employee = serializers.StringRelatedField()
     employee_post = serializers.StringRelatedField(source="employee.post")
-    pub_date = serializers.DateTimeField()
 
     class Meta:
         model = Comment

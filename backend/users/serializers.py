@@ -75,6 +75,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class EmployeeForDirectorSerializer(EmployeeSerializer):
     """Сериализатор для кастомной модели пользователя."""
+
     status_idp = serializers.SerializerMethodField()
     subordinates = serializers.SerializerMethodField()
 
@@ -101,7 +102,7 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
             return last_idp.status_idp
         return
 
-    def get_subordinates(self, director) -> dict:
+    def get_subordinates(self, director) -> list[dict]:
         if self.max_depth > 1:
             serializer = EmployeeForDirectorSerializer(
                 director.get_descendants(include_self=False).filter(
