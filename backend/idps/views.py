@@ -76,7 +76,7 @@ class IdpViewSet(viewsets.ModelViewSet):
                                     "date_start": "03.02.2024",
                                     "name": "First task",
                                     "description": "Read docs",
-                                    "date_end": "2024-02-03.03.2024",
+                                    "date_end": "03.03.2024",
                                     "type": 1,
                                     "control": 2,
                                 }
