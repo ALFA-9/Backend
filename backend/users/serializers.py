@@ -1,7 +1,6 @@
 import random
 
 from rest_framework import serializers
-from drf_spectacular.utils import extend_schema_field
 
 from idps.serializers import IdpWithCurrentTaskSerializer
 from users.constants import HARD_SKILLS, SOFT_SKILLS

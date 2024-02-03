@@ -83,12 +83,16 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(
         description="Получить список подчинненых.",
-        responses=EmployeeForDirectorSerializer(max_depth=MAX_DEPTH, many=True),
+        responses=EmployeeForDirectorSerializer(
+            max_depth=MAX_DEPTH, many=True
+        ),
     )
     @action(detail=False, methods=("get",))
     def get_subordinates(self, request):
         queryset = request.user.employees
         serializer = EmployeeForDirectorSerializer(
-            queryset, max_depth=MAX_DEPTH, many=True,
+            queryset,
+            max_depth=MAX_DEPTH,
+            many=True,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
