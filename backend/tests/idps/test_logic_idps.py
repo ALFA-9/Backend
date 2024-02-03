@@ -53,7 +53,7 @@ def test_post_idp(client: APIClient, create_employee):
 
     client.force_login(Employee.objects.get(id=4))
     response = client.post(url, data, "application/json")
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.FORBIDDEN
     assert response.json() == {
         "error": "Вы не являетесь начальником для этого сотрудника."
     }
