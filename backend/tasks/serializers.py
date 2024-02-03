@@ -33,6 +33,7 @@ class CommentTaskSerializer(serializers.ModelSerializer):
 
     employee = serializers.StringRelatedField()
     employee_post = serializers.StringRelatedField(source="employee.post")
+    pub_date = serializers.DateTimeField()
 
     class Meta:
         model = Comment
@@ -42,6 +43,9 @@ class CommentTaskSerializer(serializers.ModelSerializer):
             "body",
             "pub_date",
         )
+
+    def get_pub_date(self, value):
+        return value
 
 
 class TaskGetSerializer(serializers.ModelSerializer):
@@ -66,17 +70,6 @@ class TaskGetSerializer(serializers.ModelSerializer):
             "date_end",
             "comments",
         )
-
-        extra_kwargs = {
-            "date_start": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-            "date_end": {"input_formats": ["%Y-%m-%d", "%d.%m.%Y"]},
-        }
-
-    def to_representation(self, instance):
-        instance.date_start = instance.date_start.strftime("%d.%m.%Y")
-        instance.date_end = instance.date_end.strftime("%d.%m.%Y")
-
-        return super().to_representation(instance)
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -141,6 +134,8 @@ class CurrentTaskSerializer(serializers.ModelSerializer):
 
 
 class TaskForIdpSerializer(serializers.ModelSerializer):
+    date_start = serializers.DateField()
+
     class Meta:
         model = Task
         exclude = ("idp",)

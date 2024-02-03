@@ -51,10 +51,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "idps",
         )
 
-    def get_is_director(self, obj):
+    def get_is_director(self, obj) -> bool:
         return not obj.is_leaf_node()
 
-    def get_hard_skills(self, obj):
+    def get_hard_skills(self, obj) -> dict[str, int]:
         hard_skills = dict()
         score = 0
         for skill in HARD_SKILLS:
@@ -63,7 +63,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         hard_skills["average"] = score / len(HARD_SKILLS)
         return hard_skills
 
-    def get_soft_skills(self, obj):
+    def get_soft_skills(self, obj) -> dict[str, int]:
         soft_skills = dict()
         score = 0
         for skill in SOFT_SKILLS:
@@ -75,7 +75,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class EmployeeForDirectorSerializer(EmployeeSerializer):
     """Сериализатор для кастомной модели пользователя."""
-
+    status_idp = serializers.SerializerMethodField()
     subordinates = serializers.SerializerMethodField()
 
     def __init__(self, *kwrgs, max_depth):
@@ -86,14 +86,22 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
         model = Employee
         fields = (
             "id",
+            "director",
             "first_name",
             "last_name",
             "patronymic",
             "post",
+            "status_idp",
             "subordinates",
         )
 
-    def get_subordinates(self, director):
+    def get_status_idp(self, obj) -> str | None:
+        last_idp = obj.idp_employee.order_by("-date_start").first()
+        if last_idp:
+            return last_idp.status_idp
+        return
+
+    def get_subordinates(self, director) -> dict:
         if self.max_depth > 1:
             serializer = EmployeeForDirectorSerializer(
                 director.get_descendants(include_self=False).filter(
@@ -122,6 +130,7 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
     """Сериализатор для кастомной модели пользователя."""
 
     status_idp = serializers.SerializerMethodField()
+    post = serializers.StringRelatedField()
 
     class Meta:
         model = Employee
@@ -131,10 +140,11 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "patronymic",
+            "post",
             "status_idp",
         )
 
-    def get_status_idp(self, obj):
+    def get_status_idp(self, obj) -> str | None:
         last_idp = obj.idp_employee.order_by("-date_start").first()
         if last_idp:
             return last_idp.status_idp

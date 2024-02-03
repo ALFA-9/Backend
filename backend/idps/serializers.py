@@ -36,14 +36,14 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
         model = Idp
         fields = (
             "id",
+            "director",
             "title",
             "progress",
             "status_idp",
             "current_task",
-            "director",
         )
 
-    def get_current_task(self, obj):
+    def get_current_task(self, obj) -> CurrentTaskSerializer:
         current_task = (
             obj.task_idp.filter(
                 status_progress="in_work", date_end__gt=dt.date.today()
@@ -55,7 +55,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
             return None
         return CurrentTaskSerializer(current_task).data
 
-    def get_progress(self, obj):
+    def get_progress(self, obj) -> int:
         tasks_not_canceled_count = obj.task_idp.exclude(
             status_progress="cancelled"
         ).count()
@@ -116,3 +116,15 @@ class IdpWithAllTasksWithComments(serializers.ModelSerializer):
     class Meta:
         model = Idp
         fields = ("title", "employee", "director", "status_idp", "tasks")
+
+
+class CreateIdpScheme(CreateIdpSerializer):
+    class Meta:
+        model = Idp
+        fields = (
+            "id",
+            "title",
+            "employee",
+            "status_idp",
+            "tasks",
+        )
