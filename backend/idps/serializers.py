@@ -1,12 +1,16 @@
 import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from idps.models import Idp
 from tasks.models import Task
-from tasks.serializers import (CurrentTaskSerializer, TaskForIdpSerializer,
-                               TaskGetSerializer)
+from tasks.serializers import (
+    CurrentTaskSerializer,
+    TaskForIdpSerializer,
+    TaskGetSerializer,
+)
 from users.models import Employee
 
 
@@ -43,6 +47,7 @@ class IdpWithCurrentTaskSerializer(serializers.ModelSerializer):
             "director",
         )
 
+    @extend_schema_field(CurrentTaskSerializer)
     def get_current_task(self, obj):
         current_task = (
             obj.task_idp.filter(
