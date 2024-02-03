@@ -1,6 +1,7 @@
 import random
 
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 from idps.serializers import IdpWithCurrentTaskSerializer
 from users.constants import HARD_SKILLS, SOFT_SKILLS
@@ -51,10 +52,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "idps",
         )
 
-    def get_is_director(self, obj):
+    def get_is_director(self, obj) -> bool:
         return not obj.is_leaf_node()
 
-    def get_hard_skills(self, obj):
+    def get_hard_skills(self, obj) -> dict[str, int]:
         hard_skills = dict()
         score = 0
         for skill in HARD_SKILLS:
@@ -63,7 +64,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         hard_skills["average"] = score / len(HARD_SKILLS)
         return hard_skills
 
-    def get_soft_skills(self, obj):
+    def get_soft_skills(self, obj) -> dict[str, int]:
         soft_skills = dict()
         score = 0
         for skill in SOFT_SKILLS:
@@ -93,7 +94,7 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
             "subordinates",
         )
 
-    def get_subordinates(self, director):
+    def get_subordinates(self, director) -> dict:
         if self.max_depth > 1:
             serializer = EmployeeForDirectorSerializer(
                 director.get_descendants(include_self=False).filter(
@@ -134,7 +135,7 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
             "status_idp",
         )
 
-    def get_status_idp(self, obj):
+    def get_status_idp(self, obj) -> str | None:
         last_idp = obj.idp_employee.order_by("-date_start").first()
         if last_idp:
             return last_idp.status_idp

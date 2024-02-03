@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from idps.models import Employee, Idp
 from idps.permissions import DirectorPermission
 from idps.serializers import (CreateIdpSerializer, IdpWithAllTasksWithComments,
-                              IdpWithCurrentTaskSerializer, RequestSerializer)
+                              IdpWithCurrentTaskSerializer, RequestSerializer, CreateIdpScheme)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
 
@@ -23,6 +23,7 @@ class IdpViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
 
+    @extend_schema(request={"application/json": CreateIdpScheme()})
     def create(self, request, *args, **kwargs):
         emp_id = request.data.get("employee")
         if emp_id is None:

@@ -7,7 +7,7 @@ from rest_framework import routers
 
 from idps.views import IdpViewSet, idp_request
 from tasks.views import TaskViewSet, comments
-from users.views import AuthAPIView, EmployeeAPIView, EmployeeViewSet
+from users.views import AuthAPIView, EmployeeViewSet
 
 router = routers.DefaultRouter()
 router.register(r"tasks", TaskViewSet)
@@ -18,7 +18,6 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
-    path("api/employees/get_subordinates", EmployeeAPIView.as_view()),
     path("api/request/", idp_request),
     path("api/tasks/<int:task_id>/comments/", comments, name="comments"),
     path("api/auth/", AuthAPIView.as_view(), name="registration"),

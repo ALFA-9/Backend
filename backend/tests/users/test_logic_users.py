@@ -28,7 +28,7 @@ def test_api_endpoint_get_subordinates(client: APIClient, create_task):
             assert "subordinates" in element
 
     client.force_login(Employee.objects.get(id=3))
-    url = "/api/employees/get_subordinates"
+    url = "/api/employees/get_subordinates/"
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
