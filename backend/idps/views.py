@@ -9,9 +9,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
-from idps.permissions import DirectorPermission
+from idps.permissions import DirectorPermission, CreatorPermission
 from idps.serializers import (CreateIdpScheme, CreateIdpSerializer,
-                              IdpWithAllTasksWithComments,
+                              IdpWithAllTasksWithComments, IdpPatchSerializer,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
@@ -21,7 +21,7 @@ class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects
     serializer_class = IdpWithCurrentTaskSerializer
     permission_classes = [DirectorPermission]
-    http_method_names = ("get", "post")
+    http_method_names = ("get", "post", "patch")
 
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
@@ -32,11 +32,18 @@ class IdpViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(employee=self.request.user)
 
     def get_serializer_class(self):
-        if self.action not in ("list", "retrieve"):
+        if self.action not in ("list", "retrieve", "partial_update"):
             return CreateIdpSerializer
         elif self.action in ("retrieve"):
             return IdpWithAllTasksWithComments
+        elif self.action in ("partial_update"):
+            return IdpPatchSerializer
         return self.serializer_class
+
+    def get_permissions(self):
+        if self.action == "partial_update":
+            return [CreatorPermission()]
+        return [permission() for permission in self.permission_classes]
 
     @extend_schema(
         examples=[
@@ -191,6 +198,7 @@ class IdpViewSet(viewsets.ModelViewSet):
                             "comments": [
                                 {
                                     "employee": "Johnov John Johnovich",
+                                    "employee_image": "/path/to/success.jpeg",
                                     "employee_post": "IT-recruiter",
                                     "body": "Big text here",
                                     "pub_date": "27.02.2111 20:47",

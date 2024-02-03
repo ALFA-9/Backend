@@ -1,6 +1,7 @@
 import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from rest_framework import serializers
 
 from tasks.models import Comment, Control, Task, Type
@@ -33,11 +34,13 @@ class CommentTaskSerializer(serializers.ModelSerializer):
 
     employee = serializers.StringRelatedField()
     employee_post = serializers.StringRelatedField(source="employee.post")
+    employee_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = (
             "employee",
+            "employee_image",
             "employee_post",
             "body",
             "pub_date",
@@ -45,6 +48,10 @@ class CommentTaskSerializer(serializers.ModelSerializer):
 
     def get_pub_date(self, value):
         return value
+
+    def get_employee_image(self, value):
+        relative_url = value.employee.image.url
+        return relative_url
 
 
 class TaskGetSerializer(serializers.ModelSerializer):

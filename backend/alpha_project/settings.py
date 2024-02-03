@@ -18,6 +18,8 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
 
 CURRENT_BASE = os.getenv("CURRENT_BASE", "postgre").lower()
 
+HOST_URL = os.getenv("HOST_URL", "http://localhost:8000")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -68,10 +70,11 @@ if DEBUG:
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Alfa People",
-    "VERSION": "0.0.1",
+    "VERSION": "1.0.5",
     "SERVE_INCLUDE_SCHEMA": False,
-    "SERVERS": [{"url": os.getenv("HOST_URL", "http://localhost:8000")}],
+    "SERVERS": [{"url": HOST_URL}],
     "COMPONENT_SPLIT_REQUEST": True,
+    'SWAGGER_UI_FAVICON_HREF': (HOST_URL + "/media/logo.svg"),
 }
 
 REST_FRAMEWORK = {

@@ -76,6 +76,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
                     "first_name": "Alex",
                     "last_name": "Alexov",
                     "patronymic": "Alexovich",
+                    "image": "/path/to/recognition.jpeg",
                     "post": "IT-recruiter",
                     "status_idp": "cancelled",
                 },
@@ -98,7 +99,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
                     "grade": "Senior+",
                     "post": "Java-developer",
                     "department": "IT",
-                    "image": "/way/to/hell.jpg",
+                    "image": "/way/to/hell.jpeg",
                     "hard_skills": {
                         "Структуры данных и алгоритмы": 8,
                         "Инфраструктура разработки": 2,
@@ -149,7 +150,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
                     "grade": "Senior+",
                     "post": "Java-developer",
                     "department": "IT",
-                    "image": "/way/to/hell.jpg",
+                    "image": "/way/to/hell.jpeg",
                     "hard_skills": {
                         "Структуры данных и алгоритмы": 8,
                         "Инфраструктура разработки": 2,
@@ -218,6 +219,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
                     "first_name": "Thomas",
                     "last_name": "Thomasov",
                     "patronymic": "Thomasovich",
+                    "image": "path/of/glory.jpeg",
                     "post": "Branch Director",
                     "status_idp": "in_work",
                     "subordinates": [
@@ -227,6 +229,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
                             "first_name": "Jessica",
                             "last_name": "Jessicova",
                             "patronymic": "Jessicovna",
+                            "image": "path/of/honor.jpeg",
                             "post": "Project manager",
                             "status_idp": "done",
                             "subordinates": [
@@ -236,6 +239,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
                                     "first_name": "Peter",
                                     "last_name": "Peterov",
                                     "patronymic": "Petrovich",
+                                    "image": "path/of/power.jpeg",
                                     "post": "Backend-developer",
                                     "status_idp": "not_completed",
                                     "subordinates": [],
@@ -248,7 +252,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
         ],
     )
     @action(detail=False, methods=("get",))
-    def get_subordinates(self, request):
+    def subordinates(self, request):
         queryset = request.user.employees
         serializer = EmployeeForDirectorSerializer(
             queryset,

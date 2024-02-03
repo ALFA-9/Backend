@@ -91,6 +91,7 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
             "first_name",
             "last_name",
             "patronymic",
+            "image",
             "post",
             "status_idp",
             "subordinates",
@@ -141,6 +142,7 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "patronymic",
+            "image",
             "post",
             "status_idp",
         )
