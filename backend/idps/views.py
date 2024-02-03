@@ -201,7 +201,10 @@ class IdpViewSet(viewsets.ModelViewSet):
                 },
             )
         ],
-        responses={403: OpenApiResponse()},
+        responses={
+            201: CreateIdpSerializer,
+            403: OpenApiResponse(),
+        },
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
