@@ -125,6 +125,10 @@ class CommentSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
+    def to_representation(self, instance):
+        serializers = CommentTaskSerializer(instance)
+        return serializers.data
+
 
 class CurrentTaskSerializer(serializers.ModelSerializer):
     class Meta:

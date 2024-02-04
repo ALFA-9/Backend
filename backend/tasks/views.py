@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from idps.models import Idp
 from tasks.models import Comment, Task
 from tasks.serializers import (CommentSerializer, TaskGetSerializer,
-                               TaskSerializer)
+                               TaskSerializer, CommentTaskSerializer)
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -173,26 +173,35 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    request=OpenApiRequest(
+            request=TaskSerializer,
+            examples=[
+                OpenApiExample(
+                    "Request",
+                    value={
+                        "body": "Hello, everyone! Where is gym in our office?",
+                    }
+                )
+            ]
+    ),
+    responses={201: CommentTaskSerializer},
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def comments(request, task_id):
     employee_id = request.user.id
     body = request.data.get("body")
-    task = get_object_or_404(Task, id=task_id)
-    if request.method == "POST":
-        serializer = CommentSerializer(
-            data={
-                "employee": employee_id,
-                "task": task_id,
-                "body": body,
-            },
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    queryset = task.comment_task.all()
-    serializer = CommentSerializer(queryset, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    serializer = CommentSerializer(
+        data={
+            "employee": employee_id,
+            "task": task_id,
+            "body": body,
+        },
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["DELETE"])
@@ -204,5 +213,5 @@ def delete_comment(request, task_id, comment_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
     return Response(
         {"error": "Вы не являетесь автором данного комментария."},
-        status=status.HTTP_400_BAD_REQUEST,
+        status=status.HTTP_403_FORBIDDEN,
     )
