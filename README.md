@@ -74,15 +74,15 @@ nano .env
 
 Добавьте следующие строки и подставьте свои значения:
 ````dotenv
-POSTGRES_DB=<название db>
-POSTGRES_USER=<имя пользователя для db>
-POSTGRES_PASSWORD=<пароль пользователя для db>
-DB_HOST=db # если поменять, то тогда нужно поменять название сервиса в docker-compose.production.yml
-DB_PORT=5432 # это порт по умолчанию для db
-SECRET_KEY=<SECRET_KEY в настройках django>
-DEBUG=<True или False>
-ALLOWED_HOSTS=<ваши адреса через пробел (пример:localhost 127.0.0.1 xxxx.com)>
-HOST_URL=<ваш url адрес вместе с http/https
+POSTGRES_DB=DB                   # название db
+POSTGRES_USER=USER               # имя пользователя для db
+POSTGRES_PASSWORD=PASSWORD       # пароль пользователя для db
+DB_HOST=db                       # если поменять, то тогда нужно поменять название сервиса в docker-compose.production.yml
+DB_PORT=5432                     # это порт для доступа к db
+SECRET_KEY=SECRET_KEY            # SECRET_KEY в настройках django
+DEBUG=False                      # True или False
+ALLOWED_HOSTS=127.0.0.1 backend  # ваши адреса через пробел (пример:localhost 127.0.0.1 xxxx.com)
+HOST_URL=http://localhost:8000   # ваш url адрес вместе с http/https
 ````
 
 Установить docker: https://www.docker.com/get-started/
@@ -111,32 +111,35 @@ sudo docker compose up
 
 Пароль: `admin`
 
-### Если вы хотите иметь возможночть поменять код:
+### Если вы хотите иметь возможность поменять код:
 
 Склонируйте репозиторий:
 ````bash
 git clone git@github.com:ALFA-9/Backend.git
 ````
 
-Перейдите в папку Backend и запустите docker compose файл:
+Перейдите в папку Backend и запустите файл **docker-compose.yml**:
 ````bash
 cd Backend
 docker compose up
 ````
 
-Дли импорта начальных данных воспользуйте файлом import.sh:
+Для импорта начальных данных воспользуйтесь файлом **import.sh**:
 ````bash
 sh import.sh
 ````
 
 Если вы хотите прикрутить автоматизацию посредством GithubActions настройте файл **main.yml**
 
-> **Примечание.** Любые изменения в коде при сохранении будут немедленно отображаться при запросах
+> **Примечание.** Любые изменения в коде при сохранении будут немедленно отображаться при запросах к серверу
 ***
 
 ## Авторы
 
-**Алексей Синюков**\
-**Алексей Васильев**\
-**Денис Дриц**\
-**Илья Симонов**
+[**Алексей Синюков**](https://github.com/aleksey2299-1)
+
+[**Алексей Васильев**](https://github.com/aleksey-vasilev)
+
+[**Денис Дриц**](https://github.com/Den2605)
+
+[**Илья Симонов**](https://github.com/ilya-simonov)
