@@ -230,7 +230,7 @@ class IdpViewSet(viewsets.ModelViewSet):
     },
     description="Отправить запрос на ИПР.",
     responses={
-        200: RequestSerializer,
+        201: RequestSerializer,
         400: OpenApiResponse(
             Response,
             examples=[
