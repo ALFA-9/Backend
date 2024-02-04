@@ -21,13 +21,13 @@ class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects
     serializer_class = IdpWithCurrentTaskSerializer
     permission_classes = [DirectorPermission]
-    http_method_names = ("get", "post", "patch")
+    http_method_names = ("get", "post", "patch",)
 
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
 
     def get_queryset(self):
-        if self.action in ("retrieve"):
+        if self.action in ("retrieve", "partial_update"):
             return self.queryset
         return self.queryset.filter(employee=self.request.user)
 
@@ -67,7 +67,6 @@ class IdpViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    # response=inline_serializer("Bad request", fields={"error": str})
     @extend_schema(
         request={
             "application/json": OpenApiRequest(
