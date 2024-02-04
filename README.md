@@ -1,25 +1,79 @@
-## Backend часть
+***
 
-### Как запустить:
+### Backend часть командного проекта в рамках Хакатона Яндекс Практикум Альфа-Банк "02.2024"
 
-Скопировать код к себе:
-````
-git clone git@github.com:ALFA-9/Backend.git
-````
+***
 
-Установить docker: https://www.docker.com/get-started/
+## Технологии:
 
-В терминале linux это можно сделать так:
-````
-sudo apt update
-sudo apt install curl
-curl -fSL https://get.docker.com -o get-docker.sh
-sudo sh ./get-docker.sh
-sudo apt install docker-compose-plugin 
-````
+[![Python](https://img.shields.io/badge/Python-%203.10-blue?style=flat-square&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-%204.2-blue?style=flat-square&logo=django)](https://www.djangoproject.com/)
+[![DRF](https://img.shields.io/badge/DjangoRESTFramework-%203.14.0-blue?style=flat-square&logo=django)](https://www.django-rest-framework.org/)
+[![Celery](https://img.shields.io/badge/Celery-%205.3.6-blue?style=flat-square&logo=celery)](https://docs.celeryq.dev/en/stable/)
+[![Redis](https://img.shields.io/badge/Redis-%205.0.1-blue?style=flat-square&logo=redis)](https://redis.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%2013-blue?style=flat-square&logo=PostgreSQL)]([https://www.postgresql.org/])
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-%2020.1.0-blue?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
 
-В директории проекта создайте файл `.env` c данными:
-````
+[![Swagger](https://img.shields.io/badge/Swagger-%20?style=flat-square&logo=swagger)](https://swagger.io/)
+[![Docker](https://img.shields.io/badge/Docker-%20?style=flat-square&logo=docker)](https://www.docker.com/)
+[![DockerCompose](https://img.shields.io/badge/Docker_Compose-%20?style=flat-square&logo=docsdotrs)](https://docs.docker.com/compose/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-%20?style=flat-square&logo=githubactions)](https://github.com/features/actions)
+[![Nginx](https://img.shields.io/badge/Nginx-%20?style=flat-square&logo=nginx)](https://www.nginx.com/)
+[![Certbot](https://img.shields.io/badge/certbot-%20?style=flat-square&logo=letsencrypt)](https://certbot.eff.org/)
+
+***
+
+## Функционал:
+
+В процессе разработки проекта были реализованы:
+- интуитивно понятный интерфейс
+- удобное хранение и работа с записями в БД
+- уведомления посредством отправки email
+
+***
+
+## Технические особенности:
+
+Репозиторий включает в себя два файла **docker-compose.yml** и 
+**docker-compose.production.yml**, что позволяет развернуть проект на
+локальном или удалённом серверах.
+
+Данная инструкция подразумевает, что на вашем локальном/удалённом сервере 
+уже установлен Git, Python 3.10, пакетный менеджер pip, Docker, 
+Docker Compose, утилита виртуального окружения python3-venv.
+
+В проекте предусмотрена возможность запуска БД SQLite3 и PostgreSQL. Выбор 
+БД осуществляется сменой значения CURRENT_DB на lite или postgre. 
+lite = SQLite3, postgre = PostgreSQL.
+
+В проекте настроена автодокументация с помощью **Swagger**. Для ознакомления 
+перейдите по [ссылке](https://api.new.red-hand/api/docs/)
+
+С подробными инструкциями запуска вы можете ознакомиться ниже.
+
+***
+
+## Как запустить:
+
+### Запуск проекта в Docker-контейнерах с помощью Docker Compose:
+
+Создайте и перейдите в директорию проекта:
+
+```bash
+mkdir alfa_backend
+cd alfa_backend/
+```
+
+Скачайте и добавьте файл **docker-compose.production.yml** в директорию.
+
+Cоздайте файл **.env**:
+
+```bash
+nano .env
+```
+
+Добавьте следующие строки и подставьте свои значения:
+````dotenv
 POSTGRES_DB=<название db>
 POSTGRES_USER=<имя пользователя для db>
 POSTGRES_PASSWORD=<пароль пользователя для db>
@@ -28,73 +82,61 @@ DB_PORT=5432 # это порт по умолчанию для db
 SECRET_KEY=<SECRET_KEY в настройках django>
 DEBUG=<True или False>
 ALLOWED_HOSTS=<ваши адреса через пробел (пример:localhost 127.0.0.1 xxxx.com)>
+HOST_URL=<ваш url адрес вместе с http/https
 ````
 
+Установить docker: https://www.docker.com/get-started/
 
-Запустить Docker в директории с файлом `docker-compose.yaml` (чтобы запустить в фоновом режиме добавьте флаг -d):
+В терминале linux это можно сделать так:
+````bash
+sudo apt update
+sudo apt install curl
+curl -fSL https://get.docker.com -o get-docker.sh
+sudo sh ./get-docker.sh
+sudo apt install docker-compose-plugin 
 ````
-docker-compose up
+
+Запустить Docker в директории с файлом **docker-compose.yaml** (чтобы запустить в фоновом режиме добавьте флаг -d):
+````bash
+docker compose up
 ````
 В терминале Linux могут потребоваться права суперпользователя:
-````
-sudo docker-compose up
-````
-### Как начать?
-
-Перейти по адресу `localhost:8000/`
-
-### Доступ по Api
-
-__Вся информация касательно api доступна на странице `localhost:8800/api/docs/`:__
-
-### Как запустить вместе с фронтом:
-
-Проделать все предыдущие шаги.
-
-Скопировать код frontend'а в папку с backend'ом:
-````
-git clone git@github.com:ALFA-9/Frontend.git
+````bash
+sudo docker compose up
 ````
 
-Добавить в папку frontend'a файл `Dockerfile` с содержимым:
-````
-FROM node:20-alpine as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . ./
-RUN npm run build
-RUN npm install --global http-server
-
-CMD ["npx", "-y", "http-server", "-p", "8000", "/app/build"]
-````
-
-Добавить в файл `docker-compose.yaml` в блок services следующие строки:
-````
-  frontend:
-    env_file: .env
-    build: ./frontend/
-    command: cp -r /app/build/. /frontend_static/
-    volumes:
-      - static:/frontend_static
-````
-
-Запустить Docker в директории с файлом `docker-compose.yaml` (чтобы запустить в фоновом режиме добавьте флаг -d):
-````
-docker-compose up
-````
-В терминале Linux могут потребоваться права суперпользователя:
-````
-sudo docker-compose up
-````
-
-Чтобы загрузить начальные данные используйте команду:
-````
-sh import.sh
-````
-
-Для доступа в админку (если вам нужны какие-то данные из бд, или нужно создать объекты) перейдите на страницу `localhost:8000/admin/`:
+Для доступа в админ-зону (если вам нужны какие-то данные из бд, или нужно создать объекты) перейдите на страницу http://localhost:8000/admin/:
 
 Логин: `admin@admin.ru`
 
 Пароль: `admin`
+
+### Если вы хотите иметь возможночть поменять код:
+
+Склонируйте репозиторий:
+````bash
+git clone git@github.com:ALFA-9/Backend.git
+````
+
+Перейдите в папку Backend и запустите docker compose файл:
+````bash
+cd Backend
+docker compose up
+````
+
+Дли импорта начальных данных воспользуйте файлом import.sh:
+````bash
+sh import.sh
+````
+
+Если вы хотите прикрутить автоматизацию посредством GithubActions настройте файл **main.yml**
+
+> **Примечание.** Любые изменения в коде при сохранении будут немедленно отображаться при запросах
+***
+
+## Авторы
+
+**Алексей Синюков**\
+**Алексей Васильев**\
+**Денис Дриц**\
+**Илья Симонов**
