@@ -38,3 +38,4 @@ urllib3==2.1.0
 pytest==7.4.4
 pytest-django==4.7.0
 django-mptt==0.16.0
+django-cors-headers==4.3.1
