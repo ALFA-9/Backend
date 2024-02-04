@@ -1,6 +1,6 @@
 from enum import Enum as PythonEnum
 
-from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import func
@@ -102,6 +102,7 @@ class Comment(Base):
     employee_id = Column(
         Integer, ForeignKey("employee.id", ondelete="CASCADE")
     )
+    pub_date = Column(DateTime, server_default=func.now(), default=func.now())
 
     employee = relationship(
         "Employee", back_populates="comment", lazy="joined"
@@ -116,11 +117,12 @@ class Task(Base):
     class StatusProgress(PythonEnum):
         in_work = "in_work"
         done = "done"
+        not_completed = "not_completed"
 
     class StatusAccept(PythonEnum):
         accepted = "accepted"
         not_accepted = "not_accepted"
-        canceled = "canceled"
+        cancelled = "cancelled"
 
     __tablename__ = "task"
     id = Column(Integer, primary_key=True)
@@ -133,14 +135,14 @@ class Task(Base):
     status_accept = Column(Enum(StatusAccept), nullable=True)
     date_start = Column(Date)
     date_end = Column(Date)
-    task_type_id = Column(
+    type_id = Column(
         Integer,
-        ForeignKey("taskType.id", ondelete="SET NULL"),
+        ForeignKey("type.id", ondelete="SET NULL"),
         nullable=True,
     )
     control_id = Column(
         Integer,
-        ForeignKey("taskControl.id", ondelete="SET NULL"),
+        ForeignKey("control.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -168,10 +170,13 @@ class Idp(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
     employee_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="CASCADE"),
+        Integer,
+        ForeignKey("employee.id", ondelete="CASCADE"),
     )
     director_id = Column(
-        Integer, ForeignKey("employee.id"), nullable=True,
+        Integer,
+        ForeignKey("employee.id"),
+        nullable=True,
     )
     status_idp = Column(Enum(StatusIdp), default=StatusIdp.in_work)
     date_start = Column(Date, server_default=func.now(), default=func.now())
@@ -196,7 +201,7 @@ class Idp(Base):
 
 
 class TaskType(Base):
-    __tablename__ = "taskType"
+    __tablename__ = "type"
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
 
@@ -207,7 +212,7 @@ class TaskType(Base):
 
 
 class TaskControl(Base):
-    __tablename__ = "taskControl"
+    __tablename__ = "control"
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
 

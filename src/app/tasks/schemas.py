@@ -7,6 +7,10 @@ def datetime_format(dt: datetime):
     return dt.strftime("%d.%m.%Y")
 
 
+def datetime_for_comments_format(dt: datetime):
+    return dt.strftime("%d.%m.%y %H:%M")
+
+
 class Task(BaseModel):
     name: str
     description: str
@@ -82,7 +86,7 @@ class Control(BaseModel):
 class TaskForIdpCreate(BaseModel):
     name: str
     description: str
-    task_type_id: int = Field(alias="type")
+    type_id: int = Field(alias="type")
     control_id: int = Field(alias="control")
     date_start: datetime | None = Field(None, examples=["23.05.2024"])
     date_end: datetime | None = Field(None, examples=["23.11.2024"])
@@ -96,12 +100,12 @@ class TaskForIdpCreate(BaseModel):
 
 class TaskForIdpCreateDB(TaskForIdpCreate):
     id: int
-    task_type_id: int = Field(exclude=True)
+    type_id: int = Field(exclude=True)
     control_id: int = Field(exclude=True)
     status_progress: str
     status_accept: str | None
     task_type: Type = Field(alias="type")
-    control: Control = Field(alias="task_control")
+    task_control: Control = Field(alias="control")
 
     class Config:
         populate_by_name = True
@@ -111,3 +115,47 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
             Type: lambda v: v.name,
             Control: lambda v: v.title,
         }
+
+
+class Employee(BaseModel):
+    first_name: str
+    last_name: str
+    patronymic: str
+
+
+class Post(BaseModel):
+    title: str
+
+
+class EmployeePost(BaseModel):
+    post: Post
+
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            datetime: datetime_for_comments_format,
+            Post: lambda v: v.title,
+        }
+
+
+class Comment(BaseModel): ???
+    employee: Employee
+    employee_post: Employee
+    body_comment: str = Field(alias="body")
+    pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+        json_encoders = {
+            datetime: datetime_for_comments_format,
+            Employee: lambda v: f"{v.last_name} {v.first_name} {v.patronymic}",
+            EmployeePost: lambda v: v.post,
+        }
+
+
+class TaskWithComments(TaskForIdpCreateDB):
+    comments: list[Comment] = Field(alias="comment")
+
+    class Config:
+        populate_by_name = True

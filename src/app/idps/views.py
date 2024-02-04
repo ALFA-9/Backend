@@ -5,9 +5,8 @@ from app.database.models import Employee
 from app.database.session import get_db
 from app.employees.views import get_current_auth_user
 from app.idps import crud
-from app.idps.schemas import (IdpCreate, IdpCreateDB, IdpDB, IdpList, IdpPut,
-                              RequestSchema)
-from app.tasks.schemas import TaskForIdpCreateDB
+from app.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPut,
+                              RequestSchema, IdpRetrieve)
 
 router = APIRouter(prefix="/idps", tags=["idps"])
 
@@ -20,7 +19,7 @@ async def get_all_idps(
     return await crud.get_all(db, user)
 
 
-@router.get("/{id}/", response_model=IdpDB)
+@router.get("/{id}/", response_model=IdpRetrieve)
 async def get_idp(
     id: int,
     db: AsyncSession = Depends(get_db),

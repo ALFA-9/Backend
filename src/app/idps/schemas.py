@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field, validator
 
-from app.tasks.schemas import TaskForIdpCreate, TaskForIdpCreateDB
+from app.tasks.schemas import TaskForIdpCreate, TaskForIdpCreateDB, TaskWithComments
 
 
 def datetime_format(dt: datetime):
@@ -91,3 +91,15 @@ class RequestSchema:
     letter: str = Form(...)
     director_id: int = Form(...)
     files: list[UploadFile] = File(None)
+
+
+class IdpRetrieve(BaseModel):
+    title: str
+    employee_id: int
+    director_id: int
+    status_idp: str
+    tasks: list[TaskWithComments]
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
