@@ -8,8 +8,8 @@ from rest_framework.response import Response
 
 from idps.models import Idp
 from tasks.models import Comment, Task
-from tasks.serializers import (CommentSerializer, TaskGetSerializer,
-                               TaskSerializer, CommentTaskSerializer)
+from tasks.serializers import (CommentSerializer, CommentTaskSerializer,
+                               TaskGetSerializer, TaskSerializer)
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -175,15 +175,15 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     request=OpenApiRequest(
-            request=TaskSerializer,
-            examples=[
-                OpenApiExample(
-                    "Request",
-                    value={
-                        "body": "Hello, everyone! Where is gym in our office?",
-                    }
-                )
-            ]
+        request=TaskSerializer,
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "body": "Hello, everyone! Where is gym in our office?",
+                },
+            )
+        ],
     ),
     responses={201: CommentTaskSerializer},
 )

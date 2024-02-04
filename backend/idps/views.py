@@ -21,7 +21,11 @@ class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects
     serializer_class = IdpWithCurrentTaskSerializer
     permission_classes = [DirectorPermission]
-    http_method_names = ("get", "post", "patch",)
+    http_method_names = (
+        "get",
+        "post",
+        "patch",
+    )
 
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
@@ -279,8 +283,9 @@ def idp_request(request):
             {"error": "Нельзя запросить ИПР, пока не завершено текущее."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    last_request = employee.last_request.replace(tzinfo=None)
+    last_request = employee.last_request
     if last_request:
+        last_request = last_request.replace(tzinfo=None)
         time_diff = (dt.datetime.now() - last_request).total_seconds()
         if time_diff < SEC_BEFORE_NEXT_REQUEST:
             return Response(

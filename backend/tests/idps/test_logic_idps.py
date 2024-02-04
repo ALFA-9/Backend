@@ -60,6 +60,31 @@ def test_post_idp(client: APIClient, create_employee):
 
 
 @pytest.mark.django_db
+def test_patch_idp(client: APIClient, create_task):
+    client.force_login(Employee.objects.get(id=1))
+    url = "/api/idps/1/"
+    data = {
+        "status_idp": "done",
+    }
+
+    response = client.patch(url, data, "application/json")
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == data
+
+
+@pytest.mark.django_db
+def test_incorrect_user_patch_idp(client: APIClient, create_task):
+    client.force_login(Employee.objects.get(id=2))
+    url = "/api/idps/1/"
+    data = {
+        "status_idp": "done",
+    }
+
+    response = client.patch(url, data, "application/json")
+    assert response.status_code == HTTPStatus.FORBIDDEN
+
+
+@pytest.mark.django_db
 def test_post_idp_when_emp_have_active(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=1))
     url = "/api/idps/"
@@ -144,32 +169,60 @@ def test_api_endpoint(client: APIClient, create_task):
         assert "date_end" in element["current_task"]
 
 
-# @pytest.mark.django_db
-# def test_statistic(client: APIClient, create_idps_for_emps):
-#     url = "/api/statistic/"
+@pytest.mark.django_db
+def test_idp_request(client: APIClient, create_employee):
+    client.force_login(Employee.objects.get(id=2))
+    url = "/api/request/"
+    data = {
+        "title": "New IDP",
+        "letter": "I need it",
+        "director_id": 1,
+    }
 
-#     response = client.get(url)
-#     assert response.json() == {"in_work": 1, "canceled": 1, "done": 1}
+    response = client.post(url, data, "application/json")
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json() == {
+        "title": "New IDP",
+        "letter": "I need it",
+        "director_id": 1,
+    }
 
-#     response = client.patch(
-#         "/api/idps/1/",
-#         {"status_idp": "not_completed"},
-#         format="Content-Type",
-#         content_type="application/json",
-#     )
-#     assert response.status_code == 200
+    response = client.post(url, data, "application/json")
+    assert response.status_code == HTTPStatus.TOO_MANY_REQUESTS
+    assert response.json() == {
+        "error": "Запрос можно отправлять не чаще 1 раза в сутки."
+    }
 
-#     response = client.get(url)
-#     assert response.json() == {"not_completed": 1, "canceled": 1, "done": 1}
 
-#     data = {
-#         "title": "Title",
-#         "employee": 2,
-#         "director": 1,
-#         "status_idp": "in_work",
-#         "date_end": "20.03.2024",
-#     }
-#     response = client.post("/api/idps/", data)
-#     assert response.status_code == 201
-#     response = client.get(url)
-#     assert response.json() == {"in_work": 1, "canceled": 1, "done": 1}
+@pytest.mark.django_db
+def test_idp_request_with_active_idp(client: APIClient, create_task):
+    client.force_login(Employee.objects.get(id=4))
+    url = "/api/request/"
+    data = {
+        "title": "New IDP",
+        "letter": "I need it",
+        "director_id": 1,
+    }
+
+    response = client.post(url, data, "application/json")
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json() == {
+        "error": "Нельзя запросить ИПР, пока не завершено текущее."
+    }
+
+
+@pytest.mark.django_db
+def test_idp_request_incorrect_director(client: APIClient, create_employee):
+    client.force_login(Employee.objects.get(id=2))
+    url = "/api/request/"
+    data = {
+        "title": "New IDP",
+        "letter": "I need it",
+        "director_id": 3,
+    }
+
+    response = client.post(url, data, "application/json")
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json() == {
+        "error": "Вы не можете отправить запрос данному сотруднику."
+    }

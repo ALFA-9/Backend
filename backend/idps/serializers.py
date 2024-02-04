@@ -104,7 +104,8 @@ class RequestSerializer(serializers.Serializer):
     file = serializers.FileField(required=False)
 
     def to_representation(self, instance):
-        instance["file"] = instance["file"].name
+        if file := instance.get("file"):
+            instance["file"] = file.name
         return instance
 
 
@@ -130,6 +131,4 @@ class CreateIdpScheme(CreateIdpSerializer):
 class IdpPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Idp
-        fields = (
-            "status_idp",
-        )
+        fields = ("status_idp",)
