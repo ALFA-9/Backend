@@ -5,6 +5,9 @@ python manage.py migrate
 
 python manage.py collectstatic --noinput
 
+python manage.py make_periodic_task send_mail 1
+python manage.py make_periodic_task update_status_for_tasks 24
+
 cp -r collected_static/. /backend_static/static/
 
 DJANGO_SUPERUSER_PASSWORD=admin \

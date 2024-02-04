@@ -1,5 +1,3 @@
-from django.utils import timezone
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -60,13 +58,6 @@ class TaskViewSet(viewsets.ModelViewSet):
 					to=task.idp.director.email
 				)
                 email.save()
-                task, _ = PeriodicTask.objects.get_or_create(
-					name="Отправка почты",
-					task="send_mail",
-					interval=IntervalSchedule.objects.get(every=1, period="days"),
-					start_time=timezone.now(),
-				)
-                task.enabled = True
                 return Response(serializer.data)
 
         # если текущий пользователь руководитель исполнителя задачи
@@ -84,13 +75,6 @@ class TaskViewSet(viewsets.ModelViewSet):
 					to=task.idp.director.email
 				)
                 email.save()
-                task, _ = PeriodicTask.objects.get_or_create(
-					name="Отправка почты",
-					task="send_mail",
-					interval=IntervalSchedule.objects.get(every=1, period="days"),
-					start_time=timezone.now(),
-				)
-                task.enabled = True
                 return Response(serializer.data)
 
         return Response(

@@ -49,6 +49,7 @@ class EmployeeAdmin(MPTTModelAdmin):
 class EmailAdmin(admin.ModelAdmin):
     pass
 
+
 admin.site.register(Grade)
 admin.site.register(Post)
 admin.site.register(Department)
