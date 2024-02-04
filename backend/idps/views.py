@@ -1,15 +1,17 @@
 import datetime as dt
 
 from django.core.mail import EmailMessage
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import (OpenApiExample, OpenApiRequest,
+                                   OpenApiResponse, extend_schema,
+                                   inline_serializer)
 from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from idps.models import Employee, Idp
-from idps.permissions import DirectorPermission
+from idps.permissions import CreatorPermission, DirectorPermission
 from idps.serializers import (CreateIdpScheme, CreateIdpSerializer,
-                              IdpWithAllTasksWithComments,
+                              IdpPatchSerializer, IdpWithAllTasksWithComments,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
@@ -19,12 +21,127 @@ class IdpViewSet(viewsets.ModelViewSet):
     queryset = Idp.objects
     serializer_class = IdpWithCurrentTaskSerializer
     permission_classes = [DirectorPermission]
-    http_method_names = ("get", "post")
+    http_method_names = ("get", "post", "patch")
 
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
 
-    @extend_schema(request={"application/json": CreateIdpScheme()})
+    def get_queryset(self):
+        if self.action in ("retrieve"):
+            return self.queryset
+        return self.queryset.filter(employee=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action not in ("list", "retrieve", "partial_update"):
+            return CreateIdpSerializer
+        elif self.action in ("retrieve"):
+            return IdpWithAllTasksWithComments
+        elif self.action in ("partial_update"):
+            return IdpPatchSerializer
+        return self.serializer_class
+
+    def get_permissions(self):
+        if self.action == "partial_update":
+            return [CreatorPermission()]
+        return [permission() for permission in self.permission_classes]
+
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                name="Response",
+                value={
+                    "id": 101,
+                    "director": "Johnov John Johnovich",
+                    "title": "Super IDP",
+                    "progress": 68,
+                    "status_idp": "in_work",
+                    "current_task": {
+                        "id": 686,
+                        "name": "Simple task",
+                        "date_end": "03.06.2024",
+                    },
+                },
+            )
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    # response=inline_serializer("Bad request", fields={"error": str})
+    @extend_schema(
+        request={
+            "application/json": OpenApiRequest(
+                request=CreateIdpScheme,
+                examples=[
+                    OpenApiExample(
+                        "Request",
+                        value={
+                            "title": "New IDP",
+                            "employee": 256,
+                            "tasks": [
+                                {
+                                    "date_start": "03.02.2024",
+                                    "name": "First task",
+                                    "description": "Read docs",
+                                    "date_end": "03.03.2024",
+                                    "type": 1,
+                                    "control": 2,
+                                }
+                            ],
+                        },
+                    )
+                ],
+            )
+        },
+        responses={
+            201: OpenApiResponse(
+                response=CreateIdpSerializer,
+                examples=[
+                    OpenApiExample(
+                        name="Response",
+                        value={
+                            "title": "Title",
+                            "employee": 22001,
+                            "director": 1506,
+                            "status_idp": "in_work",
+                            "tasks": [
+                                {
+                                    "date_start": "03.02.2024",
+                                    "name": "Task",
+                                    "description": "Simple task",
+                                    "status_progress": "in_work",
+                                    "is_completed": False,
+                                    "date_end": "03.08.2024",
+                                    "type": 1,
+                                    "control": 3,
+                                }
+                            ],
+                        },
+                    )
+                ],
+            ),
+            404: OpenApiResponse(
+                response=Response,
+                examples=[
+                    OpenApiExample(
+                        name="Bad request",
+                        value={"error": "Поле 'employee' отсутствует в запросе."},
+                    )
+                ],
+            ),
+            403: OpenApiResponse(
+                response=Response,
+                examples=[
+                    OpenApiExample(
+                        name="Forbidden",
+                        value={
+                            "error": "Вы не являетесь начальником для этого сотрудника."
+                        },
+                    )
+                ],
+            ),
+        },
+    )
     def create(self, request, *args, **kwargs):
         emp_id = request.data.get("employee")
         if emp_id is None:
@@ -52,20 +169,51 @@ class IdpViewSet(viewsets.ModelViewSet):
             )
         return Response(
             {"error": "Вы не являетесь начальником для этого сотрудника."},
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_403_FORBIDDEN,
         )
 
-    def get_queryset(self):
-        if self.action in ("retrieve"):
-            return self.queryset
-        return self.queryset.filter(employee=self.request.user)
-
-    def get_serializer_class(self):
-        if self.action not in ("list", "retrieve"):
-            return CreateIdpSerializer
-        elif self.action in ("retrieve"):
-            return IdpWithAllTasksWithComments
-        return self.serializer_class
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                name="Response",
+                value={
+                    "title": "Title",
+                    "employee": 22007,
+                    "director": 22001,
+                    "status_idp": "in_work",
+                    "tasks": [
+                        {
+                            "id": 708,
+                            "name": "Task",
+                            "description": "Simple task",
+                            "idp": 101,
+                            "type": "Project",
+                            "status_progress": "in_work",
+                            "is_completed": True,
+                            "control": "Test",
+                            "date_start": "03.02.2024",
+                            "date_end": "03.09.2024",
+                            "comments": [
+                                {
+                                    "employee": "Johnov John Johnovich",
+                                    "employee_image": "/path/to/success.jpeg",
+                                    "employee_post": "IT-recruiter",
+                                    "body": "Big text here",
+                                    "pub_date": "27.02.2111 20:47",
+                                }
+                            ],
+                        }
+                    ],
+                },
+            )
+        ],
+        responses={
+            201: CreateIdpSerializer,
+            403: OpenApiResponse(),
+        },
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 @extend_schema(
@@ -81,7 +229,47 @@ class IdpViewSet(viewsets.ModelViewSet):
         ),
     },
     description="Отправить запрос на ИПР.",
-    responses=RequestSerializer,
+    responses={
+        200: RequestSerializer,
+        400: OpenApiResponse(
+            Response,
+            examples=[
+                OpenApiExample(
+                    name="Bad request",
+                    value={"error": "Нельзя запросить ИПР, пока не завершено текущее."},
+                )
+            ],
+        ),
+        429: OpenApiResponse(
+            Response,
+            examples=[
+                OpenApiExample(
+                    name="Too many requests",
+                    value={"error": "Запрос можно отправлять не чаще 1 раза в сутки."},
+                )
+            ],
+        ),
+        422: OpenApiResponse(
+            Response,
+            examples=[
+                OpenApiExample(
+                    name="Unprocessable entity",
+                    value={"error": "Сообщение не отправлено."},
+                )
+            ],
+        ),
+    },
+    examples=[
+        OpenApiExample(
+            name="Response",
+            value={
+                "title": "IDP request",
+                "letter": "Please, i need it!",
+                "director_id": 106,
+                "file": "reasons.doc",
+            },
+        )
+    ],
 )
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
@@ -103,9 +291,7 @@ def idp_request(request):
     serializer = RequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
-        director = employee.get_ancestors().get(
-            id=serializer.data["director_id"]
-        )
+        director = employee.get_ancestors().get(id=serializer.data["director_id"])
     except Employee.DoesNotExist:
         return Response(
             {"error": "Вы не можете отправить запрос данному сотруднику."},

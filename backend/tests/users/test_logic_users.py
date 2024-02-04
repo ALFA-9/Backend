@@ -17,7 +17,7 @@ def test_user_auth(client: APIClient, create_employee):
 
 
 @pytest.mark.django_db
-def test_api_endpoint_get_subordinates(client: APIClient, create_task):
+def test_api_endpoint_subordinates(client: APIClient, create_task):
     def assert_instances(instances):
         for element in instances:
             assert "id" in element
@@ -26,14 +26,15 @@ def test_api_endpoint_get_subordinates(client: APIClient, create_task):
             assert "patronymic" in element
             assert "post" in element
             assert "subordinates" in element
+            assert "image" in element
 
     client.force_login(Employee.objects.get(id=3))
-    url = "/api/employees/get_subordinates/"
+    url = "/api/employees/subordinates/"
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
     element = response.json()
-    assert_instances(element["subordinates"])
+    assert_instances(element)
 
 
 @pytest.mark.django_db

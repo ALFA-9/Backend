@@ -95,9 +95,7 @@ def test_update_task_is_completed(
 
 
 @pytest.mark.django_db
-def test_update_task_status_progress(
-    client: APIClient, create_task, create_employee
-):
+def test_update_task_status_progress(client: APIClient, create_task, create_employee):
     task = create_task
     client.force_login(Employee.objects.get(id=4))
 

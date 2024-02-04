@@ -33,12 +33,13 @@ class CommentTaskSerializer(serializers.ModelSerializer):
 
     employee = serializers.StringRelatedField()
     employee_post = serializers.StringRelatedField(source="employee.post")
-    pub_date = serializers.DateTimeField()
+    employee_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = (
             "employee",
+            "employee_image",
             "employee_post",
             "body",
             "pub_date",
@@ -46,6 +47,10 @@ class CommentTaskSerializer(serializers.ModelSerializer):
 
     def get_pub_date(self, value):
         return value
+
+    def get_employee_image(self, value):
+        relative_url = value.employee.image.url
+        return relative_url
 
 
 class TaskGetSerializer(serializers.ModelSerializer):
@@ -96,9 +101,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def validate_date_start(self, value):
         if value < dt.date.today():
-            raise serializers.ValidationError(
-                _("Нельзя создать задачу задним числом.")
-            )
+            raise serializers.ValidationError(_("Нельзя создать задачу задним числом."))
         return value
 
     def validate_date_end(self, value):
