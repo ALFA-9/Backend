@@ -131,6 +131,5 @@ class IdpPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Idp
         fields = (
-            "title",
             "status_idp",
         )
