@@ -32,6 +32,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     grade = serializers.StringRelatedField()
     post = serializers.StringRelatedField()
     department = serializers.StringRelatedField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -50,6 +51,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "is_director",
             "idps",
         )
+
+    def get_image(self, obj):
+        return obj.image.url
 
     def get_is_director(self, obj) -> bool:
         return not obj.is_leaf_node()
@@ -78,6 +82,7 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
 
     status_idp = serializers.SerializerMethodField()
     subordinates = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     def __init__(self, *kwrgs, max_depth):
         self.max_depth = max_depth
@@ -96,6 +101,9 @@ class EmployeeForDirectorSerializer(EmployeeSerializer):
             "status_idp",
             "subordinates",
         )
+
+    def get_image(self, obj):
+        return obj.image.url
 
     def get_status_idp(self, obj) -> str | None:
         last_idp = obj.idp_employee.order_by("-date_start").first()
@@ -133,6 +141,7 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
 
     status_idp = serializers.SerializerMethodField()
     post = serializers.StringRelatedField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -146,6 +155,9 @@ class EmployeeWithIdpStatus(serializers.ModelSerializer):
             "post",
             "status_idp",
         )
+
+    def get_image(self, obj):
+        return obj.image.url
 
     def get_status_idp(self, obj) -> str | None:
         last_idp = obj.idp_employee.order_by("-date_start").first()
