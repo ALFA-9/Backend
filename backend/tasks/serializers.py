@@ -126,7 +126,8 @@ class CommentSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        return CommentTaskSerializer(instance)
+        serializers = CommentTaskSerializer(instance)
+        return serializers.data
 
 
 class CurrentTaskSerializer(serializers.ModelSerializer):
