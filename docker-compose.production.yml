@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  backend:
+    image: aleksey2299/alfa_backend:latest
+    entrypoint: /app/backend_entrypoint.sh
+    env_file: .env
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+    depends_on:
+      - db
+
+  nginx:
+    image: aleksey2299/alfa_nginx:latest
+    env_file: .env
+    ports:
+      - "8000:80"
+    volumes:
+      - static:/static/
+      - media:/media/
+    depends_on:
+      - db
+      - backend
+
+volumes:
+  postgres_data:
+  static:
+  media:
