@@ -1,9 +1,8 @@
 import datetime as dt
 
-from django.core.mail import EmailMessage
-from django.core.mail import send_mail
-from django.utils.html import strip_tags
 from django.conf import settings
+from django.core.mail import EmailMessage, send_mail
+from django.utils.html import strip_tags
 from drf_spectacular.utils import (OpenApiExample, OpenApiRequest,
                                    OpenApiResponse, extend_schema,
                                    inline_serializer)
@@ -37,7 +36,8 @@ class IdpViewSet(viewsets.ModelViewSet):
         title = serializer.data["title"]
         emp_id = serializer.data["employee"]
         emp = Employee.objects.get(id=emp_id)
-        html_content = f'<p>Вам назначено ИПР {id} {title}. <a href="{URL}/employee/idp/{id}/tasks"></a>'
+        html_content = (f'<p>Вам назначено ИПР {id} {title}. '
+                        f'<a href="{URL}/employee/idp/{id}/tasks"></a>')
         send_mail(
             "Сервис ИПР",
             strip_tags(html_content),

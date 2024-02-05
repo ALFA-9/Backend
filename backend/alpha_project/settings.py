@@ -136,9 +136,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CELERY_BROKER_URL = os.environ.get("BROKER_URL", "redis://redis:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get(
-    "RESULT_BACKEND", "redis://redis:6379/0"
-)
+CELERY_RESULT_BACKEND = os.environ.get("RESULT_BACKEND", "redis://redis:6379/0")
 CELERY_BEAT_SCHEDULE = {
     "Status updater for tasks": {
         "task": "tasks.celery_tasks.update_status_for_task",

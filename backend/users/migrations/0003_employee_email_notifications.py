@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0002_employee_last_request'),
+        ("users", "0002_employee_last_request"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employee',
-            name='email_notifications',
+            model_name="employee",
+            name="email_notifications",
             field=models.TextField(blank=True, null=True),
         ),
     ]

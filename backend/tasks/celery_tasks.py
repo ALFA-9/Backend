@@ -8,10 +8,7 @@ from tasks.models import Task
 @shared_task
 def update_status_for_task():
     tasks = list(
-        Task.objects.filter(
-            status_progress="in_work",
-            end_date__lt=dt.date.today()
-        )
+        Task.objects.filter(status_progress="in_work", end_date__lt=dt.date.today())
     )
     for _, task in enumerate(tasks):
         task.statis_idp = "not_completed"
