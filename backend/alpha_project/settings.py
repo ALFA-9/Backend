@@ -2,12 +2,9 @@
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-if os.path.exists(BASE_DIR / ".env"):
-    from dotenv import load_dotenv
-
-    load_dotenv()
 
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "83(vot%*rpken0wm#0lt!defrrf0%%=hl$ey8(b20%l8a07#f^"
@@ -32,6 +29,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_filters",
     "drf_spectacular",
+    "django_celery_beat",
     "mptt",
     "idps",
     "tasks",
@@ -136,6 +134,26 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+CELERY_BROKER_URL = os.environ.get("BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "RESULT_BACKEND", "redis://redis:6379/0"
+)
+CELERY_BEAT_SCHEDULE = {
+    "Status updater for tasks": {
+        "task": "tasks.celery_tasks.update_status_for_task",
+        "schedule": crontab("0", "0"),
+    },
+    "Status updater for idps": {
+        "task": "idps.celery_tasks.update_status_for_idp",
+        "schedule": crontab("0", "1"),
+    },
+    "Send emails for directors": {
+        "task": "users.celery_tasks.send_daily_email",
+        "schedule": crontab("0", "15"),
+    },
+}
+CELERY_TIMEZONE = "UTC"
 
 LANGUAGE_CODE = "ru-RU"
 

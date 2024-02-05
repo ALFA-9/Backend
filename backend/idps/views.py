@@ -1,6 +1,9 @@
 import datetime as dt
 
 from django.core.mail import EmailMessage
+from django.core.mail import send_mail
+from django.utils.html import strip_tags
+from django.conf import settings
 from drf_spectacular.utils import (OpenApiExample, OpenApiRequest,
                                    OpenApiResponse, extend_schema,
                                    inline_serializer)
@@ -15,6 +18,7 @@ from idps.serializers import (CreateIdpScheme, CreateIdpSerializer,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
 
 SEC_BEFORE_NEXT_REQUEST = 86400
+URL = "https://new.red-hand.ru"
 
 
 class IdpViewSet(viewsets.ModelViewSet):
@@ -29,6 +33,18 @@ class IdpViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(director=self.request.user)
+        id = serializer.data["id"]
+        title = serializer.data["title"]
+        emp_id = serializer.data["employee"]
+        emp = Employee.objects.get(id=emp_id)
+        html_content = f'<p>Вам назначено ИПР {id} {title}. <a href="{URL}/employee/idp/{id}/tasks"></a>'
+        send_mail(
+            "Сервис ИПР",
+            strip_tags(html_content),
+            settings.DEFAULT_FROM_EMAIL,
+            [emp.email],
+            html_message=html_content,
+        )
 
     def get_queryset(self):
         if self.action in ("retrieve", "partial_update"):

@@ -99,6 +99,7 @@ class Employee(MPTTModel, AbstractBaseUser, PermissionsMixin):
     )
     is_staff = models.BooleanField(default=False)
     last_request = models.DateTimeField("Последний запрос", blank=True, null=True)
+    email_notifications = models.TextField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

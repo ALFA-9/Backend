@@ -1,4 +1,8 @@
+from django.db.models import F
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django.utils.html import strip_tags
+from django.conf import settings
 from drf_spectacular.utils import (OpenApiExample, OpenApiRequest,
                                    OpenApiResponse, extend_schema)
 from rest_framework import permissions, status, viewsets
@@ -10,6 +14,8 @@ from idps.models import Idp
 from tasks.models import Comment, Task
 from tasks.serializers import (CommentSerializer, CommentTaskSerializer,
                                TaskGetSerializer, TaskSerializer)
+
+URL = "https://new.red-hand.ru"
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -72,6 +78,14 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        html_content = f'<p>У вас новая задача. <a href="{URL}/employee/idp/{idp_id}/tasks"></a>'
+        send_mail(
+            "Сервис ИПР",
+            strip_tags(html_content),
+            settings.DEFAULT_FROM_EMAIL,
+            [idp.employee.email],
+            html_message=html_content,
+        )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data,
@@ -141,6 +155,11 @@ class TaskViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(task, data=data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
+
+                director = task.idp.director
+                director.email_notifications = F("email_notifications") + f'<p>Сотрудник пометил задачу {task.id} {task.name} как выполненную. <a href="{URL}/head/staff/{current_user.id}/{task.idp.id}/tasks"></a></p>'
+                director.save()
+
                 return Response(serializer.data)
 
         # если текущий пользователь руководитель исполнителя задачи
@@ -152,6 +171,14 @@ class TaskViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(task, data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
+                html_content = f'<p>У вас изменился статус задачи {task.id} {task.name}. <a href="{URL}/employee/idp/{task.idp.id}/tasks"></a>'
+                send_mail(
+                    "Сервис ИПР",
+                    strip_tags(html_content),
+                    settings.DEFAULT_FROM_EMAIL,
+                    [task.idp.employee.email],
+                    html_message=html_content,
+                )
                 return Response(serializer.data)
 
         return Response(
