@@ -1,9 +1,7 @@
 name: Main Alfa workflow
 
 on:
-  push:
-    branches:
-      - 'dev_django'
+  workflow_dispatch:
 
 jobs:
   linter_test:

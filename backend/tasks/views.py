@@ -229,7 +229,7 @@ def comments(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     if request.user not in (task.idp.employee.get_ancestors(include_self=True)):
         return Response(
-            {"error": "Вы не моежете оставлять комменатрии тут."},
+            {"error": "Вы не моежете оставлять комментарии тут."},
             status=status.HTTP_403_FORBIDDEN,
         )
     employee_id = request.user.id
