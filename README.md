@@ -74,15 +74,23 @@ nano .env
 
 Добавьте следующие строки и подставьте свои значения:
 ````dotenv
-POSTGRES_DB=DB                   # название db
-POSTGRES_USER=USER               # имя пользователя для db
-POSTGRES_PASSWORD=PASSWORD       # пароль пользователя для db
-DB_HOST=db                       # если поменять, то тогда нужно поменять название сервиса в docker-compose.production.yml
-DB_PORT=5432                     # это порт для доступа к db
-SECRET_KEY=SECRET_KEY            # SECRET_KEY в настройках django
-DEBUG=False                      # True или False
-ALLOWED_HOSTS=127.0.0.1 backend  # ваши адреса через пробел (пример:localhost 127.0.0.1 xxxx.com)
-HOST_URL=http://localhost:8000   # ваш url адрес вместе с http/https
+POSTGRES_DB=DB                           # название db
+POSTGRES_USER=USER                       # имя пользователя для db
+POSTGRES_PASSWORD=PASSWORD               # пароль пользователя для db
+DB_HOST=db                               # если поменять, то тогда нужно поменять название сервиса в docker-compose.production.yml
+DB_PORT=5432                             # это порт для доступа к db
+SECRET_KEY=SECRET_KEY                    # SECRET_KEY в настройках django
+DEBUG=False                              # режим debug (True или False)
+CURRENT_DB=postgre                       # lite для SQLite, posgre для PostgreSQL
+ALLOWED_HOSTS=127.0.0.1 backend          # ваши адреса через пробел (пример:localhost 127.0.0.1 xxxx.com)
+HOST_URL=http://localhost:8000           # ваш url адрес вместе с http/https
+USE_SMTP=False                           # использовать ли настоящий сервис по отправке почты, иначе сообщения будут сохранятся внутри контейнера (папка sent_emails)
+EMAIL_HOST=EMAIL_HOST                    # сервер вашего email service
+EMAIL_PORT=EMAIL_PORT                    # порт для сервера
+EMAIL_HOST_USER=EMAIL_HOST_USER          # email с которогу будет осуществлятся рассылка
+EMAIL_HOST_PASSWORD=EMAIL_HOST_PASSWORD  # пароль для доступа со стороны стороннего приложения
+EMAIL_USE_TLS=False                      # использовать TLS (True или False)
+EMAIL_USE_SSL=True                       # использовать SSL (True или False)
 ````
 
 Установить docker: https://www.docker.com/get-started/
@@ -111,6 +119,11 @@ sudo docker compose up
 
 Пароль: `admin`
 
+Для импорта начальных данных воспользуйтесь командой:
+````bash
+docker compose -d docker-compose.production.yml exec backend sh import.sh
+````
+
 ### Если вы хотите иметь возможность поменять код:
 
 Склонируйте репозиторий:
@@ -124,12 +137,12 @@ cd Backend
 docker compose up
 ````
 
-Для импорта начальных данных воспользуйтесь файлом **import.sh**:
+Для импорта начальных данных воспользуйтесь командой:
 ````bash
-sh import.sh
+docker compose exec backend sh import.sh
 ````
 
-Если вы хотите прикрутить автоматизацию посредством GithubActions настройте файл **main.yml**
+Если вы хотите прикрутить автоматизацию посредством GithubActions настройте файл **.github/workflows/main.yml**
 
 > **Примечание.** Любые изменения в коде при сохранении будут немедленно отображаться при запросах к серверу
 ***
