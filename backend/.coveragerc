@@ -1,0 +1,5 @@
+[run]
+omit =
+    alpha_project/*
+    idps/management/*
+    manage.py

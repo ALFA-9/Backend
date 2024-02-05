@@ -1,0 +1,58 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  backend:
+    restart: always
+    build: 
+      context: ./backend/
+      args:
+        - DEBUG=${DEBUG}
+    entrypoint: /app/backend_entrypoint.sh
+    env_file: .env
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+      - ./backend/:/app/
+    depends_on:
+      - db
+
+  redis:
+    image: redis:7.2.4-alpine
+    expose:
+      - 6379
+
+  worker:
+    restart: always
+    build: ./backend/
+    command: celery -A alpha_project worker -B -l info
+    env_file: .env
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+      - ./backend/:/app/
+    depends_on:
+      - backend
+      - redis
+
+  nginx:
+    build: ./nginx/
+    env_file: .env
+    ports:
+      - "8000:80"
+    volumes:
+      - static:/static/
+      - media:/media/
+    depends_on:
+      - db
+      - backend
+
+volumes:
+  postgres_data:
+  static:
+  media:
