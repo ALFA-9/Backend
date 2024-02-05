@@ -121,7 +121,7 @@ sudo docker compose up
 
 Для импорта начальных данных воспользуйтесь командой:
 ````bash
-docker compose -d docker-compose.production.yml exec backend sh import.sh
+docker compose -f docker-compose.production.yml exec backend sh import.sh
 ````
 
 ### Если вы хотите иметь возможность поменять код:
