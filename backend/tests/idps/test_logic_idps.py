@@ -11,7 +11,7 @@ from users.models import Employee
 @pytest.mark.django_db
 def test_post_idp(client: APIClient, create_employee):
     client.force_login(Employee.objects.get(id=1))
-    url = "/api/idps/"
+    url = "/api/v1/idps/"
     date_start = dt.date.today()
     date_end = date_start + dt.timedelta(days=180)
     data = {
@@ -62,7 +62,7 @@ def test_post_idp(client: APIClient, create_employee):
 @pytest.mark.django_db
 def test_patch_idp(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=1))
-    url = "/api/idps/1/"
+    url = "/api/v1/idps/1/"
     data = {
         "status_idp": "done",
     }
@@ -75,7 +75,7 @@ def test_patch_idp(client: APIClient, create_task):
 @pytest.mark.django_db
 def test_incorrect_user_patch_idp(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=2))
-    url = "/api/idps/1/"
+    url = "/api/v1/idps/1/"
     data = {
         "status_idp": "done",
     }
@@ -87,7 +87,7 @@ def test_incorrect_user_patch_idp(client: APIClient, create_task):
 @pytest.mark.django_db
 def test_post_idp_when_emp_have_active(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=1))
-    url = "/api/idps/"
+    url = "/api/v1/idps/"
     date_start = dt.date.today()
     date_end = date_start + dt.timedelta(days=180)
     data = {
@@ -118,7 +118,7 @@ def test_post_incorrect_idp(
     client.force_login(Employee.objects.get(id=1))
     date_start = dt.date.today()
     date_end = date_start - dt.timedelta(days=1)
-    url = "/api/idps/"
+    url = "/api/v1/idps/"
     data = {
         "employee": 4,
         "title": "Title",
@@ -152,7 +152,7 @@ def test_post_incorrect_idp(
 @pytest.mark.django_db
 def test_api_endpoint(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=4))
-    url = "/api/idps/"
+    url = "/api/v1/idps/"
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
@@ -172,7 +172,7 @@ def test_api_endpoint(client: APIClient, create_task):
 @pytest.mark.django_db
 def test_idp_request(client: APIClient, create_employee):
     client.force_login(Employee.objects.get(id=2))
-    url = "/api/request/"
+    url = "/api/v1/request/"
     data = {
         "title": "New IDP",
         "letter": "I need it",
@@ -197,7 +197,7 @@ def test_idp_request(client: APIClient, create_employee):
 @pytest.mark.django_db
 def test_idp_request_with_active_idp(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=4))
-    url = "/api/request/"
+    url = "/api/v1/request/"
     data = {
         "title": "New IDP",
         "letter": "I need it",
@@ -214,7 +214,7 @@ def test_idp_request_with_active_idp(client: APIClient, create_task):
 @pytest.mark.django_db
 def test_idp_request_incorrect_director(client: APIClient, create_employee):
     client.force_login(Employee.objects.get(id=2))
-    url = "/api/request/"
+    url = "/api/v1/request/"
     data = {
         "title": "New IDP",
         "letter": "I need it",

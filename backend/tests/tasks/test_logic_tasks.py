@@ -20,7 +20,7 @@ def test_create_task(create_task):
 @pytest.mark.django_db
 def test_post_task(client: APIClient, create_task):
     client.force_login(Employee.objects.get(id=1))
-    url = "/api/tasks/"
+    url = "/api/v1/tasks/"
     date_start = dt.date.today()
     date_end = date_start + dt.timedelta(days=180)
 
@@ -64,7 +64,7 @@ def test_update_task_is_completed(
     # employees = create_employee
     client.force_login(Employee.objects.get(id=4))
 
-    url = f"/api/tasks/{task.id}/"
+    url = f"/api/v1/tasks/{task.id}/"
     data = {"is_completed": True}
 
     response = client.patch(url, data, content_type="application/json")
@@ -99,7 +99,7 @@ def test_update_task_status_progress(client: APIClient, create_task, create_empl
     task = create_task
     client.force_login(Employee.objects.get(id=4))
 
-    url = f"/api/tasks/{task.id}/"
+    url = f"/api/v1/tasks/{task.id}/"
     data = {"status_progress": "done"}
 
     response = client.patch(url, data, content_type="application/json")
@@ -125,9 +125,9 @@ def test_delete_task(client: APIClient, create_task, create_employee):
     task = create_task
     client.force_login(Employee.objects.get(id=4))
 
-    response = client.delete(f"/api/tasks/{task.id}/")
+    response = client.delete(f"/api/v1/tasks/{task.id}/")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     client.force_login(Employee.objects.get(id=1))
-    response = client.delete(f"/api/tasks/{task.id}/")
+    response = client.delete(f"/api/v1/tasks/{task.id}/")
     assert response.status_code == status.HTTP_204_NO_CONTENT

@@ -29,7 +29,7 @@ def test_api_endpoint_subordinates(client: APIClient, create_task):
             assert "image" in element
 
     client.force_login(Employee.objects.get(id=3))
-    url = "/api/employees/subordinates/"
+    url = "/api/v1/employees/subordinates/"
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
@@ -52,7 +52,7 @@ def test_api_endpoint_me(client: APIClient, create_task):
             assert "name" in element["current_task"]
 
     client.force_login(Employee.objects.get(id=4))
-    url = "/api/employees/me/"
+    url = "/api/v1/employees/me/"
 
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
