@@ -47,7 +47,7 @@ Docker Compose, утилита виртуального окружения pytho
 lite = SQLite3, postgre = PostgreSQL.
 
 В проекте настроена автодокументация с помощью **Swagger**. Для ознакомления 
-перейдите по [ссылке](https://api.new.red-hand/api/docs/)
+перейдите по [ссылке](https://api.new.red-hand.ru/api/docs/)
 
 С подробными инструкциями запуска вы можете ознакомиться ниже.
 
