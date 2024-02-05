@@ -10,12 +10,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from alpha_project.constants import URL
 from idps.models import Idp
 from tasks.models import Comment, Task
 from tasks.serializers import (CommentSerializer, CommentTaskSerializer,
                                TaskGetSerializer, TaskSerializer)
-
-URL = "https://new.red-hand.ru"
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -79,7 +78,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         html_content = (
-            f'<p>У вас новая задача. <a href="{URL}/employee/idp/{idp_id}/tasks"></a>'
+            f'<p>У вас новая задача. <a href="{URL}/employee/idp/{idp_id}'
+            '/tasks">ИПР с новой задачей</a>'
         )
         send_mail(
             "Сервис ИПР",
@@ -159,11 +159,10 @@ class TaskViewSet(viewsets.ModelViewSet):
                 self.perform_update(serializer)
 
                 director = task.idp.director
-                director.email_notifications = (
-                    F("email_notifications")
-                    + (f'<p>Сотрудник пометил задачу {task.id} {task.name} как '
-                       f'выполненную. <a href="{URL}/head/staff/{current_user.id}'
-                       f'/{task.idp.id}/tasks"></a></p>')
+                director.email_notifications = F("email_notifications") + (
+                    f"<p>Сотрудник пометил задачу {task.name} как "
+                    f'выполненную. <a href="{URL}/head/staff/{current_user.id}'
+                    f'/{task.idp.id}/tasks">ИПР с задачей</a></p>'
                 )
                 director.save()
 
@@ -178,9 +177,10 @@ class TaskViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(task, data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
-                html_content = (f'<p>У вас изменился статус задачи '
-                                f'{task.id} {task.name}. '
-                                f'<a href="{URL}/employee/idp/{task.idp.id}/tasks"></a>')
+                html_content = (
+                    f'<p>У вас изменился статус задачи {task.name}. <a href="{URL}'
+                    f'/employee/idp/{task.idp.id}/tasks">ИПР с этой задачей</a>'
+                )
                 send_mail(
                     "Сервис ИПР",
                     strip_tags(html_content),
@@ -226,6 +226,12 @@ class TaskViewSet(viewsets.ModelViewSet):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def comments(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.user not in (task.idp.employee.get_ancestors(include_self=True)):
+        return Response(
+            {"error": "Вы не моежете оставлять комменатрии тут."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
     employee_id = request.user.id
     body = request.data.get("body")
     serializer = CommentSerializer(

@@ -29,6 +29,24 @@ services:
       - db
       - backend
 
+  redis:
+    image: redis:7.2.4-alpine
+    expose:
+      - 6379
+
+  worker:
+    restart: always
+    image: aleksey2299/alfa_backend:latest
+    command: celery -A alpha_project worker -B -l info
+    env_file: .env
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+      - ./backend/:/app/
+    depends_on:
+      - backend
+      - redis
+
 volumes:
   postgres_data:
   static:

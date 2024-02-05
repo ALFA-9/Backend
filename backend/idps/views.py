@@ -10,14 +10,12 @@ from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
+from alpha_project.constants import SEC_BEFORE_NEXT_REQUEST, URL
 from idps.models import Employee, Idp
 from idps.permissions import CreatorPermission, DirectorPermission
 from idps.serializers import (CreateIdpScheme, CreateIdpSerializer,
                               IdpPatchSerializer, IdpWithAllTasksWithComments,
                               IdpWithCurrentTaskSerializer, RequestSerializer)
-
-SEC_BEFORE_NEXT_REQUEST = 86400
-URL = "https://new.red-hand.ru"
 
 
 class IdpViewSet(viewsets.ModelViewSet):
@@ -35,14 +33,16 @@ class IdpViewSet(viewsets.ModelViewSet):
         id = serializer.data["id"]
         title = serializer.data["title"]
         emp_id = serializer.data["employee"]
-        emp = Employee.objects.get(id=emp_id)
-        html_content = (f'<p>Вам назначено ИПР {id} {title}. '
-                        f'<a href="{URL}/employee/idp/{id}/tasks"></a>')
+        emp_email = Employee.objects.get(id=emp_id).email
+        html_content = (
+            f'<p>Вам назначено ИПР <a href="{URL}'
+            f'/employee/idp/{id}/tasks">{title}</a>.'
+        )
         send_mail(
             "Сервис ИПР",
             strip_tags(html_content),
             settings.DEFAULT_FROM_EMAIL,
-            [emp.email],
+            [emp_email],
             html_message=html_content,
         )
 

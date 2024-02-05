@@ -2,8 +2,8 @@ import random
 
 from rest_framework import serializers
 
+from alpha_project.constants import HARD_SKILLS, SOFT_SKILLS
 from idps.serializers import IdpWithCurrentTaskSerializer
-from users.constants import HARD_SKILLS, SOFT_SKILLS
 from users.models import Employee
 
 

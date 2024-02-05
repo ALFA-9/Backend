@@ -4,6 +4,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from alpha_project.constants import (MAX_LENGTH_COMMENT, MAX_LENGTH_STATUS,
+                                     MAX_LENGTH_TITLE)
 from idps.models import Idp
 from users.models import Employee
 
@@ -15,7 +17,7 @@ class Type(models.Model):
 
     name = models.CharField(
         verbose_name=_("Название типа задачи"),
-        max_length=256,
+        max_length=MAX_LENGTH_TITLE,
     )
 
     class Meta:
@@ -32,7 +34,7 @@ class Control(models.Model):
 
     title = models.CharField(
         verbose_name=_("Метод контроля выполнения задачи"),
-        max_length=256,
+        max_length=MAX_LENGTH_TITLE,
     )
 
     class Meta:
@@ -55,11 +57,10 @@ class Task(models.Model):
 
     name = models.CharField(
         verbose_name=_("Название задачи"),
-        max_length=256,
+        max_length=MAX_LENGTH_TITLE,
     )
     description = models.TextField(
         verbose_name=_("Описание задачи"),
-        max_length=500,
     )
     idp = models.ForeignKey(
         Idp,
@@ -75,7 +76,7 @@ class Task(models.Model):
     )
     status_progress = models.CharField(
         verbose_name=_("Статус выполнения"),
-        max_length=20,
+        max_length=MAX_LENGTH_STATUS,
         choices=ProgresStatus.choices,
         default=ProgresStatus.IN_WORK,
     )
@@ -134,7 +135,7 @@ class Comment(models.Model):
     )
     body = models.TextField(
         verbose_name=_("Комментарий"),
-        max_length=500,
+        max_length=MAX_LENGTH_COMMENT,
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,

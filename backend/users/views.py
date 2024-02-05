@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from users.constants import MAX_DEPTH
+from alpha_project.constants import MAX_DEPTH
 from users.models import Employee
 from users.serializers import (AuthSerializer, DirectorForEmployeeSerializer,
                                EmployeeForDirectorSerializer,
@@ -31,21 +31,6 @@ class AuthAPIView(generics.GenericAPIView):
             }
             return Response(success_value, status=status.HTTP_200_OK)
         return Response("Неверный запрос", status=status.HTTP_400_BAD_REQUEST)
-
-
-# class EmployeeAPIView(generics.ListAPIView):
-#     """Аутентифицированный аккаунт."""
-
-#     permission_classes = [
-#         permissions.IsAuthenticated,
-#     ]
-#     http_method_names = ("get",)
-
-#     def get(self, request, *args, **kwargs):
-#         serializer = EmployeeForDirectorSerializer(
-#             request.user.employees, max_depth=MAX_DEPTH, many=True
-#         )
-#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):

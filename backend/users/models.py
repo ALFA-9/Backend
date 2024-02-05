@@ -3,7 +3,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
-from users.constants import MAX_EMAIL_CHARACTERS, MAX_NAME_CHARACTERS
+from alpha_project.constants import MAX_EMAIL_CHARACTERS, MAX_NAME_CHARACTERS
 from users.managers import CustomUserManager
 from users.validators import validator_tel
 

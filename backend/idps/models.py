@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from mptt.models import TreeForeignKey
 
+from alpha_project.constants import MAX_LENGTH_STATUS, MAX_LENGTH_TITLE
 from users.models import Employee
 
 User = get_user_model()
@@ -16,7 +17,7 @@ class Idp(models.Model):
         NOT_COMPLETED = "not_completed", _("не выполнен")
         DONE = "done", _("выполнен")
 
-    title = models.CharField(max_length=100, verbose_name=_("название"))
+    title = models.CharField(max_length=MAX_LENGTH_TITLE, verbose_name=_("название"))
     employee = TreeForeignKey(
         Employee,
         on_delete=models.CASCADE,
@@ -31,7 +32,7 @@ class Idp(models.Model):
         null=True,
     )
     status_idp = models.CharField(
-        max_length=100,
+        max_length=MAX_LENGTH_STATUS,
         choices=IdpStatus.choices,
         default=IdpStatus.IN_WORK,
         verbose_name=_("статус"),

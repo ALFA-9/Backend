@@ -78,7 +78,6 @@ class CreateIdpSerializer(serializers.ModelSerializer):
         )
 
     def validate_tasks(self, value):
-        print(value)
         for task in value:
             if task["date_start"] < dt.date.today():
                 raise serializers.ValidationError(
