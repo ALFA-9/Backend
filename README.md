@@ -106,11 +106,11 @@ sudo apt install docker-compose-plugin
 
 Запустить Docker в директории с файлом **docker-compose.yaml** (чтобы запустить в фоновом режиме добавьте флаг -d):
 ````bash
-docker compose up
+docker compose -f docker-compose.production.yml up
 ````
 В терминале Linux могут потребоваться права суперпользователя:
 ````bash
-sudo docker compose up
+sudo docker compose -f docker-compose.production.yml up
 ````
 
 Для доступа в админ-зону (если вам нужны какие-то данные из бд, или нужно создать объекты) перейдите на страницу http://localhost:8000/admin/:
