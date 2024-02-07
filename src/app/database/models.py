@@ -1,6 +1,7 @@
 from enum import Enum as PythonEnum
 
-from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String, Text, DateTime
+from sqlalchemy import (Column, Date, DateTime, Enum, ForeignKey, Integer,
+                        String, Text)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import func

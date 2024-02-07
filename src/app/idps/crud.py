@@ -3,7 +3,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.database.models import Employee, Idp, Task, Comment
+from app.database.models import Comment, Employee, Idp, Task
 from app.utils import get_all_childs_id, get_all_parents_id, send_email
 
 
@@ -37,7 +37,11 @@ async def get_all(
 async def get_by_id(db: AsyncSession, user: Employee, id: int):
     statement = (
         select(Idp)
-        .options(joinedload(Idp.tasks).options(joinedload(Task.comment).options(joinedload(Comment.employee))))
+        .options(
+            joinedload(Idp.tasks).options(
+                joinedload(Task.comment).options(joinedload(Comment.employee))
+            )
+        )
         .where(
             Idp.id == id,
             or_(Idp.director_id == user.id, Idp.employee_id == user.id),
@@ -70,7 +74,7 @@ async def post(db: AsyncSession, user: Employee, payload):
                 idp_id=idp.id,
                 date_start=task_data.date_start,
                 date_end=task_data.date_end,
-                task_type_id=task_data.task_type_id,
+                type_id=task_data.type_id,
                 control_id=task_data.control_id,
             )
             db.add(task)

@@ -4,7 +4,8 @@ from datetime import datetime
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field, validator
 
-from app.tasks.schemas import TaskForIdpCreate, TaskForIdpCreateDB, TaskWithComments
+from app.tasks.schemas import (TaskForIdpCreate, TaskForIdpCreateDB,
+                               TaskWithComments)
 
 
 def datetime_format(dt: datetime):

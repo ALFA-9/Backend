@@ -104,8 +104,8 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
     control_id: int = Field(exclude=True)
     status_progress: str
     status_accept: str | None
-    task_type: Type = Field(alias="type")
-    task_control: Control = Field(alias="control")
+    task_type: Type = Field(alias="type", examples=["Project"])
+    task_control: Control = Field(alias="control", examples=["Test"])
 
     class Config:
         populate_by_name = True
@@ -117,32 +117,33 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
         }
 
 
-class Employee(BaseModel):
-    first_name: str
-    last_name: str
-    patronymic: str
-
-
 class Post(BaseModel):
     title: str
 
 
-class EmployeePost(BaseModel):
+class Employee(BaseModel):
+    first_name: str
+    last_name: str
+    patronymic: str
     post: Post
 
+
+class CommentCreate(BaseModel):
+    body_comment: str = Field(alias="body")
+
     class Config:
-        from_attributes = True
-        json_encoders = {
-            datetime: datetime_for_comments_format,
-            Post: lambda v: v.title,
-        }
+        populate_by_name = True
 
 
-class Comment(BaseModel): ???
-    employee: Employee
-    employee_post: Employee
+class Comment(BaseModel):
+    employee: Employee = Field(examples=["Johnov John Johnovich"])
+    employee_post: str = Field(None)
     body_comment: str = Field(alias="body")
     pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
+
+    @validator("employee_post", pre=True, always=True)
+    def post(cls, v, values) -> str:
+        return values["employee"].post.title
 
     class Config:
         populate_by_name = True
@@ -150,12 +151,15 @@ class Comment(BaseModel): ???
         json_encoders = {
             datetime: datetime_for_comments_format,
             Employee: lambda v: f"{v.last_name} {v.first_name} {v.patronymic}",
-            EmployeePost: lambda v: v.post,
         }
 
 
+class CommentCreateDB(Comment):
+    task_id: int
+
+
 class TaskWithComments(TaskForIdpCreateDB):
-    comments: list[Comment] = Field(alias="comment")
+    comment: list[Comment] = Field(alias="comments")
 
     class Config:
         populate_by_name = True

@@ -6,7 +6,7 @@ from app.database.session import get_db
 from app.employees.views import get_current_auth_user
 from app.idps import crud
 from app.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPut,
-                              RequestSchema, IdpRetrieve)
+                              IdpRetrieve, RequestSchema)
 
 router = APIRouter(prefix="/idps", tags=["idps"])
 
@@ -50,7 +50,7 @@ async def patch_idp(
     return await crud.patch(db, user, payload, id)
 
 
-@router.post("/request/")
+@router.post("/request/", responses={200: {"success": "Отправлено."}})  # TODO
 async def post_request(
     payload: RequestSchema = Depends(),
     db: AsyncSession = Depends(get_db),

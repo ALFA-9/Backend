@@ -19,7 +19,7 @@ def get_all_childs_id(parent_id):
     included = (
         select(Employee.id)
         .where(Employee.director_id == parent_id)
-        .cte(name="included", recursive=True)
+        .cte(recursive=True)
     )
     # собрать все id этих элементов
     included = included.union_all(
