@@ -3,14 +3,14 @@ import datetime as dt
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from tasks.models import Comment, Control, Task, Type
+from tasks.models import Comment, Task, TaskControl, TaskType
 
 
 class TypeSerializer(serializers.ModelSerializer):
     """Сереализатор типов задач."""
 
     class Meta:
-        model = Type
+        model = TaskType
         fields = (
             "id",
             "name",
@@ -21,7 +21,7 @@ class ControlSerializer(serializers.ModelSerializer):
     """Сереализатор типов задач."""
 
     class Meta:
-        model = Control
+        model = TaskControl
         fields = (
             "id",
             "title",

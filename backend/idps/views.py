@@ -10,7 +10,8 @@ from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from alpha_project.constants import SEC_BEFORE_NEXT_REQUEST, URL
+from alpha_project.constants import (HTML_NEW_IDP_MESSAGE,
+                                     SEC_BEFORE_NEXT_REQUEST, URL)
 from idps.models import Employee, Idp
 from idps.permissions import CreatorPermission, DirectorPermission
 from idps.serializers import (CreateIdpScheme, CreateIdpSerializer,
@@ -34,10 +35,7 @@ class IdpViewSet(viewsets.ModelViewSet):
         title = serializer.data["title"]
         emp_id = serializer.data["employee"]
         emp_email = Employee.objects.get(id=emp_id).email
-        html_content = (
-            f'<p>Вам назначено ИПР <a href="{URL}'
-            f'/employee/idp/{id}/tasks">{title}</a>.'
-        )
+        html_content = HTML_NEW_IDP_MESSAGE.format(URL=URL, idp_id=id, title=title)
         send_mail(
             "Сервис ИПР",
             strip_tags(html_content),

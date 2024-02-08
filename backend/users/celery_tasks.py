@@ -8,6 +8,7 @@ from users.models import Employee
 
 @shared_task
 def send_daily_email():
+    """Отправляем email и обнуляем значение в базе данных."""
     emps_with_notifications = Employee.objects.exclude(email_notifications=None)
     for emp in emps_with_notifications:
         send_mail(

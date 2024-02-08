@@ -14,15 +14,21 @@ router_v1.register(r"tasks", TaskViewSet)
 router_v1.register(r"idps", IdpViewSet)
 router_v1.register(r"employees", EmployeeViewSet, basename="employees")
 
+v1_urlpatterns = [
+    path("", include(router_v1.urls)),
+    path("request/", idp_request),
+    path("tasks/<int:task_id>/comments/", comments, name="comments"),
+]
+api_urlpatterns = [
+    path("v1/", include(v1_urlpatterns)),
+    path("auth/", AuthAPIView.as_view(), name="registration"),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
+]
 urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("admin/", admin.site.urls),
-    path("api/v1/", include(router_v1.urls)),
-    path("api/v1/request/", idp_request),
-    path("api/v1/tasks/<int:task_id>/comments/", comments, name="comments"),
-    path("api/auth/", AuthAPIView.as_view(), name="registration"),
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
+    path("api/", include(api_urlpatterns)),
 ]
 
 if settings.DEBUG:

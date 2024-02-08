@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from idps.models import Idp
-from tasks.models import Control, Task, Type
+from tasks.models import Task, TaskControl, TaskType
 from users.models import Department, Employee, Grade, Post
 
 
@@ -17,10 +17,10 @@ def create_employee():
     departments = [
         Department.objects.create(title=f"Department{i}") for i in range(1, 6)
     ]
-    Type.objects.create(
+    TaskType.objects.create(
         name="Project",
     )
-    Control.objects.create(
+    TaskControl.objects.create(
         title="Test",
     )
     employee_list = []
@@ -85,7 +85,7 @@ def create_task(db, create_employee):
         name="Test task",
         idp=idp,
         description="New test",
-        type=Type.objects.get(id=1),
-        control=Control.objects.get(id=1),
+        type=TaskType.objects.get(id=1),
+        control=TaskControl.objects.get(id=1),
         date_end=date_end,
     )
