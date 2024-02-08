@@ -42,7 +42,6 @@ services:
     volumes:
       - static:/backend_static
       - media:/app/media
-      - ./backend/:/app/
     depends_on:
       - backend
       - redis

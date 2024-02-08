@@ -39,10 +39,8 @@ class Idp(models.Model):
         default=IdpStatus.IN_WORK,
         verbose_name=_("статус"),
     )
-    # TODO подумать все таки о datetime?
     date_start = models.DateTimeField(
         verbose_name=_("дата начала"),
-        # auto_now_add=True,
         default=timezone.now,
     )
 
