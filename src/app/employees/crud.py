@@ -13,9 +13,14 @@ async def get_all(
 ):
     statement = (
         select(Employee).options(
-            joinedload(Employee.grade),
             joinedload(Employee.employees).options(
-                joinedload(Employee.employees)
+                joinedload(Employee.employees).options(
+                    joinedload(Employee.employees).options(
+                        joinedload(Employee.employees).options(
+                            joinedload(Employee.employees)
+                        )
+                    )
+                )
             ),
         )
     ).where(Employee.id == user.id)

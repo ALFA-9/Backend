@@ -137,7 +137,7 @@ class CommentCreate(BaseModel):
 
 class Comment(BaseModel):
     employee: Employee = Field(examples=["Johnov John Johnovich"])
-    employee_post: str = Field(None)
+    employee_post: str = Field(...)
     body_comment: str = Field(alias="body")
     pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
 
