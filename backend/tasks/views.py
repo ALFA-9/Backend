@@ -10,7 +10,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from alpha_project.constants import URL
+from alpha_project.constants import (HTML_DIRECTOR_MESSAGE,
+                                     HTML_NEW_TASK_MESSAGE,
+                                     HTML_TASK_STATUS_MESSAGE, URL)
 from idps.models import Idp
 from tasks.models import Comment, Task
 from tasks.serializers import (CommentSerializer, CommentTaskSerializer,
@@ -77,10 +79,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        html_content = (
-            f'<p>У вас новая задача. <a href="{URL}/employee/idp/{idp_id}'
-            '/tasks">ИПР с новой задачей</a>'
-        )
+        html_content = HTML_NEW_TASK_MESSAGE.format(URL=URL, idp_id=idp_id)
         send_mail(
             "Сервис ИПР",
             strip_tags(html_content),
@@ -160,9 +159,12 @@ class TaskViewSet(viewsets.ModelViewSet):
 
                 director = task.idp.director
                 director.email_notifications = F("email_notifications") + (
-                    f"<p>Сотрудник пометил задачу {task.name} как "
-                    f'выполненную. <a href="{URL}/head/staff/{current_user.id}'
-                    f'/{task.idp.id}/tasks">ИПР с задачей</a></p>'
+                    HTML_DIRECTOR_MESSAGE.format(
+                        task_name=task.name,
+                        URL=URL,
+                        user_id=current_user.id,
+                        idp_id=task.idp.id,
+                    )
                 )
                 director.save()
 
@@ -177,9 +179,8 @@ class TaskViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(task, data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
-                html_content = (
-                    f'<p>У вас изменился статус задачи {task.name}. <a href="{URL}'
-                    f'/employee/idp/{task.idp.id}/tasks">ИПР с этой задачей</a>'
+                html_content = HTML_TASK_STATUS_MESSAGE.format(
+                    task_name=task.name, URL=URL, idp_id=task.idp.id
                 )
                 send_mail(
                     "Сервис ИПР",

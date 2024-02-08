@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from tasks.models import Comment, Control, Task, Type
+from tasks.models import Comment, Task, TaskControl, TaskType
 
 
 @admin.register(Task)
@@ -32,7 +32,7 @@ class CommentAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-@admin.register(Control)
+@admin.register(TaskControl)
 class ControlAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -41,7 +41,7 @@ class ControlAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-@admin.register(Type)
+@admin.register(TaskType)
 class TypeAdmin(admin.ModelAdmin):
     list_display = (
         "id",

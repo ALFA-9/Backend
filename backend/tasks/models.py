@@ -12,7 +12,7 @@ from users.models import Employee
 User = get_user_model()
 
 
-class Type(models.Model):
+class TaskType(models.Model):
     """Тип задачи."""
 
     name = models.CharField(
@@ -29,7 +29,7 @@ class Type(models.Model):
         return self.name
 
 
-class Control(models.Model):
+class TaskControl(models.Model):
     """Методы контроля выполнения задачи."""
 
     title = models.CharField(
@@ -69,7 +69,7 @@ class Task(models.Model):
         on_delete=models.CASCADE,
     )
     type = models.ForeignKey(
-        Type,
+        TaskType,
         related_name="task_type",
         verbose_name=_("Тип задачи"),
         on_delete=models.CASCADE,
@@ -85,7 +85,7 @@ class Task(models.Model):
         default=False,
     )
     control = models.ForeignKey(
-        Control,
+        TaskControl,
         related_name="task_control",
         verbose_name=_("Метод контроля выполнения задачи"),
         on_delete=models.CASCADE,

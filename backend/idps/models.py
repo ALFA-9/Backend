@@ -11,6 +11,8 @@ User = get_user_model()
 
 
 class Idp(models.Model):
+    "Модель ИПР."
+
     class IdpStatus(models.TextChoices):
         IN_WORK = "in_work", _("в работе")
         CANCELLED = "cancelled", _("отменен")
