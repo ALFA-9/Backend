@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field, validator
 
-from app.tasks.schemas import (TaskForIdpCreate, TaskForIdpCreateDB,
-                               TaskWithComments)
+from app.tasks.schemas import (CurrentTask, TaskForIdpCreate,
+                               TaskForIdpCreateDB, TaskWithComments)
 
 
 def datetime_format(dt: datetime):
@@ -104,3 +104,36 @@ class IdpRetrieve(BaseModel):
     class Config:
         populate_by_name = True
         from_attributes = True
+
+
+class IdpWithCurrentTask(BaseModel):
+    id: int
+    director: str
+    title: str
+    status_idp: str
+    current_task: CurrentTask | None = Field(validation_alias="tasks")
+    progress: float = Field(validation_alias="tasks")
+
+    @validator("director", pre=True)
+    def get_director_full_name(cls, v, values):
+        return f"{v.last_name} {v.first_name} {v.patronymic}"
+
+    @validator("current_task", pre=True)
+    def get_current_task(cls, v, values):
+        for task in v:
+            data = task.__dict__
+            if data["date_start"] <= date.today() < data["date_end"]:
+                return CurrentTask(**data)
+        return None
+
+    @validator("progress", pre=True)
+    def get_progress(cls, v, values):
+        done_count = 0
+        not_cancelled_count = 0
+        for task in v:
+            data = task.__dict__
+            if data["status_progress"].value != "cancelled":
+                not_cancelled_count += 1
+                if data["status_progress"].value == "done":
+                    done_count += 1
+        return (done_count / not_cancelled_count) * 100

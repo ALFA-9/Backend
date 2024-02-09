@@ -1,7 +1,7 @@
 from enum import Enum as PythonEnum
 
-from sqlalchemy import (Column, Date, DateTime, Enum, ForeignKey, Integer,
-                        String, Text)
+from sqlalchemy import (Boolean, Column, Date, DateTime, Enum, ForeignKey,
+                        Integer, String, Text)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import func
@@ -119,10 +119,6 @@ class Task(Base):
         in_work = "in_work"
         done = "done"
         not_completed = "not_completed"
-
-    class StatusAccept(PythonEnum):
-        accepted = "accepted"
-        not_accepted = "not_accepted"
         cancelled = "cancelled"
 
     __tablename__ = "task"
@@ -133,7 +129,7 @@ class Task(Base):
     status_progress = Column(
         Enum(StatusProgress), default=StatusProgress.in_work
     )
-    status_accept = Column(Enum(StatusAccept), nullable=True)
+    is_completed = Column(Boolean, default=False)
     date_start = Column(Date)
     date_end = Column(Date)
     type_id = Column(
@@ -165,7 +161,7 @@ class Idp(Base):
         in_work = "in_work"
         not_completed = "not_completed"
         done = "done"
-        canceled = "canceled"
+        cancelled = "cancelled"
 
     __tablename__ = "idp"
     id = Column(Integer, primary_key=True)

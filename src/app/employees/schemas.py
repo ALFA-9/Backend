@@ -1,55 +1,36 @@
 from pydantic import BaseModel, EmailStr, Field, validator
 
 from app.constants import MAX_RECURSION
-from app.idps.schemas import IdpForEmployee
+from app.idps.schemas import IdpForEmployee, IdpWithCurrentTask
 
 
 class AuthEmployeeSchema(BaseModel):
     email: EmailStr
 
 
-class Grade(BaseModel):
-    title: str
-
-
-class Post(BaseModel):
-    title: str
-
-
-class Department(BaseModel):
-    title: str
-
-
-class EmployeeLastChild(BaseModel):
+class EmployeeSchema(BaseModel):
     id: int
+    director_id: int = Field(serialization_alias="director")
     first_name: str
     last_name: str
     patronymic: str
-    post: str = Field(examples=["Director"])
-    # image:
-    # status_idp:
+    post: str = Field(examples=["Backend-developer"])
 
     @validator("post", pre=True, always=True)
-    def get_post(cls, v, values) -> str:
+    def get_post_title(cls, v, values) -> str:
         return v.title
 
     class Config:
         from_attributes = True
-        json_encoders = {
-            Post: lambda v: v.title,
-            Grade: lambda v: v.title,
-            Department: lambda v: v.title,
-        }
 
 
-class EmployeeChild(EmployeeLastChild):
+class EmployeeChild(EmployeeSchema):
     max_recursion: int = Field(MAX_RECURSION, exclude=True)
     employees: list["EmployeeChild"]
 
     @validator("employees", pre=True)
     def get_employees(cls, value, values):
         if values["max_recursion"] > 1:
-            print([child.__dict__ for child in value])
             return [
                 EmployeeChild(
                     **child.__dict__, max_recursion=values["max_recursion"] - 1
@@ -63,8 +44,18 @@ class EmployeeChild(EmployeeLastChild):
         from_attributes = True
 
 
-class EmployeeWithIdps(EmployeeLastChild):
+class EmployeeWithIdps(EmployeeSchema):
     idps: list[IdpForEmployee] | None
+    department: str = Field(examples=["IT"])
+    grade: str = Field(examples=["Senior plus"])
+    idps: list[IdpWithCurrentTask] = Field(
+        alias="idp_emp", serialization_alias="idps"
+    )
 
-    class Config:
-        from_attributes = True
+    @validator("department", pre=True, always=True)
+    def get_department_title(cls, v, values) -> str:
+        return v.title
+
+    @validator("grade", pre=True, always=True)
+    def get_grade_title(cls, v, values) -> str:
+        return v.title

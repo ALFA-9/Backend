@@ -2,12 +2,25 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.database.models import Employee
+from app.database.models import Employee, Idp
 from app.utils import get_all_childs_id
 
 
-# Получаем ответ от дб
 async def get_all(
+    db: AsyncSession,
+    user: Employee,
+):
+    childs_id = get_all_childs_id(user.id)
+    statement = (
+        select(Employee)
+        .filter(Employee.id.in_(select(childs_id)))
+        .order_by("id")
+    )
+    childs = await db.execute(statement)
+    return childs.unique().scalars().all()
+
+
+async def get_subordinates(
     db: AsyncSession,
     user: Employee,
 ):
@@ -29,7 +42,13 @@ async def get_all(
 
 
 async def get_by_email(db: AsyncSession, email: str):
-    statement = select(Employee).where(Employee.email == email)
+    statement = (
+        select(Employee)
+        .options(
+            joinedload(Employee.idp_emp).options(joinedload(Idp.director))
+        )
+        .where(Employee.email == email)
+    )
     result = await db.execute(statement)
     return result.scalars().first()
 
@@ -38,6 +57,7 @@ async def get_by_id_with_joined(db: AsyncSession, id: int, user: Employee):
     childs_id = get_all_childs_id(user.id)
     statement = (
         select(Employee)
+        .options(joinedload(Employee.idp_emp))
         .filter(Employee.id.in_(select(childs_id)))
         .where(Employee.id == id)
     )

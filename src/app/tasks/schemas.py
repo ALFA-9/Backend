@@ -163,3 +163,14 @@ class TaskWithComments(TaskForIdpCreateDB):
 
     class Config:
         populate_by_name = True
+
+
+class CurrentTask(BaseModel):
+    id: int
+    name: str
+    date_end: datetime
+
+    class Config:
+        json_encoders = {
+            datetime: datetime_format,
+        }

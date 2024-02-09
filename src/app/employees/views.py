@@ -5,7 +5,8 @@ from app.auth.auth import get_current_token_payload
 from app.database.models import Employee
 from app.database.session import get_db
 from app.employees import crud
-from app.employees.schemas import EmployeeChild, EmployeeLastChild
+from app.employees.schemas import (EmployeeChild, EmployeeSchema,
+                                   EmployeeWithIdps)
 
 router = APIRouter(prefix="/employees", tags=["employees"])
 
@@ -23,7 +24,7 @@ async def get_current_auth_user(
     )
 
 
-@router.get("/", response_model=list[EmployeeChild])
+@router.get("/", response_model=list[EmployeeSchema])
 async def get_all_employees(
     db: AsyncSession = Depends(get_db),
     user: Employee = Depends(get_current_auth_user),
@@ -31,14 +32,22 @@ async def get_all_employees(
     return await crud.get_all(db, user)
 
 
-@router.get("/me/", response_model=EmployeeLastChild)
+@router.get("/me/", response_model=EmployeeWithIdps)
 async def auth_user_check_self_info(
     user: Employee = Depends(get_current_auth_user),
 ):
     return user
 
 
-@router.get("/{id}/", response_model=EmployeeLastChild)
+@router.get("/subordinates/", response_model=list[EmployeeChild])
+async def get_subordinates(
+    db: AsyncSession = Depends(get_db),
+    user: Employee = Depends(get_current_auth_user),
+):
+    return await crud.get_subordinates(db, user)
+
+
+@router.get("/{id}/", response_model=EmployeeSchema)
 async def get_employee(
     id: int,
     db: AsyncSession = Depends(get_db),
