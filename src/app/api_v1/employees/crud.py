@@ -49,18 +49,6 @@ async def get_directors(
     return result.unique().scalars().all()
 
 
-async def get_by_email(db: AsyncSession, email: str):
-    statement = (
-        select(Employee)
-        .options(
-            joinedload(Employee.idp_emp).options(joinedload(Idp.director))
-        )
-        .where(Employee.email == email)
-    )
-    result = await db.execute(statement)
-    return result.scalars().first()
-
-
 async def get_by_id_with_joined(db: AsyncSession, id: int, user: Employee):
     childs_id = get_all_childs_id(user.id)
     statement = (

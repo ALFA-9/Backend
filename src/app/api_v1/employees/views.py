@@ -1,27 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.auth import get_current_token_payload
+from app.api_v1.employees import crud
+from app.api_v1.employees.schemas import (DirectorSchema, EmployeeChild,
+                                          EmployeeSchema, EmployeeWithIdps)
+from app.auth.auth import get_current_auth_user
+from app.constants import EXAMPLE_EMPLOYEE_404
 from app.database.models import Employee
 from app.database.session import get_db
-from app.employees import crud
-from app.employees.schemas import (DirectorSchema, EmployeeChild,
-                                   EmployeeSchema, EmployeeWithIdps)
 
 router = APIRouter(prefix="/employees", tags=["employees"])
-
-
-async def get_current_auth_user(
-    payload: dict = Depends(get_current_token_payload),
-    db: AsyncSession = Depends(get_db),
-) -> EmployeeChild:
-    user_email: str | None = payload.get("sub")
-    if user := await crud.get_by_email(db, user_email):
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="token invalid",
-    )
 
 
 @router.get("/", response_model=list[EmployeeSchema])
@@ -55,7 +43,13 @@ async def get_directors(
     return await crud.get_directors(db, user)
 
 
-@router.get("/{id}/", response_model=EmployeeWithIdps)
+@router.get(
+    "/{id}/",
+    response_model=EmployeeWithIdps,
+    responses={
+        404: EXAMPLE_EMPLOYEE_404,
+    },
+)
 async def get_employee(
     id: int,
     db: AsyncSession = Depends(get_db),

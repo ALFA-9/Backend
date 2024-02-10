@@ -4,12 +4,10 @@ from fastapi import FastAPI
 from sqladmin import Admin
 
 from app.admin import init
+from app.api_v1 import router as api_v1_router
 from app.auth.auth import router as auth_router
 from app.database.models import Base
 from app.database.session import engine
-from app.employees.views import router as router_employees
-from app.idps.views import router as router_idps
-from app.tasks.views import router as router_tasks
 
 
 async def create_tables():
@@ -27,6 +25,4 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router)
-app.include_router(router_employees)
-app.include_router(router_idps)
-app.include_router(router_tasks)
+app.include_router(api_v1_router)

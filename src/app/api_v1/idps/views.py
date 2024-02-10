@@ -3,12 +3,15 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_v1.idps import crud
+from app.api_v1.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPut,
+                                     IdpRetrieve, RequestSchema)
+from app.auth.auth import get_current_auth_user
+from app.constants import (EXAMPLE_403, EXAMPLE_ACTIVE_IDP_400,
+                           EXAMPLE_ERROR_SENDING_400, EXAMPLE_IDP_404,
+                           EXAMPLE_SUCCESS_SENDING_200)
 from app.database.models import Employee
 from app.database.session import get_db
-from app.employees.views import get_current_auth_user
-from app.idps import crud
-from app.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPut,
-                              IdpRetrieve, RequestSchema)
 
 router = APIRouter(prefix="/idps", tags=["idps"])
 
@@ -21,7 +24,13 @@ async def get_all_idps(
     return await crud.get_all(db, user)
 
 
-@router.get("/{id}/", response_model=IdpRetrieve)
+@router.get(
+    "/{id}/",
+    response_model=IdpRetrieve,
+    responses={
+        404: EXAMPLE_IDP_404,
+    },
+)
 async def get_idp(
     id: int,
     db: AsyncSession = Depends(get_db),
@@ -29,11 +38,18 @@ async def get_idp(
 ):
     idp = await crud.get_by_id(db, user, id)
     if not idp:
-        raise HTTPException(status_code=404, detail="Idp not found")
+        raise HTTPException(status_code=404, detail="IDP not found")
     return idp
 
 
-@router.post("/", response_model=IdpCreateDB)
+@router.post(
+    "/",
+    response_model=IdpCreateDB,
+    responses={
+        403: EXAMPLE_403,
+        400: EXAMPLE_ACTIVE_IDP_400,
+    },
+)
 async def post_idp(
     payload: IdpCreate,
     db: AsyncSession = Depends(get_db),
@@ -42,7 +58,14 @@ async def post_idp(
     return await crud.post(db, user, payload)
 
 
-@router.patch("/{id}/", response_model=IdpCreateDB)
+@router.patch(
+    "/{id}/",
+    response_model=IdpCreateDB,
+    responses={
+        403: EXAMPLE_403,
+        404: EXAMPLE_IDP_404,
+    },
+)
 async def patch_idp(
     id: int,
     payload: IdpPut,
@@ -52,7 +75,14 @@ async def patch_idp(
     return await crud.patch(db, user, payload, id)
 
 
-@router.post("/request/")
+@router.post(
+    "/request/",
+    responses={
+        200: EXAMPLE_SUCCESS_SENDING_200,
+        403: EXAMPLE_403,
+        400: EXAMPLE_ERROR_SENDING_400,
+    },
+)
 async def post_request(
     payload: RequestSchema = Depends(),
     db: AsyncSession = Depends(get_db),

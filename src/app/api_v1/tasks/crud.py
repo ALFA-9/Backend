@@ -12,12 +12,12 @@ async def post(db: AsyncSession, user: Employee, payload):
     if idp is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="ИПР с таким id не существует.",
+            detail="IDP not found",
         )
     if idp.director_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас недостаточно прав.",
+            detail="Permisson denied",
         )
     task = Task(
         name=payload.name,
@@ -37,12 +37,12 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Задачи с таким id не существует",
+            detail="Task not found",
         )
     if task.idp.director_id != user.id or task.idp.employee_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас недостаточно прав",
+            detail="Permisson denied",
         )
     for field, value in payload:
         setattr(task, field, value)
@@ -56,12 +56,12 @@ async def delete(db: AsyncSession, user: Employee, id: int):
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Задачи с таким id не существует",
+            detail="Task not found",
         )
     if task.idp.director_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас недостаточно прав",
+            detail="Permisson denied",
         )
     await db.delete(task)
     await db.commit()
@@ -73,7 +73,7 @@ async def post_comment(db: AsyncSession, user: Employee, id: int, payload):
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Задачи с таким id не существует",
+            detail="Task not found",
         )
     idp_emp = task.idp.employee_id
     directors_id = await db.execute(select(get_all_parents_id(idp_emp)))
@@ -81,7 +81,7 @@ async def post_comment(db: AsyncSession, user: Employee, id: int, payload):
     if user.id not in (directors_id + [idp_emp]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Вы не можете оставить комментирий для этой задачи",
+            detail="Permisson denied",
         )
     comment = Comment(
         task_id=id,

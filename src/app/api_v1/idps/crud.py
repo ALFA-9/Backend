@@ -14,7 +14,7 @@ async def director_permission(
     if employee_id not in childs_id.scalars().all():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Вы не можете взаимодействовать с данным сотрудником.",
+            detail="Permission denied",
         )
 
 
@@ -58,33 +58,33 @@ async def post(db: AsyncSession, user: Employee, payload):
         )
     )
     active_idps = active_idps.unique().scalars().all()
-    if len(active_idps) == 0:
-        idp = Idp(
-            title=payload.title,
-            employee_id=payload.employee_id,
-            director_id=user.id,
-            date_end=payload.date_end,
+    if len(active_idps) != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Employee already has active IDP",
         )
-        db.add(idp)
-        await db.flush()
-        for task_data in payload.tasks:
-            task = Task(
-                name=task_data.name,
-                description=task_data.description,
-                idp_id=idp.id,
-                date_start=task_data.date_start,
-                date_end=task_data.date_end,
-                type_id=task_data.type_id,
-                control_id=task_data.control_id,
-            )
-            db.add(task)
-        await db.commit()
-        await db.refresh(idp)
-        return idp
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="У этого сотрудника уже есть активный ИПР.",
+    idp = Idp(
+        title=payload.title,
+        employee_id=payload.employee_id,
+        director_id=user.id,
+        date_end=payload.date_end,
     )
+    db.add(idp)
+    await db.flush()
+    for task_data in payload.tasks:
+        task = Task(
+            name=task_data.name,
+            description=task_data.description,
+            idp_id=idp.id,
+            date_start=task_data.date_start,
+            date_end=task_data.date_end,
+            type_id=task_data.type_id,
+            control_id=task_data.control_id,
+        )
+        db.add(task)
+    await db.commit()
+    await db.refresh(idp)
+    return idp
 
 
 async def patch(db: AsyncSession, user: Employee, payload, id: int):
@@ -93,7 +93,7 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
     if not idp:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="ИПР с таким id не существует",
+            detail="IDP not found",
         )
     await director_permission(db, user, idp.employee_id)
     for field, value in payload:
@@ -103,6 +103,11 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
 
 
 async def post_request(db: AsyncSession, user: Employee, payload):
+    if "in_work" in [idp.status_idp.value for idp in user.idp_emp]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Employee already has active IDP",
+        )
     directors_id = get_all_parents_id(user.id)
     statement = (
         select(Employee)
@@ -112,16 +117,19 @@ async def post_request(db: AsyncSession, user: Employee, payload):
     result = await db.execute(statement)
     if (director := result.scalar()) is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Это не ваш начальник.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied",
         )
     try:
         await send_email(
-            payload.title, payload.letter, payload.files, director.email,
+            payload.title,
+            payload.letter,
+            payload.files,
+            director.email,
         )
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Мы не смогли отправить сообщение.",
+            detail="Mail didnt sent",
         )
     return payload

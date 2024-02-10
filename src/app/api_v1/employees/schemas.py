@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, computed_field, validator
 
+from app.api_v1.idps.schemas import IdpForEmployee, IdpWithCurrentTask
 from app.constants import MAX_RECURSION
-from app.idps.schemas import IdpForEmployee, IdpWithCurrentTask
 
 
 class AuthEmployeeSchema(BaseModel):
