@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.models import Employee
@@ -50,10 +52,14 @@ async def patch_idp(
     return await crud.patch(db, user, payload, id)
 
 
-@router.post("/request/", responses={200: {"success": "Отправлено."}})  # TODO
+@router.post("/request/")
 async def post_request(
     payload: RequestSchema = Depends(),
     db: AsyncSession = Depends(get_db),
     user: Employee = Depends(get_current_auth_user),
 ):
-    return await crud.post_request(db, user, payload)
+    result = await crud.post_request(db, user, payload)
+    result = jsonable_encoder(result)
+    if result["files"]:
+        result["files"] = [x["filename"] for x in result["files"]]
+    return JSONResponse(content=result)

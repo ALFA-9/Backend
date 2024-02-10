@@ -111,13 +111,17 @@ async def post_request(db: AsyncSession, user: Employee, payload):
     )
     result = await db.execute(statement)
     if (director := result.scalar()) is None:
-        raise HTTPException(status_code=400, detail="Это не ваш начальник.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Это не ваш начальник.",
+        )
     try:
         await send_email(
-            payload.title, payload.letter, payload.files, director.email
+            payload.title, payload.letter, payload.files, director.email,
         )
     except Exception:
         raise HTTPException(
-            status_code=400, detail="Мы не смогли отправить сообщение."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Мы не смогли отправить сообщение.",
         )
-    return {"success": "Отправлено."}
+    return payload

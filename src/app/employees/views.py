@@ -5,8 +5,8 @@ from app.auth.auth import get_current_token_payload
 from app.database.models import Employee
 from app.database.session import get_db
 from app.employees import crud
-from app.employees.schemas import (EmployeeChild, EmployeeSchema,
-                                   EmployeeWithIdps)
+from app.employees.schemas import (DirectorSchema, EmployeeChild,
+                                   EmployeeSchema, EmployeeWithIdps)
 
 router = APIRouter(prefix="/employees", tags=["employees"])
 
@@ -47,7 +47,15 @@ async def get_subordinates(
     return await crud.get_subordinates(db, user)
 
 
-@router.get("/{id}/", response_model=EmployeeSchema)
+@router.get("/directors/", response_model=list[DirectorSchema])
+async def get_directors(
+    db: AsyncSession = Depends(get_db),
+    user: Employee = Depends(get_current_auth_user),
+):
+    return await crud.get_directors(db, user)
+
+
+@router.get("/{id}/", response_model=EmployeeWithIdps)
 async def get_employee(
     id: int,
     db: AsyncSession = Depends(get_db),

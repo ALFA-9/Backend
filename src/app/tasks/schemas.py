@@ -16,7 +16,7 @@ class Task(BaseModel):
     description: str
     idp_id: int
     status_progress: str | None = None
-    status_accept: str | None = None
+    is_completed: bool | None = None
     date_start: datetime = Field(..., examples=["23.05.2024"])
     date_end: datetime = Field(..., examples=["23.11.2024"])
 
@@ -48,14 +48,14 @@ class TaskCreate(BaseModel):
 class TaskCreateDB(TaskCreate):
     id: int
     status_progress: str
-    status_accept: str | None = None
+    is_completed: bool | None = None
 
 
 class TaskPut(BaseModel):
     name: str | None = None
     description: str | None = None
     status_progress: str | None = None
-    status_accept: str | None = None
+    is_completed: bool | None = None
     date_start: datetime | None = Field(None, examples=["23.05.2024"])
     date_end: datetime | None = Field(None, examples=["23.11.2024"])
 
@@ -103,7 +103,7 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
     type_id: int = Field(exclude=True)
     control_id: int = Field(exclude=True)
     status_progress: str
-    status_accept: str | None
+    is_completed: bool | None = None
     task_type: Type = Field(alias="type", examples=["Project"])
     task_control: Control = Field(alias="control", examples=["Test"])
 
@@ -168,7 +168,7 @@ class TaskWithComments(TaskForIdpCreateDB):
 class CurrentTask(BaseModel):
     id: int
     name: str
-    date_end: datetime
+    date_end: datetime = Field(examples=["23.11.2024"])
 
     class Config:
         json_encoders = {

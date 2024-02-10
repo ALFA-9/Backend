@@ -1,3 +1,4 @@
+# flake8: noqa
 import asyncio
 from logging.config import fileConfig
 

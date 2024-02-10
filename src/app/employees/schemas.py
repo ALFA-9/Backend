@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, computed_field, validator
 
 from app.constants import MAX_RECURSION
 from app.idps.schemas import IdpForEmployee, IdpWithCurrentTask
@@ -48,9 +48,7 @@ class EmployeeWithIdps(EmployeeSchema):
     idps: list[IdpForEmployee] | None
     department: str = Field(examples=["IT"])
     grade: str = Field(examples=["Senior plus"])
-    idps: list[IdpWithCurrentTask] = Field(
-        alias="idp_emp", serialization_alias="idps"
-    )
+    idps: list[IdpWithCurrentTask] = Field(validation_alias="idp_emp")
 
     @validator("department", pre=True, always=True)
     def get_department_title(cls, v, values) -> str:
@@ -59,3 +57,14 @@ class EmployeeWithIdps(EmployeeSchema):
     @validator("grade", pre=True, always=True)
     def get_grade_title(cls, v, values) -> str:
         return v.title
+
+
+class DirectorSchema(BaseModel):
+    id: int
+    first_name: str = Field(exclude=True)
+    last_name: str = Field(exclude=True)
+    patronymic: str = Field(exclude=True)
+
+    @computed_field
+    def name(self) -> str:
+        return f"{self.last_name} {self.first_name} {self.patronymic}"

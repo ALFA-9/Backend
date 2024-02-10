@@ -26,8 +26,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Добавляем маршруты как в Django
+app.include_router(auth_router)
 app.include_router(router_employees)
 app.include_router(router_idps)
 app.include_router(router_tasks)
-app.include_router(auth_router)

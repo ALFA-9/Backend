@@ -86,14 +86,6 @@ class IdpCreateDB(IdpCreate):
         from_attributes = True
 
 
-@dataclass
-class RequestSchema:
-    title: str = Form(...)
-    letter: str = Form(...)
-    director_id: int = Form(...)
-    files: list[UploadFile] = File(None)
-
-
 class IdpRetrieve(BaseModel):
     title: str
     employee_id: int
@@ -111,15 +103,15 @@ class IdpWithCurrentTask(BaseModel):
     director: str
     title: str
     status_idp: str
-    current_task: CurrentTask | None = Field(validation_alias="tasks")
     progress: float = Field(validation_alias="tasks")
+    current_task: CurrentTask | None = Field(validation_alias="tasks")
 
     @validator("director", pre=True)
-    def get_director_full_name(cls, v, values):
+    def get_director_full_name(cls, v, values) -> str:
         return f"{v.last_name} {v.first_name} {v.patronymic}"
 
     @validator("current_task", pre=True)
-    def get_current_task(cls, v, values):
+    def get_current_task(cls, v, values) -> CurrentTask | None:
         for task in v:
             data = task.__dict__
             if data["date_start"] <= date.today() < data["date_end"]:
@@ -127,7 +119,7 @@ class IdpWithCurrentTask(BaseModel):
         return None
 
     @validator("progress", pre=True)
-    def get_progress(cls, v, values):
+    def get_progress(cls, v, values) -> float:
         done_count = 0
         not_cancelled_count = 0
         for task in v:
@@ -137,3 +129,11 @@ class IdpWithCurrentTask(BaseModel):
                 if data["status_progress"].value == "done":
                     done_count += 1
         return (done_count / not_cancelled_count) * 100
+
+
+@dataclass
+class RequestSchema:
+    title: str = Form(...)
+    letter: str = Form(...)
+    director_id: int = Form(...)
+    files: list[UploadFile] = File(None)
