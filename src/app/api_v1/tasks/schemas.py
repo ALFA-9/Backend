@@ -51,7 +51,7 @@ class TaskCreateDB(TaskCreate):
     is_completed: bool | None = None
 
 
-class TaskPut(BaseModel):
+class TaskPatch(BaseModel):
     name: str | None = None
     description: str | None = None
     status_progress: str | None = None

@@ -1,9 +1,11 @@
-from fastapi import HTTPException, status
+from fastapi import BackgroundTasks, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_v1.tasks.schemas import TaskPatch
+from app.constants import SUBJECT
 from app.database.models import Comment, Employee, Idp, Task
-from app.utils import get_all_parents_id
+from app.utils import get_all_parents_id, send_email
 
 
 async def post(db: AsyncSession, user: Employee, payload):
@@ -31,7 +33,13 @@ async def post(db: AsyncSession, user: Employee, payload):
     return task
 
 
-async def patch(db: AsyncSession, user: Employee, payload, id: int):
+async def patch(
+    db: AsyncSession,
+    user: Employee,
+    payload: TaskPatch,
+    id: int,
+    background_tasks: BackgroundTasks,
+):
     existing_model = await db.execute(select(Task).where(Task.id == id))
     task = existing_model.scalar()
     if not task:
@@ -39,15 +47,27 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
-    if task.idp.director_id != user.id or task.idp.employee_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Permisson denied",
-        )
-    for field, value in payload:
-        setattr(task, field, value)
-    await db.commit()
-    return task
+    if task.idp.director_id != user.id:
+        payload.is_completed = False
+        for field, value in payload:
+            setattr(task, field, value)
+        await db.commit()
+        if payload.status_progress:
+            background_tasks.add_task(
+                send_email,
+                SUBJECT,
+                f"Статус задачи {task.name} изменен на {payload.status_progress}.",
+                task.idp.employee.id,
+            )
+        return task
+    elif task.idp.employee_id == user.id:
+        setattr(task, "is_completed", True)
+        await db.commit()
+        return task
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Permisson denied",
+    )
 
 
 async def delete(db: AsyncSession, user: Employee, id: int):

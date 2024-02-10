@@ -4,12 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.database.models import Comment, Employee, Idp, Task
-from app.utils import get_all_childs_id, get_all_parents_id, send_email
+from app.utils import get_all_childs_id
 
 
-async def director_permission(
-    db: AsyncSession, user: Employee, employee_id: int
-):
+async def director_permission(db: AsyncSession, user: Employee, employee_id: int):
     childs_id = await db.execute(select(get_all_childs_id(user.id)))
     if employee_id not in childs_id.scalars().all():
         raise HTTPException(
@@ -18,9 +16,7 @@ async def director_permission(
         )
 
 
-async def get_all(
-    db: AsyncSession, user: Employee, skip: int = 0, limit: int = 100
-):
+async def get_all(db: AsyncSession, user: Employee, skip: int = 0, limit: int = 100):
     statement = (
         select(Idp)
         .options(
@@ -88,48 +84,21 @@ async def post(db: AsyncSession, user: Employee, payload):
 
 
 async def patch(db: AsyncSession, user: Employee, payload, id: int):
-    existing_model = await db.execute(select(Idp).where(Idp.id == id))
+    existing_model = await db.execute(
+        select(Idp).options(joinedload(Idp.employee)).where(Idp.id == id)
+    )
     idp = existing_model.scalar()
     if not idp:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="IDP not found",
         )
-    await director_permission(db, user, idp.employee_id)
-    for field, value in payload:
-        setattr(idp, field, value)
-    await db.commit()
-    return idp
-
-
-async def post_request(db: AsyncSession, user: Employee, payload):
-    if "in_work" in [idp.status_idp.value for idp in user.idp_emp]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Employee already has active IDP",
-        )
-    directors_id = get_all_parents_id(user.id)
-    statement = (
-        select(Employee)
-        .filter(Employee.id.in_(select(directors_id)))
-        .where(Employee.id == payload.director_id)
-    )
-    result = await db.execute(statement)
-    if (director := result.scalar()) is None:
+    if idp.director_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Permission denied",
         )
-    try:
-        await send_email(
-            payload.title,
-            payload.letter,
-            payload.files,
-            director.email,
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mail didnt sent",
-        )
-    return payload
+    for field, value in payload:
+        setattr(idp, field, value)
+    await db.commit()
+    return idp

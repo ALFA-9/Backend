@@ -1,17 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+import datetime as dt
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api_v1.idps import crud
-from app.api_v1.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPut,
+from app.api_v1.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPatch,
                                      IdpRetrieve, RequestSchema)
 from app.auth.auth import get_current_auth_user
-from app.constants import (EXAMPLE_403, EXAMPLE_ACTIVE_IDP_400,
+from app.constants import (EXAMPLE_403, EXAMPLE_429, EXAMPLE_ACTIVE_IDP_400,
                            EXAMPLE_ERROR_SENDING_400, EXAMPLE_IDP_404,
-                           EXAMPLE_SUCCESS_SENDING_200)
+                           EXAMPLE_SUCCESS_SENDING_200,
+                           SEC_BEFORE_NEXT_REQUEST, SUBJECT)
 from app.database.models import Employee
 from app.database.session import get_db
+from app.utils import get_all_parents_id, send_email
 
 router = APIRouter(prefix="/idps", tags=["idps"])
 
@@ -52,10 +57,18 @@ async def get_idp(
 )
 async def post_idp(
     payload: IdpCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     user: Employee = Depends(get_current_auth_user),
 ):
-    return await crud.post(db, user, payload)
+    result = await crud.post(db, user, payload)
+    background_tasks.add_task(
+        send_email,
+        SUBJECT,
+        "У вас новый ИПР.",
+        result.employee.email,
+    )
+    return result
 
 
 @router.patch(
@@ -68,11 +81,19 @@ async def post_idp(
 )
 async def patch_idp(
     id: int,
-    payload: IdpPut,
+    payload: IdpPatch,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     user: Employee = Depends(get_current_auth_user),
 ):
-    return await crud.patch(db, user, payload, id)
+    result = await crud.patch(db, user, payload, id)
+    background_tasks.add_task(
+        send_email,
+        SUBJECT,
+        "Статус вашего ИПР изменен.",
+        result.employee.email,
+    )
+    return result
 
 
 @router.post(
@@ -81,6 +102,7 @@ async def patch_idp(
         200: EXAMPLE_SUCCESS_SENDING_200,
         403: EXAMPLE_403,
         400: EXAMPLE_ERROR_SENDING_400,
+        429: EXAMPLE_429,
     },
 )
 async def post_request(
@@ -88,8 +110,43 @@ async def post_request(
     db: AsyncSession = Depends(get_db),
     user: Employee = Depends(get_current_auth_user),
 ):
-    result = await crud.post_request(db, user, payload)
-    result = jsonable_encoder(result)
+    if user.last_request:
+        diff = dt.datetime.now() - user.last_request
+        if diff.total_seconds() < SEC_BEFORE_NEXT_REQUEST:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="You cant send more than 1 request per day",
+            )
+    if "in_work" in [idp.status_idp.value for idp in user.idp_emp]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Employee already has active IDP",
+        )
+    directors_id = get_all_parents_id(user.id)
+    statement = (
+        select(Employee)
+        .filter(Employee.id.in_(select(directors_id)))
+        .where(Employee.id == payload.director_id)
+    )
+    result = await db.execute(statement)
+    if (director := result.scalar()) is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied",
+        )
+    try:
+        await send_email(
+            payload.title,
+            payload.letter,
+            payload.files,
+            director.email,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mail didnt sent",
+        )
+    result = jsonable_encoder(payload)
     if result["files"]:
         result["files"] = [x["filename"] for x in result["files"]]
     return JSONResponse(content=result)

@@ -8,9 +8,7 @@ from app.database.models import Employee, Idp
 async def get_by_email(db: AsyncSession, email: str):
     statement = (
         select(Employee)
-        .options(
-            joinedload(Employee.idp_emp).options(joinedload(Idp.director))
-        )
+        .options(joinedload(Employee.idp_emp).options(joinedload(Idp.director)))
         .where(Employee.email == email)
     )
     result = await db.execute(statement)

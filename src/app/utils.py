@@ -17,9 +17,7 @@ MAIL_SERVER = os.getenv("MAIL_SERVER")
 def get_all_childs_id(parent_id):
     # найти все дочерние элементы
     included = (
-        select(Employee.id)
-        .where(Employee.director_id == parent_id)
-        .cte(recursive=True)
+        select(Employee.id).where(Employee.director_id == parent_id).cte(recursive=True)
     )
     # собрать все id этих элементов
     included = included.union_all(
@@ -30,9 +28,7 @@ def get_all_childs_id(parent_id):
 
 def get_all_parents_id(child_id):
     included = (
-        select(Employee.director_id)
-        .where(Employee.id == child_id)
-        .cte(recursive=True)
+        select(Employee.director_id).where(Employee.id == child_id).cte(recursive=True)
     )
 
     included = included.union_all(
@@ -47,7 +43,7 @@ def get_all_parents_id(child_id):
     return included
 
 
-async def send_email(subject, message, files, to):
+async def send_email(subject, message, to, files):
     msg = MIMEMultipart()
     msg["From"] = OWN_EMAIL
     msg["To"] = to

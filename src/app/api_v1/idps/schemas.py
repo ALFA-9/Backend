@@ -12,7 +12,7 @@ def datetime_format(dt: datetime):
     return dt.strftime("%d.%m.%Y")
 
 
-class IdpPut(BaseModel):
+class IdpPatch(BaseModel):
     status_idp: str
 
 

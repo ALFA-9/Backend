@@ -24,7 +24,7 @@ class Employee(Base):
     )
     department_id = Column(
         Integer,
-        ForeignKey("department.id", ondelete="CASCADE"),
+        ForeignKey("department.id", ondelete="SET NULL"),
         nullable=True,
     )
     director_id = Column(
@@ -37,6 +37,7 @@ class Employee(Base):
     patronymic = Column(String(80))
     email = Column(String(100))
     phone = Column(String(20))
+    last_request = Column(DateTime, nullable=True)
 
     grade = relationship("Grade", back_populates="employee", lazy="joined")
     post = relationship("Post", back_populates="employee", lazy="joined")
@@ -48,16 +49,12 @@ class Employee(Base):
     employees = relationship(
         "Employee",
         lazy="joined",
-        backref=backref(
-            "director", uselist=False, remote_side=[id], lazy="joined"
-        ),
+        backref=backref("director", uselist=False, remote_side=[id], lazy="joined"),
     )
     comment = relationship("Comment", back_populates="employee", lazy="joined")
 
     def __str__(self):
-        return (
-            f"{self.id} {self.last_name} {self.first_name} {self.patronymic}"
-        )
+        return f"{self.id} {self.last_name} {self.first_name} {self.patronymic}"
 
 
 class Grade(Base):
@@ -87,9 +84,7 @@ class Department(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(200))
 
-    employee = relationship(
-        "Employee", back_populates="department", lazy="joined"
-    )
+    employee = relationship("Employee", back_populates="department", lazy="joined")
 
     def __str__(self):
         return self.title
@@ -100,14 +95,10 @@ class Comment(Base):
     id = Column(Integer, primary_key=True)
     body_comment = Column(String(200))
     task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"))
-    employee_id = Column(
-        Integer, ForeignKey("employee.id", ondelete="CASCADE")
-    )
+    employee_id = Column(Integer, ForeignKey("employee.id", ondelete="CASCADE"))
     pub_date = Column(DateTime, server_default=func.now(), default=func.now())
 
-    employee = relationship(
-        "Employee", back_populates="comment", lazy="joined"
-    )
+    employee = relationship("Employee", back_populates="comment", lazy="joined")
     task = relationship("Task", back_populates="comment", lazy="joined")
 
     def __str__(self):
@@ -126,9 +117,7 @@ class Task(Base):
     name = Column(String(100))
     description = Column(Text)
     idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
-    status_progress = Column(
-        Enum(StatusProgress), default=StatusProgress.in_work
-    )
+    status_progress = Column(Enum(StatusProgress), default=StatusProgress.in_work)
     is_completed = Column(Boolean, default=False)
     date_start = Column(Date)
     date_end = Column(Date)

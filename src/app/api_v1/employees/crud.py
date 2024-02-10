@@ -12,9 +12,7 @@ async def get_all(
 ):
     childs_id = get_all_childs_id(user.id)
     statement = (
-        select(Employee)
-        .filter(Employee.id.in_(select(childs_id)))
-        .order_by("id")
+        select(Employee).filter(Employee.id.in_(select(childs_id))).order_by("id")
     )
     childs = await db.execute(statement)
     return childs.unique().scalars().all()
@@ -53,9 +51,7 @@ async def get_by_id_with_joined(db: AsyncSession, id: int, user: Employee):
     childs_id = get_all_childs_id(user.id)
     statement = (
         select(Employee)
-        .options(
-            joinedload(Employee.idp_emp).options(joinedload(Idp.director))
-        )
+        .options(joinedload(Employee.idp_emp).options(joinedload(Idp.director)))
         .filter(Employee.id.in_(select(childs_id)))
         .where(Employee.id == id)
     )

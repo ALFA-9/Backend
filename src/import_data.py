@@ -21,9 +21,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Import data from CSV to database.",
     )
-    parser.add_argument(
-        "-f", "--csv-file", required=True, help="Path to the CSV file"
-    )
+    parser.add_argument("-f", "--csv-file", required=True, help="Path to the CSV file")
     parser.add_argument(
         "-t", "--table-name", required=True, help="Name of the database table"
     )
