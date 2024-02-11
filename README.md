@@ -6,20 +6,20 @@
 
 ## Технологии:
 
-[![Python](https://img.shields.io/badge/Python-%203.10-blue?style=flat-square&logo=Python)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-%204.2-blue?style=flat-square&logo=django)](https://www.djangoproject.com/)
-[![DRF](https://img.shields.io/badge/DjangoRESTFramework-%203.14.0-blue?style=flat-square&logo=django)](https://www.django-rest-framework.org/)
-[![Celery](https://img.shields.io/badge/Celery-%205.3.6-blue?style=flat-square&logo=celery)](https://docs.celeryq.dev/en/stable/)
-[![Redis](https://img.shields.io/badge/Redis-%205.0.1-blue?style=flat-square&logo=redis)](https://redis.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%2013-blue?style=flat-square&logo=PostgreSQL)]([https://www.postgresql.org/])
-[![Gunicorn](https://img.shields.io/badge/Gunicorn-%2020.1.0-blue?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
+[![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-%204.2-blue?style=flat&logo=django)](https://www.djangoproject.com/)
+[![DRF](https://img.shields.io/badge/DjangoRESTFramework-%203.14.0-blue?style=flat&logo=django)](https://www.django-rest-framework.org/)
+[![Celery](https://img.shields.io/badge/Celery-%205.3.6-blue?style=flat&logo=celery)](https://docs.celeryq.dev/en/stable/)
+[![Redis](https://img.shields.io/badge/Redis-%205.0.1-blue?style=flat&logo=redis)](https://redis.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%2013-blue?style=flat&logo=PostgreSQL)]([https://www.postgresql.org/])
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-%2020.1.0-blue?style=flat&logo=gunicorn)](https://gunicorn.org/)
 
-[![Swagger](https://img.shields.io/badge/Swagger-%20?style=flat-square&logo=swagger)](https://swagger.io/)
-[![Docker](https://img.shields.io/badge/Docker-%20?style=flat-square&logo=docker)](https://www.docker.com/)
-[![DockerCompose](https://img.shields.io/badge/Docker_Compose-%20?style=flat-square&logo=docsdotrs)](https://docs.docker.com/compose/)
-[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-%20?style=flat-square&logo=githubactions)](https://github.com/features/actions)
-[![Nginx](https://img.shields.io/badge/Nginx-%20?style=flat-square&logo=nginx)](https://www.nginx.com/)
-[![Certbot](https://img.shields.io/badge/certbot-%20?style=flat-square&logo=letsencrypt)](https://certbot.eff.org/)
+[![Swagger](https://img.shields.io/badge/Swagger-68BC71?style=flat&logo=swagger)](https://swagger.io/)
+[![Docker](https://img.shields.io/badge/Docker-68BC71?style=flat&logo=docker)](https://www.docker.com/)
+[![DockerCompose](https://img.shields.io/badge/Docker_Compose-68BC71?style=flat&logo=docsdotrs)](https://docs.docker.com/compose/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-68BC71?style=flat&logo=githubactions)](https://github.com/features/actions)
+[![Nginx](https://img.shields.io/badge/Nginx-68BC71?style=flat&logo=nginx)](https://www.nginx.com/)
+[![Certbot](https://img.shields.io/badge/certbot-68BC71?style=flat&logo=letsencrypt)](https://certbot.eff.org/)
 
 ***
 
