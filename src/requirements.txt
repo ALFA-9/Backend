@@ -13,5 +13,5 @@ cryptography==42.0.1
 pydantic==2.6.1
 
 # dev
-pytest==5.4.1
+pytest==8.0.0
 requests==2.23.0

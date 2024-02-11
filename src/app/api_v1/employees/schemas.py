@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, computed_field, validator
+from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator, ConfigDict
 
 from app.api_v1.idps.schemas import IdpForEmployee, IdpWithCurrentTask
 from app.constants import MAX_RECURSION
@@ -9,6 +9,8 @@ class AuthEmployeeSchema(BaseModel):
 
 
 class EmployeeSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     director_id: int = Field(serialization_alias="director")
     first_name: str
@@ -16,19 +18,18 @@ class EmployeeSchema(BaseModel):
     patronymic: str
     post: str = Field(examples=["Backend-developer"])
 
-    @validator("post", pre=True, always=True)
+    @field_validator("post", mode="before")
     def get_post_title(cls, v, values) -> str:
         return v.title
 
-    class Config:
-        from_attributes = True
-
 
 class EmployeeChild(EmployeeSchema):
+    model_config = ConfigDict(from_attributes=True)
+
     max_recursion: int = Field(MAX_RECURSION, exclude=True)
     employees: list["EmployeeChild"]
 
-    @validator("employees", pre=True)
+    @field_validator("employees", mode="before")
     def get_employees(cls, value, values):
         if values["max_recursion"] > 1:
             return [
@@ -40,9 +41,6 @@ class EmployeeChild(EmployeeSchema):
         else:
             return []
 
-    class Config:
-        from_attributes = True
-
 
 class EmployeeWithIdps(EmployeeSchema):
     idps: list[IdpForEmployee] | None
@@ -50,11 +48,11 @@ class EmployeeWithIdps(EmployeeSchema):
     grade: str = Field(examples=["Senior plus"])
     idps: list[IdpWithCurrentTask] = Field(validation_alias="idp_emp")
 
-    @validator("department", pre=True, always=True)
+    @field_validator("department", mode="before")
     def get_department_title(cls, v, values) -> str:
         return v.title
 
-    @validator("grade", pre=True, always=True)
+    @field_validator("grade", mode="before")
     def get_grade_title(cls, v, values) -> str:
         return v.title
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from fastapi import File, Form, UploadFile
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 from app.api_v1.tasks.schemas import (CurrentTask, TaskForIdpCreate,
                                       TaskForIdpCreateDB, TaskWithComments)
@@ -17,6 +17,8 @@ class IdpPatch(BaseModel):
 
 
 class IdpForEmployee(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: datetime_format})
+
     id: int
     title: str
     status_idp: str
@@ -24,11 +26,10 @@ class IdpForEmployee(BaseModel):
     date_start: datetime = Field(..., examples=["13.05.2024"])
     date_end: datetime = Field(..., examples=["13.11.2024"])
 
-    class Config:
-        json_encoders = {datetime: datetime_format}
-
 
 class IdpList(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: datetime_format})
+
     id: int
     title: str
     status_idp: str
@@ -37,65 +38,55 @@ class IdpList(BaseModel):
     employee_id: int
     director_id: int
 
-    class Config:
-        json_encoders = {datetime: datetime_format}
-
 
 class EmployeeDB(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     first_name: str
     last_name: str
     patronymic: str
 
-    class Config:
-        from_attributes = True
-
 
 class IdpDB(IdpList):
+    model_config = ConfigDict(json_encoders={datetime: datetime_format}, from_attributes = True)
+
     employee: EmployeeDB
     director: EmployeeDB
 
-    class Config:
-        from_attributes = True
-        json_encoders = {datetime: datetime_format}
-
 
 class IdpCreate(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: datetime_format})
+
     title: str
     employee_id: int
     tasks: list[TaskForIdpCreate]
     date_end: datetime = Field(..., examples=["13.11.2024"])
 
-    @validator("date_end", pre=True)
+    @field_validator("date_end", mode="before")
     def parse_date_end(cls, value):
         if isinstance(value, str):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
 
-    class Config:
-        json_encoders = {datetime: datetime_format}
-
 
 class IdpCreateDB(IdpCreate):
+    model_config = ConfigDict(from_attributes = True)
+
     date_start: datetime = Field(..., examples=["13.05.2024"])
     status_idp: str
     id: int
     tasks: list[TaskForIdpCreateDB]
 
-    class Config:
-        from_attributes = True
-
 
 class IdpRetrieve(BaseModel):
+    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
+
     title: str
     employee_id: int
     director_id: int
     status_idp: str
     tasks: list[TaskWithComments]
-
-    class Config:
-        populate_by_name = True
-        from_attributes = True
 
 
 class IdpWithCurrentTask(BaseModel):
@@ -106,11 +97,11 @@ class IdpWithCurrentTask(BaseModel):
     progress: float = Field(validation_alias="tasks")
     current_task: CurrentTask | None = Field(validation_alias="tasks")
 
-    @validator("director", pre=True)
+    @field_validator("director", mode="before")
     def get_director_full_name(cls, v, values) -> str:
         return f"{v.last_name} {v.first_name} {v.patronymic}"
 
-    @validator("current_task", pre=True)
+    @field_validator("current_task", mode="before")
     def get_current_task(cls, v, values) -> CurrentTask | None:
         for task in v:
             data = task.__dict__
@@ -118,7 +109,7 @@ class IdpWithCurrentTask(BaseModel):
                 return CurrentTask(**data)
         return None
 
-    @validator("progress", pre=True)
+    @field_validator("progress", mode="before")
     def get_progress(cls, v, values) -> float:
         done_count = 0
         not_cancelled_count = 0

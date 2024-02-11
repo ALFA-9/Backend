@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 def datetime_format(dt: datetime):
@@ -12,6 +12,8 @@ def datetime_for_comments_format(dt: datetime):
 
 
 class Task(BaseModel):
+    model_config = ConfigDict(json_encoders = {datetime: datetime_format})
+
     name: str
     description: str
     idp_id: int
@@ -20,29 +22,25 @@ class Task(BaseModel):
     date_start: datetime = Field(..., examples=["23.05.2024"])
     date_end: datetime = Field(..., examples=["23.11.2024"])
 
-    class Config:
-        json_encoders = {datetime: datetime_format}
-
 
 class TaskDB(Task):
     id: int
 
 
 class TaskCreate(BaseModel):
+    model_config = ConfigDict(json_encoders = {datetime: datetime_format})
+
     name: str
     description: str
     idp_id: int
     date_start: datetime = Field(..., examples=["23.05.2024"])
     date_end: datetime = Field(..., examples=["23.11.2024"])
 
-    @validator("date_end", "date_start", pre=True)
+    @field_validator("date_end", "date_start", mode="before")
     def parse_date_end(cls, value):
         if isinstance(value, str):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
-
-    class Config:
-        json_encoders = {datetime: datetime_format}
 
 
 class TaskCreateDB(TaskCreate):
@@ -52,6 +50,8 @@ class TaskCreateDB(TaskCreate):
 
 
 class TaskPatch(BaseModel):
+    model_config = ConfigDict(json_encoders = {datetime: datetime_format})
+
     name: str | None = None
     description: str | None = None
     status_progress: str | None = None
@@ -59,28 +59,23 @@ class TaskPatch(BaseModel):
     date_start: datetime | None = Field(None, examples=["23.05.2024"])
     date_end: datetime | None = Field(None, examples=["23.11.2024"])
 
-    @validator("date_end", "date_start", pre=True)
+    @field_validator("date_end", "date_start", mode="before")
     def parse_date_end(cls, value):
         if isinstance(value, str):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
 
-    class Config:
-        json_encoders = {datetime: datetime_format}
-
 
 class Type(BaseModel):
-    name: str
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    name: str
 
 
 class Control(BaseModel):
-    title: str
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    title: str
 
 
 class TaskForIdpCreate(BaseModel):
@@ -91,7 +86,7 @@ class TaskForIdpCreate(BaseModel):
     date_start: datetime | None = Field(None, examples=["23.05.2024"])
     date_end: datetime | None = Field(None, examples=["23.11.2024"])
 
-    @validator("date_end", "date_start", pre=True)
+    @field_validator("date_end", "date_start", mode="before")
     def parse_date_end(cls, value):
         if isinstance(value, str):
             return datetime.strptime(value, "%d.%m.%Y").date()
@@ -99,6 +94,12 @@ class TaskForIdpCreate(BaseModel):
 
 
 class TaskForIdpCreateDB(TaskForIdpCreate):
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True, json_encoders={
+            datetime: datetime_format,
+            Type: lambda v: v.name,
+            Control: lambda v: v.title,
+        })
+
     id: int
     type_id: int = Field(exclude=True)
     control_id: int = Field(exclude=True)
@@ -106,15 +107,6 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
     is_completed: bool | None = None
     task_type: Type = Field(alias="type", examples=["Project"])
     task_control: Control = Field(alias="control", examples=["Test"])
-
-    class Config:
-        populate_by_name = True
-        from_attributes = True
-        json_encoders = {
-            datetime: datetime_format,
-            Type: lambda v: v.name,
-            Control: lambda v: v.title,
-        }
 
 
 class Post(BaseModel):
@@ -129,29 +121,25 @@ class Employee(BaseModel):
 
 
 class CommentCreate(BaseModel):
-    body_comment: str = Field(alias="body")
+    model_config = ConfigDict(populate_by_name=True)
 
-    class Config:
-        populate_by_name = True
+    body_comment: str = Field(alias="body")
 
 
 class Comment(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True, json_encoders={
+            datetime: datetime_for_comments_format,
+            Employee: lambda v: f"{v.last_name} {v.first_name} {v.patronymic}",
+        })
+
     employee: Employee = Field(examples=["Johnov John Johnovich"])
     employee_post: str = Field(...)
     body_comment: str = Field(alias="body")
     pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
 
-    @validator("employee_post", pre=True, always=True)
+    @field_validator("employee_post", mode="before")
     def post(cls, v, values) -> str:
         return values["employee"].post.title
-
-    class Config:
-        populate_by_name = True
-        from_attributes = True
-        json_encoders = {
-            datetime: datetime_for_comments_format,
-            Employee: lambda v: f"{v.last_name} {v.first_name} {v.patronymic}",
-        }
 
 
 class CommentCreateDB(Comment):
@@ -159,18 +147,16 @@ class CommentCreateDB(Comment):
 
 
 class TaskWithComments(TaskForIdpCreateDB):
-    comment: list[Comment] = Field(alias="comments")
+    model_config = ConfigDict(populate_by_name=True)
 
-    class Config:
-        populate_by_name = True
+    comment: list[Comment] = Field(alias="comments")
 
 
 class CurrentTask(BaseModel):
+    model_config = ConfigDict(json_encoders={
+            datetime: datetime_format,
+        })
+
     id: int
     name: str
     date_end: datetime = Field(examples=["23.11.2024"])
-
-    class Config:
-        json_encoders = {
-            datetime: datetime_format,
-        }
