@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator, ConfigDict
+from pydantic import (BaseModel, ConfigDict, EmailStr, Field, computed_field,
+                      field_validator)
 
 from app.api_v1.idps.schemas import IdpForEmployee, IdpWithCurrentTask
 from app.constants import MAX_RECURSION
@@ -31,10 +32,10 @@ class EmployeeChild(EmployeeSchema):
 
     @field_validator("employees", mode="before")
     def get_employees(cls, value, values):
-        if values["max_recursion"] > 1:
+        if values.data["max_recursion"] > 1:
             return [
                 EmployeeChild(
-                    **child.__dict__, max_recursion=values["max_recursion"] - 1
+                    **child.__dict__, max_recursion=values.data["max_recursion"] - 1
                 )
                 for child in value
             ]

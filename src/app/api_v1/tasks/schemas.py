@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import (BaseModel, ConfigDict, Field, field_serializer,
+                      field_validator)
 
 
 def datetime_format(dt: datetime):
@@ -12,8 +13,6 @@ def datetime_for_comments_format(dt: datetime):
 
 
 class Task(BaseModel):
-    model_config = ConfigDict(json_encoders = {datetime: datetime_format})
-
     name: str
     description: str
     idp_id: int
@@ -22,14 +21,16 @@ class Task(BaseModel):
     date_start: datetime = Field(..., examples=["23.05.2024"])
     date_end: datetime = Field(..., examples=["23.11.2024"])
 
+    @field_serializer("date_start", "date_end")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
+
 
 class TaskDB(Task):
     id: int
 
 
 class TaskCreate(BaseModel):
-    model_config = ConfigDict(json_encoders = {datetime: datetime_format})
-
     name: str
     description: str
     idp_id: int
@@ -42,6 +43,10 @@ class TaskCreate(BaseModel):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
 
+    @field_serializer("date_start", "date_end")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
+
 
 class TaskCreateDB(TaskCreate):
     id: int
@@ -50,8 +55,6 @@ class TaskCreateDB(TaskCreate):
 
 
 class TaskPatch(BaseModel):
-    model_config = ConfigDict(json_encoders = {datetime: datetime_format})
-
     name: str | None = None
     description: str | None = None
     status_progress: str | None = None
@@ -64,6 +67,10 @@ class TaskPatch(BaseModel):
         if isinstance(value, str):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
+
+    @field_serializer("date_start", "date_end")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
 
 
 class Type(BaseModel):
@@ -94,11 +101,10 @@ class TaskForIdpCreate(BaseModel):
 
 
 class TaskForIdpCreateDB(TaskForIdpCreate):
-    model_config = ConfigDict(populate_by_name=True, from_attributes=True, json_encoders={
-            datetime: datetime_format,
-            Type: lambda v: v.name,
-            Control: lambda v: v.title,
-        })
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+    )
 
     id: int
     type_id: int = Field(exclude=True)
@@ -107,6 +113,18 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
     is_completed: bool | None = None
     task_type: Type = Field(alias="type", examples=["Project"])
     task_control: Control = Field(alias="control", examples=["Test"])
+
+    @field_serializer("date_start", "date_end")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
+
+    @field_serializer("task_type")
+    def serialize_type(self, value):
+        return value.name
+
+    @field_serializer("task_control")
+    def serialize_control(self, value):
+        return value.title
 
 
 class Post(BaseModel):
@@ -127,10 +145,10 @@ class CommentCreate(BaseModel):
 
 
 class Comment(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, from_attributes=True, json_encoders={
-            datetime: datetime_for_comments_format,
-            Employee: lambda v: f"{v.last_name} {v.first_name} {v.patronymic}",
-        })
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+    )
 
     employee: Employee = Field(examples=["Johnov John Johnovich"])
     employee_post: str = Field(...)
@@ -140,6 +158,14 @@ class Comment(BaseModel):
     @field_validator("employee_post", mode="before")
     def post(cls, v, values) -> str:
         return values["employee"].post.title
+
+    @field_serializer("pub_date")
+    def serialize_datetime(self, value):
+        return datetime_for_comments_format(value)
+
+    @field_serializer("employee")
+    def serialize_employee(self, value):
+        return f"{value.last_name} {value.first_name} {value.patronymic}"
 
 
 class CommentCreateDB(Comment):
@@ -153,10 +179,10 @@ class TaskWithComments(TaskForIdpCreateDB):
 
 
 class CurrentTask(BaseModel):
-    model_config = ConfigDict(json_encoders={
-            datetime: datetime_format,
-        })
-
     id: int
     name: str
     date_end: datetime = Field(examples=["23.11.2024"])
+
+    @field_serializer("date_end")
+    def serialize_datetime(self, value):
+        return datetime_format(value)

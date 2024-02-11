@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from fastapi import File, Form, UploadFile
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import (BaseModel, ConfigDict, Field, field_serializer,
+                      field_validator)
 
 from app.api_v1.tasks.schemas import (CurrentTask, TaskForIdpCreate,
                                       TaskForIdpCreateDB, TaskWithComments)
@@ -17,26 +18,28 @@ class IdpPatch(BaseModel):
 
 
 class IdpForEmployee(BaseModel):
-    model_config = ConfigDict(json_encoders={datetime: datetime_format})
-
     id: int
     title: str
     status_idp: str
     director: str
     date_start: datetime = Field(..., examples=["13.05.2024"])
-    date_end: datetime = Field(..., examples=["13.11.2024"])
+
+    @field_serializer("date_start")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
 
 
 class IdpList(BaseModel):
-    model_config = ConfigDict(json_encoders={datetime: datetime_format})
-
     id: int
     title: str
     status_idp: str
     date_start: datetime = Field(..., examples=["13.05.2024"])
-    date_end: datetime = Field(..., examples=["13.11.2024"])
     employee_id: int
     director_id: int
+
+    @field_serializer("date_start")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
 
 
 class EmployeeDB(BaseModel):
@@ -49,38 +52,37 @@ class EmployeeDB(BaseModel):
 
 
 class IdpDB(IdpList):
-    model_config = ConfigDict(json_encoders={datetime: datetime_format}, from_attributes = True)
+    model_config = ConfigDict(from_attributes=True)
 
     employee: EmployeeDB
     director: EmployeeDB
 
+    @field_serializer("date_start")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
+
 
 class IdpCreate(BaseModel):
-    model_config = ConfigDict(json_encoders={datetime: datetime_format})
-
     title: str
     employee_id: int
     tasks: list[TaskForIdpCreate]
-    date_end: datetime = Field(..., examples=["13.11.2024"])
-
-    @field_validator("date_end", mode="before")
-    def parse_date_end(cls, value):
-        if isinstance(value, str):
-            return datetime.strptime(value, "%d.%m.%Y").date()
-        return value
 
 
 class IdpCreateDB(IdpCreate):
-    model_config = ConfigDict(from_attributes = True)
+    model_config = ConfigDict(from_attributes=True)
 
     date_start: datetime = Field(..., examples=["13.05.2024"])
     status_idp: str
     id: int
     tasks: list[TaskForIdpCreateDB]
 
+    @field_serializer("date_start")
+    def serialize_datetime(self, value):
+        return datetime_format(value)
+
 
 class IdpRetrieve(BaseModel):
-    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     title: str
     employee_id: int

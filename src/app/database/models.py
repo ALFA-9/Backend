@@ -2,8 +2,7 @@ from enum import Enum as PythonEnum
 
 from sqlalchemy import (Boolean, Column, Date, DateTime, Enum, ForeignKey,
                         Integer, String, Text)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, declarative_base
 from sqlalchemy.sql import func
 
 Base = declarative_base()
@@ -166,7 +165,6 @@ class Idp(Base):
     )
     status_idp = Column(Enum(StatusIdp), default=StatusIdp.in_work)
     date_start = Column(Date, server_default=func.now(), default=func.now())
-    date_end = Column(Date)
 
     employee = relationship(
         "Employee",

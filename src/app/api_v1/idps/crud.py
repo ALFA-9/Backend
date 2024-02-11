@@ -63,7 +63,6 @@ async def post(db: AsyncSession, user: Employee, payload):
         title=payload.title,
         employee_id=payload.employee_id,
         director_id=user.id,
-        date_end=payload.date_end,
     )
     db.add(idp)
     await db.flush()

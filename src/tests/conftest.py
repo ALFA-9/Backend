@@ -1,15 +1,15 @@
 import pytest
 import pytest_asyncio
+from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from fastapi import Depends
-from sqlalchemy.pool import StaticPool
-from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
-from app.main import app
+from app.database.models import (Base, Department, Employee, Grade, Post,
+                                 TaskControl, TaskType)
 from app.database.session import get_db
-from app.database.models import Base, Employee, Grade, Department, Post, TaskType, TaskControl
+from app.main import app
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -18,7 +18,12 @@ test_engine = create_async_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine, class_=AsyncSession,)
+TestingSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=test_engine,
+    class_=AsyncSession,
+)
 
 
 async def override_get_db():
