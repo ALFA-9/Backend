@@ -1,13 +1,11 @@
-import os
-
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://")
+from config import settings
 
 # SQLAlchemy
-engine = create_async_engine(DATABASE_URL)
+engine = create_async_engine(settings.DATABASE_URL)
 
 sync_engine = create_engine(
     "postgresql://fastapi_user:fastapi_pass@db/fastapi_dev",

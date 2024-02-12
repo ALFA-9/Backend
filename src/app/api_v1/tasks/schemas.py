@@ -146,25 +146,25 @@ class CommentCreate(BaseModel):
 
 class Comment(BaseModel):
     model_config = ConfigDict(
-        populate_by_name=True,
         from_attributes=True,
     )
 
-    employee: Employee = Field(examples=["Johnov John Johnovich"])
-    employee_post: str = Field(...)
-    body_comment: str = Field(alias="body")
+    employee: str = Field(validation_alias="employee", examples=["Johnov John Johnovich"])
+    employee_post: str = Field(validation_alias="employee")
+    body: str = Field(validation_alias="body_comment")
     pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
 
     @field_validator("employee_post", mode="before")
-    def post(cls, v, values) -> str:
-        return values["employee"].post.title
+    def post(cls, value):
+        return value.post.title
 
     @field_serializer("pub_date")
     def serialize_datetime(self, value):
         return datetime_for_comments_format(value)
 
-    @field_serializer("employee")
-    def serialize_employee(self, value):
+    @field_validator("employee", mode="before")
+    @classmethod
+    def validate_employee(cls, value) -> str:
         return f"{value.last_name} {value.first_name} {value.patronymic}"
 
 

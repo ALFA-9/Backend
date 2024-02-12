@@ -7,8 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api_v1.idps import crud
-from app.api_v1.idps.schemas import (IdpCreate, IdpCreateDB, IdpList, IdpPatch,
-                                     IdpRetrieve, RequestSchema)
+from app.api_v1.idps.schemas import (IdpCreate, IdpCreateDB, IdpPatch,
+                                     IdpRetrieve, RequestSchema, IdpWithCurrentTask)
 from app.auth.auth import get_current_auth_user
 from app.constants import (EXAMPLE_403, EXAMPLE_429, EXAMPLE_ACTIVE_IDP_400,
                            EXAMPLE_ERROR_SENDING_400, EXAMPLE_IDP_404,
@@ -21,7 +21,7 @@ from app.utils import get_all_parents_id, send_email
 router = APIRouter(prefix="/idps", tags=["idps"])
 
 
-@router.get("/", response_model=list[IdpList])
+@router.get("/", response_model=list[IdpWithCurrentTask])
 async def get_all_idps(
     db: AsyncSession = Depends(get_db),
     user: Employee = Depends(get_current_auth_user),
@@ -49,6 +49,7 @@ async def get_idp(
 
 @router.post(
     "/",
+    status_code=201,
     response_model=IdpCreateDB,
     responses={
         403: EXAMPLE_403,
@@ -138,15 +139,17 @@ async def post_request(
         await send_email(
             payload.title,
             payload.letter,
-            payload.files,
             director.email,
+            payload.file,
         )
+        user.last_request = dt.datetime.utcnow()
+        await db.commit()
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Mail didnt sent",
         )
     result = jsonable_encoder(payload)
-    if result["files"]:
-        result["files"] = [x["filename"] for x in result["files"]]
+    if result["file"]:
+        result["file"] = [x["filename"] for x in result["file"]]
     return JSONResponse(content=result)

@@ -20,8 +20,7 @@ async def get_all(db: AsyncSession, user: Employee, skip: int = 0, limit: int = 
     statement = (
         select(Idp)
         .options(
-            joinedload(Idp.employee),
-            joinedload(Idp.director),
+            joinedload(Idp.tasks),
         )
         .offset(skip)
         .limit(limit)
@@ -83,9 +82,8 @@ async def post(db: AsyncSession, user: Employee, payload):
 
 
 async def patch(db: AsyncSession, user: Employee, payload, id: int):
-    existing_model = await db.execute(
-        select(Idp).options(joinedload(Idp.employee)).where(Idp.id == id)
-    )
+    statement = select(Idp).where(Idp.id == id)
+    existing_model = await db.execute(statement)
     idp = existing_model.scalar()
     if not idp:
         raise HTTPException(
@@ -100,4 +98,5 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
     for field, value in payload:
         setattr(idp, field, value)
     await db.commit()
+    await db.refresh(idp)
     return idp

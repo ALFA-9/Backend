@@ -12,6 +12,10 @@ PyJWT==2.8.0
 cryptography==42.0.1
 pydantic==2.6.1
 
-# dev
+# test
 pytest==8.0.0
+pytest-asyncio==0.23.5
+pytest-postgresql==5.1.0
+psycopg-binary==3.1.18
+httpx==0.26.0
 requests==2.23.0

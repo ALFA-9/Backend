@@ -71,14 +71,9 @@ class IdpCreate(BaseModel):
 class IdpCreateDB(IdpCreate):
     model_config = ConfigDict(from_attributes=True)
 
-    date_start: datetime = Field(..., examples=["13.05.2024"])
     status_idp: str
     id: int
     tasks: list[TaskForIdpCreateDB]
-
-    @field_serializer("date_start")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
 
 
 class IdpRetrieve(BaseModel):
