@@ -1,5 +1,6 @@
 import pytest
 from fastapi import status
+
 # from httpx import AsyncClient
 
 
@@ -59,7 +60,7 @@ async def test_user_me(client, create_employees, get_token):
         "post": "Post2",
         "idps": [],
         "department": "Department1",
-        "grade": "Grade2"
+        "grade": "Grade2",
     }
 
 
@@ -78,7 +79,7 @@ async def test_employee_by_id(client, create_employees, get_token):
         "post": "Post3",
         "idps": [],
         "department": "Department1",
-        "grade": "Grade3"
+        "grade": "Grade3",
     }
 
     url = "/api/v1/employees/1/"

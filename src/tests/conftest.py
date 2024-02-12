@@ -1,18 +1,17 @@
 from datetime import datetime, timedelta
-import asyncio
 
-from pytest_postgresql import factories
-from pytest_postgresql.janitor import DatabaseJanitor
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from pytest_postgresql import factories
+from pytest_postgresql.janitor import DatabaseJanitor
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from config import settings
-from app.database.models import (Base, Department, Employee, Grade, Post,
-                                 TaskControl, TaskType, Idp, Task)
+from app.database.models import (Base, Department, Employee, Grade, Idp, Post,
+                                 Task, TaskControl, TaskType)
 from app.database.session import get_db
 from app.main import app
+from config import settings
 
 test_db = factories.postgresql_noproc(
     host=settings.POSTGRES_HOST,
@@ -33,7 +32,9 @@ def connection_test(test_db):
     pg_db = test_db.dbname
     pg_password = test_db.password
     with DatabaseJanitor(pg_user, pg_host, pg_port, pg_db, test_db.version, pg_password):
-        engine = create_async_engine(f"postgresql+psycopg://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}")
+        engine = create_async_engine(
+            f"postgresql+psycopg://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
+        )
         TestingSessionLocal.configure(bind=engine)
         yield engine
         # await engine.dispose()

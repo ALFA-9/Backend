@@ -6,8 +6,8 @@ from smtplib import SMTP_SSL
 
 from sqlalchemy import and_, select
 
-from config import settings
 from app.database.models import Employee
+from config import settings
 
 
 def get_all_childs_id(parent_id):

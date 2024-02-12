@@ -149,7 +149,9 @@ class Comment(BaseModel):
         from_attributes=True,
     )
 
-    employee: str = Field(validation_alias="employee", examples=["Johnov John Johnovich"])
+    employee: str = Field(
+        validation_alias="employee", examples=["Johnov John Johnovich"]
+    )
     employee_post: str = Field(validation_alias="employee")
     body: str = Field(validation_alias="body_comment")
     pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
