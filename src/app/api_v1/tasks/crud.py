@@ -19,7 +19,7 @@ async def post(db: AsyncSession, user: Employee, payload):
     if idp.director_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Permisson denied",
+            detail="Permission denied",
         )
     task = Task(
         name=payload.name,
@@ -27,9 +27,12 @@ async def post(db: AsyncSession, user: Employee, payload):
         idp_id=payload.idp_id,
         date_start=payload.date_start,
         date_end=payload.date_end,
+        type_id=payload.type_id,
+        control_id=payload.control_id,
     )
     db.add(task)
     await db.commit()
+    await db.refresh(task)
     return task
 
 
@@ -52,6 +55,7 @@ async def patch(
         for field, value in payload:
             setattr(task, field, value)
         await db.commit()
+        await db.refresh(task)
         if payload.status_progress:
             background_tasks.add_task(
                 send_email,
@@ -63,10 +67,11 @@ async def patch(
     elif task.idp.employee_id == user.id:
         setattr(task, "is_completed", True)
         await db.commit()
+        await db.refresh(task)
         return task
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
-        detail="Permisson denied",
+        detail="Permission denied",
     )
 
 
@@ -81,7 +86,7 @@ async def delete(db: AsyncSession, user: Employee, id: int):
     if task.idp.director_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Permisson denied",
+            detail="Permission denied",
         )
     await db.delete(task)
     await db.commit()
@@ -101,7 +106,7 @@ async def post_comment(db: AsyncSession, user: Employee, id: int, payload):
     if user.id not in (directors_id + [idp_emp]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Permisson denied",
+            detail="Permission denied",
         )
     comment = Comment(
         task_id=id,

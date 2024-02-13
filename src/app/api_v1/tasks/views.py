@@ -14,6 +14,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 @router.post(
     "/",
+    status_code=201,
     response_model=TaskCreateDB,
     responses={
         403: EXAMPLE_403,
@@ -48,6 +49,7 @@ async def patch_task(
 
 @router.delete(
     "/{id}/",
+    status_code=204,
     responses={
         403: EXAMPLE_403,
         404: EXAMPLE_TASK_404,
@@ -63,6 +65,7 @@ async def delete_task(
 
 @router.post(
     "/{id}/comments/",
+    status_code=201,
     response_model=CommentCreateDB,
     responses={
         403: EXAMPLE_403,

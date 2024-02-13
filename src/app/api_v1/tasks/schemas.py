@@ -30,30 +30,6 @@ class TaskDB(Task):
     id: int
 
 
-class TaskCreate(BaseModel):
-    name: str
-    description: str
-    idp_id: int
-    date_start: datetime = Field(..., examples=["23.05.2024"])
-    date_end: datetime = Field(..., examples=["23.11.2024"])
-
-    @field_validator("date_end", "date_start", mode="before")
-    def parse_date_end(cls, value):
-        if isinstance(value, str):
-            return datetime.strptime(value, "%d.%m.%Y").date()
-        return value
-
-    @field_serializer("date_start", "date_end")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
-
-
-class TaskCreateDB(TaskCreate):
-    id: int
-    status_progress: str
-    is_completed: bool | None = None
-
-
 class TaskPatch(BaseModel):
     name: str | None = None
     description: str | None = None
@@ -102,7 +78,6 @@ class TaskForIdpCreate(BaseModel):
 
 class TaskForIdpCreateDB(TaskForIdpCreate):
     model_config = ConfigDict(
-        populate_by_name=True,
         from_attributes=True,
     )
 
@@ -111,20 +86,28 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
     control_id: int = Field(exclude=True)
     status_progress: str
     is_completed: bool | None = None
-    task_type: Type = Field(alias="type", examples=["Project"])
-    task_control: Control = Field(alias="control", examples=["Test"])
+    type: str = Field(validation_alias="task_type", examples=["Project"])
+    control: str = Field(validation_alias="task_control", examples=["Test"])
 
     @field_serializer("date_start", "date_end")
     def serialize_datetime(self, value):
         return datetime_format(value)
 
-    @field_serializer("task_type")
-    def serialize_type(self, value):
+    @field_validator("type", mode="before")
+    def validate_type(cls, value):
         return value.name
 
-    @field_serializer("task_control")
-    def serialize_control(self, value):
+    @field_validator("control", mode="before")
+    def validate_control(cls, value):
         return value.title
+
+
+class TaskCreate(TaskForIdpCreate):
+    idp_id: int = Field(validation_alias="idp")
+
+
+class TaskCreateDB(TaskForIdpCreateDB):
+    idp_id: int = Field(serialization_alias="idp")
 
 
 class Post(BaseModel):
