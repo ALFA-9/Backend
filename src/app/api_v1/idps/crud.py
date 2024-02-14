@@ -96,7 +96,8 @@ async def patch(db: AsyncSession, user: Employee, payload, id: int):
             detail="Permission denied",
         )
     for field, value in payload:
-        setattr(idp, field, value)
+        if value is not None:
+            setattr(idp, field, value)
     await db.commit()
     await db.refresh(idp)
     return idp

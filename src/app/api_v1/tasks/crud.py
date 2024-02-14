@@ -50,10 +50,11 @@ async def patch(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
-    if task.idp.director_id != user.id:
+    if task.idp.director_id == user.id:
         payload.is_completed = False
         for field, value in payload:
-            setattr(task, field, value)
+            if value is not None:
+                setattr(task, field, value)
         await db.commit()
         await db.refresh(task)
         if payload.status_progress:
@@ -65,6 +66,11 @@ async def patch(
             )
         return task
     elif task.idp.employee_id == user.id:
+        if payload.is_completed is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied",
+            )
         setattr(task, "is_completed", True)
         await db.commit()
         await db.refresh(task)

@@ -36,7 +36,6 @@ class IdpAdmin(ModelView, model=Idp):
         "director",
         "status_idp",
         "date_start",
-        "date_end",
     ]
     form_excluded_columns = ["date_start"]
     is_async = True
@@ -49,7 +48,7 @@ class TaskAdmin(ModelView, model=Task):
         "name",
         "idp",
         "status_progress",
-        "status_accept",
+        "is_completed",
         "task_type",
         "task_control",
     ]

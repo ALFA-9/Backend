@@ -44,9 +44,9 @@ class TaskPatch(BaseModel):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
 
-    @field_serializer("date_start", "date_end")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
+    # @field_serializer("date_start", "date_end")
+    # def serialize_datetime(self, value):
+    #     return datetime_format(value)
 
 
 class Type(BaseModel):
@@ -77,10 +77,6 @@ class TaskForIdpCreate(BaseModel):
 
 
 class TaskForIdpCreateDB(TaskForIdpCreate):
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
     id: int
     type_id: int = Field(exclude=True)
     control_id: int = Field(exclude=True)

@@ -92,8 +92,8 @@ class Department(Base):
 class Comment(Base):
     __tablename__ = "comment"
     id = Column(Integer, primary_key=True)
-    body_comment = Column(String(200))
-    task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"))
+    body_comment = Column(String(200), nullable=False)
+    task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"), nullable=False)
     employee_id = Column(Integer, ForeignKey("employee.id", ondelete="CASCADE"))
     pub_date = Column(DateTime, server_default=func.now(), default=func.now())
 
@@ -113,13 +113,13 @@ class Task(Base):
 
     __tablename__ = "task"
     id = Column(Integer, primary_key=True)
-    name = Column(String(100))
-    description = Column(Text)
-    idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"))
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=False)
+    idp_id = Column(Integer, ForeignKey("idp.id", ondelete="CASCADE"), nullable=False)
     status_progress = Column(Enum(StatusProgress), default=StatusProgress.in_work)
     is_completed = Column(Boolean, default=False)
-    date_start = Column(Date)
-    date_end = Column(Date)
+    date_start = Column(Date, nullable=False)
+    date_end = Column(Date, nullable=False)
     type_id = Column(
         Integer,
         ForeignKey("type.id", ondelete="SET NULL"),
@@ -153,14 +153,15 @@ class Idp(Base):
 
     __tablename__ = "idp"
     id = Column(Integer, primary_key=True)
-    title = Column(String(100))
+    title = Column(String(100), nullable=False)
     employee_id = Column(
         Integer,
         ForeignKey("employee.id", ondelete="CASCADE"),
+        nullable=False,
     )
     director_id = Column(
         Integer,
-        ForeignKey("employee.id"),
+        ForeignKey("employee.id", ondelete="SET NULL"),
         nullable=True,
     )
     status_idp = Column(Enum(StatusIdp), default=StatusIdp.in_work)
@@ -187,7 +188,7 @@ class Idp(Base):
 class TaskType(Base):
     __tablename__ = "type"
     id = Column(Integer, primary_key=True)
-    name = Column(String(50))
+    name = Column(String(50), nullable=False)
 
     task = relationship("Task", back_populates="task_type", lazy="joined")
 
@@ -198,7 +199,7 @@ class TaskType(Base):
 class TaskControl(Base):
     __tablename__ = "control"
     id = Column(Integer, primary_key=True)
-    title = Column(String(100))
+    title = Column(String(100), nullable=False)
 
     task = relationship("Task", back_populates="task_control", lazy="joined")
 
