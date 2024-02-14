@@ -1,0 +1,4 @@
+[run]
+omit =
+    tests/*
+    import_data.py

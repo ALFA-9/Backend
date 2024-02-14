@@ -11,9 +11,13 @@ alembic-postgresql-enum==1.0.2
 PyJWT==2.8.0
 cryptography==42.0.1
 pydantic==2.6.1
+celery==5.3.6
+redis==5.0.1
+flower==2.0.1
 
 # test
 pytest==8.0.0
+pytest-cov==4.1.0
 pytest-asyncio==0.23.5
 pytest-postgresql==5.1.0
 psycopg-binary==3.1.18

@@ -30,6 +30,9 @@ class Settings(BaseModel):
     POSTGRES_PORT: int = os.getenv("POSTGRES_PORT", 5432)
     DATABASE_URL: str = os.getenv("DATABASE_URL")
 
+    BROKER_URL: str = os.getenv("BROKER_URL", "redis://redis:6379/0")
+    RESULT_BACKEND: str = os.getenv("RESULT_BACKEND", BROKER_URL)
+
 
 auth = AuthJWT()
 settings = Settings()

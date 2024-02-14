@@ -11,11 +11,38 @@ services:
     env_file: .env
     depends_on:
       - db
+
   db:
     image: postgres:16.1-alpine3.19
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file: .env
+
+  redis:
+    image: redis:7.2.4-alpine
+    expose:
+      - 6379
+
+  worker:
+    build: ./src
+    command: celery -A app.celery.celery_app worker --loglevel=info
+    volumes:
+      - ./src/:/usr/src/app/
+    env_file: .env
+    depends_on:
+      - web
+      - redis
+  
+  dashboard:
+    build: ./src
+    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    ports:
+      - 5556:5555
+    env_file: .env
+    depends_on:
+      - web
+      - redis
+      - worker
 
 volumes:
   postgres_data:
