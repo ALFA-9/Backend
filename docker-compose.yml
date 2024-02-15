@@ -25,7 +25,7 @@ services:
 
   worker:
     build: ./src
-    command: celery -A app.celery.celery_app worker --loglevel=info
+    command: celery -A app.celery.celery_app worker -B --loglevel=info
     volumes:
       - ./src/:/usr/src/app/
     env_file: .env

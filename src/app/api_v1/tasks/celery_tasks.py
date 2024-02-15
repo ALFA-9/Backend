@@ -1,25 +1,33 @@
+import asyncio
 import datetime as dt
 
-from celery import shared_task
 from sqlalchemy import select
 
+from app.celery import celery_app
 from app.database.models import Task
-from app.database.session import get_db
+from app.database.session import SessionLocal
 
 
-@shared_task
-async def update_status_for_task():
+async def async_body():
     """Обновлем статус для просроченных задач."""
-    db = await get_db
-    statement = select(Task).where(
-        Task.status_progress == "in_work", Task.date_end < dt.date.today()
-    )
-    result = await db.execute(statement)
-    tasks = result.unique().scalars().all()
-    for task in tasks:
-        task.statis_idp = "not_completed"
-    await db.commit()
-    await db.refresh(tasks)
-    for i in tasks:
-        print(i)
+    async with SessionLocal() as session:
+        statement = select(Task).where(
+            Task.status_progress == "in_work",
+            Task.date_end < dt.date.today(),
+            Task.is_completed is not True,
+        )
+        result = await session.execute(statement)
+        tasks = result.unique().scalars().all()
+        for task in tasks:
+            task.status_progress = "not_completed"
+        await session.commit()
+        # for task in tasks:
+        #     await session.refresh(task)
+        #     print(task)
+
+
+@celery_app.task
+def update_status_for_task():
+    """Обновлем статус для просроченных задач."""
+    asyncio.run(async_body())
     return None
