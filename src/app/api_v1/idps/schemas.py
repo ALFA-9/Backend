@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from fastapi import File, Form, UploadFile
-from pydantic import (BaseModel, ConfigDict, Field, field_serializer,
-                      field_validator)
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.api_v1.tasks.schemas import (CurrentTask, TaskForIdpCreate,
                                       TaskForIdpCreateDB, TaskWithComments)
+from app.database.models import Idp
 
 
 def datetime_format(dt: datetime):
@@ -14,84 +14,37 @@ def datetime_format(dt: datetime):
 
 
 class IdpPatch(BaseModel):
-    status_idp: str
-
-
-class IdpForEmployee(BaseModel):
-    id: int
-    title: str
-    status_idp: str
-    director: str
-    date_start: datetime = Field(..., examples=["13.05.2024"])
-
-    @field_serializer("date_start")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
-
-
-class IdpList(BaseModel):
-    id: int
-    title: str
-    status_idp: str
-    date_start: datetime = Field(..., examples=["13.05.2024"])
-    employee_id: int
-    director_id: int
-
-    @field_serializer("date_start")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
-
-
-class EmployeeDB(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    first_name: str
-    last_name: str
-    patronymic: str
-
-
-class IdpDB(IdpList):
-    model_config = ConfigDict(from_attributes=True)
-
-    employee: EmployeeDB
-    director: EmployeeDB
-
-    @field_serializer("date_start")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
+    status_idp: Idp.StatusIdp
 
 
 class IdpCreate(BaseModel):
-    title: str
-    employee_id: int
+    title: str = Field(examples=["Learn Java"])
+    employee_id: int = Field(examples=[22099])
     tasks: list[TaskForIdpCreate]
 
 
 class IdpCreateDB(IdpCreate):
     model_config = ConfigDict(from_attributes=True)
 
-    status_idp: str
-    id: int
+    status_idp: Idp.StatusIdp
+    id: int = Field(examples=[22002])
     tasks: list[TaskForIdpCreateDB]
 
 
-class IdpRetrieve(BaseModel):
+class IdpRetrieve(IdpCreateDB):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    title: str
-    employee_id: int
-    director_id: int
-    status_idp: str
+    id: int = Field(exclude=True)
+    director_id: int = Field(examples=[22001])
     tasks: list[TaskWithComments]
 
 
 class IdpWithCurrentTask(BaseModel):
-    id: int
-    director: str
-    title: str
-    status_idp: str
-    progress: float = Field(validation_alias="tasks")
+    id: int = Field(examples=[22002])
+    director: str = Field(examples=["Johnov John Johnovich"])
+    title: str = Field(examples=["Learn Kotlin"])
+    status_idp: Idp.StatusIdp
+    progress: float = Field(validation_alias="tasks", examples=[66])
     current_task: CurrentTask | None = Field(validation_alias="tasks")
 
     @field_validator("director", mode="before")

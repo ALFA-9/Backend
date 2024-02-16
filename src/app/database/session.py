@@ -5,10 +5,12 @@ from sqlalchemy.orm import sessionmaker
 from config import settings
 
 # SQLAlchemy
-engine = create_async_engine(settings.DATABASE_URL)
+engine = create_async_engine(settings.DATABASE_URL, echo=True)
 
+# Для импорта данных
 sync_engine = create_engine(
-    "postgresql://fastapi_user:fastapi_pass@db/fastapi_dev",
+    f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+    f"@{settings.POSTGRES_HOST}/{settings.POSTGRES_DB}"
 )
 
 SessionLocal = sessionmaker(

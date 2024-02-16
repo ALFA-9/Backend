@@ -1,7 +1,7 @@
 from pydantic import (BaseModel, ConfigDict, EmailStr, Field, computed_field,
                       field_validator)
 
-from app.api_v1.idps.schemas import IdpForEmployee, IdpWithCurrentTask
+from app.api_v1.idps.schemas import IdpWithCurrentTask
 from app.constants import MAX_RECURSION
 
 
@@ -12,11 +12,11 @@ class AuthEmployeeSchema(BaseModel):
 class EmployeeSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    director_id: int = Field(serialization_alias="director")
-    first_name: str
-    last_name: str
-    patronymic: str
+    id: int = Field(examples=[22002])
+    director_id: int = Field(serialization_alias="director", examples=[22001])
+    first_name: str = Field(examples=["Sam"])
+    last_name: str = Field(examples=["Samov"])
+    patronymic: str = Field(examples=["Samovich"])
     post: str = Field(examples=["Backend-developer"])
 
     @field_validator("post", mode="before")
@@ -25,10 +25,8 @@ class EmployeeSchema(BaseModel):
 
 
 class EmployeeChild(EmployeeSchema):
-    model_config = ConfigDict(from_attributes=True)
-
     max_recursion: int = Field(MAX_RECURSION, exclude=True)
-    employees: list["EmployeeChild"]
+    employees: list["EmployeeChild"] = Field(examples=[list()])
 
     @field_validator("employees", mode="before")
     def get_employees(cls, value, values):
@@ -44,7 +42,6 @@ class EmployeeChild(EmployeeSchema):
 
 
 class EmployeeWithIdps(EmployeeSchema):
-    idps: list[IdpForEmployee] | None
     department: str = Field(examples=["IT"])
     grade: str = Field(examples=["Senior plus"])
     idps: list[IdpWithCurrentTask] = Field(validation_alias="idp_emp")
@@ -59,11 +56,11 @@ class EmployeeWithIdps(EmployeeSchema):
 
 
 class DirectorSchema(BaseModel):
-    id: int
+    id: int = Field(examples=[22001])
     first_name: str = Field(exclude=True)
     last_name: str = Field(exclude=True)
     patronymic: str = Field(exclude=True)
 
-    @computed_field
+    @computed_field(examples=["Johnov John Johnovich"])
     def name(self) -> str:
         return f"{self.last_name} {self.first_name} {self.patronymic}"

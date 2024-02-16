@@ -3,6 +3,8 @@ from datetime import datetime
 from pydantic import (BaseModel, ConfigDict, Field, field_serializer,
                       field_validator)
 
+from app.database.models import Task
+
 
 def datetime_format(dt: datetime):
     return dt.strftime("%d.%m.%Y")
@@ -12,28 +14,10 @@ def datetime_for_comments_format(dt: datetime):
     return dt.strftime("%d.%m.%y %H:%M")
 
 
-class Task(BaseModel):
-    name: str
-    description: str
-    idp_id: int
-    status_progress: str | None = None
-    is_completed: bool | None = None
-    date_start: datetime = Field(..., examples=["23.05.2024"])
-    date_end: datetime = Field(..., examples=["23.11.2024"])
-
-    @field_serializer("date_start", "date_end")
-    def serialize_datetime(self, value):
-        return datetime_format(value)
-
-
-class TaskDB(Task):
-    id: int
-
-
 class TaskPatch(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    status_progress: str | None = None
+    name: str | None = Field(None, examples=["Simple task"])
+    description: str | None = Field(None, examples=["Describe task here"])
+    status_progress: Task.StatusProgress | None = None
     is_completed: bool | None = None
     date_start: datetime | None = Field(None, examples=["23.05.2024"])
     date_end: datetime | None = Field(None, examples=["23.11.2024"])
@@ -44,28 +28,12 @@ class TaskPatch(BaseModel):
             return datetime.strptime(value, "%d.%m.%Y").date()
         return value
 
-    # @field_serializer("date_start", "date_end")
-    # def serialize_datetime(self, value):
-    #     return datetime_format(value)
-
-
-class Type(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    name: str
-
-
-class Control(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    title: str
-
 
 class TaskForIdpCreate(BaseModel):
-    name: str
-    description: str
-    type_id: int = Field(alias="type")
-    control_id: int = Field(alias="control")
+    name: str = Field(examples=["Simple task"])
+    description: str = Field(examples=["Describe task here"])
+    type_id: int = Field(alias="type", examples=[1])
+    control_id: int = Field(alias="control", examples=[3])
     date_start: datetime | None = Field(None, examples=["23.05.2024"])
     date_end: datetime | None = Field(None, examples=["23.11.2024"])
 
@@ -77,11 +45,11 @@ class TaskForIdpCreate(BaseModel):
 
 
 class TaskForIdpCreateDB(TaskForIdpCreate):
-    id: int
+    id: int = Field(examples=[6600001])
     type_id: int = Field(exclude=True)
     control_id: int = Field(exclude=True)
-    status_progress: str
-    is_completed: bool | None = None
+    status_progress: Task.StatusProgress
+    is_completed: bool = Field(examples=[False])
     type: str = Field(validation_alias="task_type", examples=["Project"])
     control: str = Field(validation_alias="task_control", examples=["Test"])
 
@@ -99,28 +67,17 @@ class TaskForIdpCreateDB(TaskForIdpCreate):
 
 
 class TaskCreate(TaskForIdpCreate):
-    idp_id: int = Field(validation_alias="idp")
+    idp_id: int = Field(validation_alias="idp", examples=[55001])
 
 
 class TaskCreateDB(TaskForIdpCreateDB):
-    idp_id: int = Field(serialization_alias="idp")
-
-
-class Post(BaseModel):
-    title: str
-
-
-class Employee(BaseModel):
-    first_name: str
-    last_name: str
-    patronymic: str
-    post: Post
+    idp_id: int = Field(serialization_alias="idp", examples=[55001])
 
 
 class CommentCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    body_comment: str = Field(alias="body")
+    body_comment: str = Field(alias="body", examples=["Where is GYM in our office?"])
 
 
 class Comment(BaseModel):
@@ -131,8 +88,12 @@ class Comment(BaseModel):
     employee: str = Field(
         validation_alias="employee", examples=["Johnov John Johnovich"]
     )
-    employee_post: str = Field(validation_alias="employee")
-    body: str = Field(validation_alias="body_comment")
+    employee_post: str = Field(
+        validation_alias="employee", examples=["Android-developer"]
+    )
+    body: str = Field(
+        validation_alias="body_comment", examples=["Where is GYM in our office?"]
+    )
     pub_date: datetime = Field(None, examples=["23.11.2024 13:48"])
 
     @field_validator("employee_post", mode="before")
@@ -150,7 +111,7 @@ class Comment(BaseModel):
 
 
 class CommentCreateDB(Comment):
-    task_id: int
+    task_id: int = Field(examples=[6600001])
 
 
 class TaskWithComments(TaskForIdpCreateDB):
@@ -160,8 +121,8 @@ class TaskWithComments(TaskForIdpCreateDB):
 
 
 class CurrentTask(BaseModel):
-    id: int
-    name: str
+    id: int = Field(examples=[6600001])
+    name: str = Field(examples=["Hard task"])
     date_end: datetime = Field(examples=["23.11.2024"])
 
     @field_serializer("date_end")
